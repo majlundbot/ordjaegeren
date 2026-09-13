@@ -212,6 +212,35 @@
   /* RPG: POTION-knap i bosskamp */
   .potion-btn { background: linear-gradient(180deg, #ff7ad9, #d946ef) !important; box-shadow: 0 4px 0 #86198f, 0 8px 18px rgba(217,70,239,.35) !important; color: #fff !important; }
   .potion-btn:disabled { filter: grayscale(.8); opacity: .6; }
+  /* ADAPTIV LÆRING: mønster-kort + lektions-skærm */
+  .pattern-list { display: flex; flex-direction: column; gap: 8px; }
+  .pattern-card {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
+    font-family: inherit; color: #fff; padding: 12px 14px; border-radius: 14px;
+    background: linear-gradient(160deg, rgba(251,191,36,.14), rgba(255,255,255,.03));
+    border: 2px solid rgba(251,191,36,.35); transition: all .15s;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  }
+  .pattern-card:hover { transform: translateY(-2px); border-color: #fbbf24; box-shadow: 0 8px 20px rgba(0,0,0,.35), 0 0 16px rgba(251,191,36,.3); }
+  .pattern-card .pc-emoji { font-size: 26px; flex: 0 0 auto; }
+  .pattern-card .pc-body { flex: 1; min-width: 0; }
+  .pattern-card .pc-body b { font-size: 15px; display: block; }
+  .pattern-card .pc-body small { font-size: 11.5px; color: #9fb0e8; }
+  .pattern-card .pc-go { font-size: 12px; font-weight: 800; color: var(--accent); flex: 0 0 auto; }
+  .lesson-big-icon { font-size: 60px; display: block; margin: 4px 0 8px; filter: drop-shadow(0 0 18px rgba(255,210,63,.4)); }
+  .lesson-meta { font-size: 13px; color: #fbbf24; font-weight: 800; margin-bottom: 10px; }
+  .lesson-rule {
+    font-size: clamp(17px, 4.4vw, 21px); font-weight: 800; line-height: 1.5; color: #fff;
+    background: rgba(255,255,255,.07); border-left: 4px solid var(--accent);
+    border-radius: 12px; padding: 14px 16px; margin: 8px 0; text-align: left;
+  }
+  .lesson-examples { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+  .lesson-chip {
+    font-weight: 900; font-size: 17px; padding: 8px 16px; border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,210,63,.22), rgba(255,210,63,.06));
+    border: 2px solid rgba(255,210,63,.5); color: #ffe37a;
+    text-shadow: 0 0 10px rgba(255,210,63,.5);
+  }
   /* KLASSE-VALG (Diablo-stil) — skal ligne store klikbare helt-kort */
   .class-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
   .class-card {
@@ -889,6 +918,20 @@
   </div>
 </div>
 
+<!-- LEKTION (adaptiv læring: målrettet hjælp til fejl-mønstre) -->
+<div class="screen" id="screen-lesson">
+  <div class="panel" style="max-width:560px">
+    <span class="lesson-big-icon" id="lessonIcon">💡</span>
+    <h2 id="lessonTitle"></h2>
+    <div class="lesson-meta" id="lessonMeta"></div>
+    <div class="lesson-rule" id="lessonRule"></div>
+    <div class="ta" id="lessonTip"></div>
+    <div class="lesson-examples" id="lessonExamples"></div>
+    <button class="btn gold" id="lessonDrill" style="margin-top:16px"></button>
+    <button class="btn ghost" style="margin-top:10px" onclick="showStats()">← Tilbage til statistik</button>
+  </div>
+</div>
+
 <!-- STATISTIK (forældre) -->
 <div class="screen" id="screen-stats">
   <div class="panel" style="max-width:640px">
@@ -901,6 +944,10 @@
     <div class="stats-section">
       <h3>🎯 Pr. spiltype</h3>
       <div id="statsGames" class="stats-list"></div>
+    </div>
+    <div class="stats-section">
+      <h3>🎓 Svage mønstre — spillet laver lektioner til dem</h3>
+      <div id="statsPatterns" class="pattern-list"></div>
     </div>
     <div class="stats-section">
       <h3>🕐 Seneste missioner</h3>
@@ -1322,7 +1369,8 @@ function loadState() {
   if (state.talents.hp === undefined) state.talents.hp = 0;
   if (state.talents.power === undefined) state.talents.power = 0;
   if (state.talents.crit === undefined) state.talents.crit = 0;
-  if (!state.achievements) state.achievements = [];
+  if (state.achievements === undefined) state.achievements = [];
+  if (!state.seenPatterns) state.seenPatterns = [];
 }
 let state = defaultState();
 loadState();
@@ -1563,6 +1611,18 @@ function renderStats() {
       <span class="sr-bar"><i style="width:${x.tries ? Math.round(x.wrong/x.tries * 100) : 0}%;background:${x.tries && x.wrong/x.tries > .3 ? "var(--red)" : "var(--green)"}"></i></span>
       <span class="sr-num">${x.wrong}/${x.tries} fejl</span>
     </div>`).join("");
+  // Svage mønstre → knapper der åbner en målrettet lektion
+  const patEl = document.getElementById("statsPatterns");
+  const pats = patternStats();
+  patEl.innerHTML = pats.length ? pats.map(p => `
+    <button class="pattern-card" onclick="showLesson('${p.key}')">
+      <span class="pc-emoji">${p.icon}</span>
+      <span class="pc-body">
+        <b>${p.name}</b>
+        <small>${p.wrong} fejl · ${p.practice.length} ord at øve på</small>
+      </span>
+      <span class="pc-go">Se lektion →</span>
+    </button>`).join("") : '<div class="ta" style="margin-top:0">Ingen mønstre fundet endnu — spil et par missioner, så finder spillet dem! 🔍</div>';
   // Seneste missioner
   const histEl = document.getElementById("statsHistory");
   const hist = state.stats.history.slice(-12).reverse();
@@ -2635,6 +2695,138 @@ function weakestWords(n) {
     .map(x => x.w);
 }
 
+/* ============ ADAPTIV LÆRING: FEJL-MØNSTRE + MINI-LEKTIONER ============ */
+// Spillet opdager HVILKE TYPER ord barnet fejler på, og laver en lektion målrettet det.
+// Det er "self-improvement"-laget: spillet lærer af fejlene og justerer træningen.
+const SPELL_PATTERNS = [
+  {
+    key: "hv", icon: "💨", name: "hv-ord",
+    test: w => /^hv/.test(w),
+    title: "Ord der starter med HV",
+    rule: "Alle hv-ord starter med H — selvom du ikke kan høre det!",
+    tip: "Sig 'hv-hv-hv' som vinden blæser: hvad, hvor, hvem, hvordan.",
+    look: ["hvad", "hvor", "hvem", "hvordan", "hvorfor"]
+  },
+  {
+    key: "dbl", icon: "✌️", name: "Dobbelt-bogstaver",
+    test: w => /([a-zæøå])\1/.test(w),
+    title: "To ens bogstaver (dobbelthit)",
+    rule: "Når lyden er kort, skrives den tit med TO ens bogstaver: ik-ke, al-le, suk-ker.",
+    tip: "Klap ordet: 'ik-ke' — hører du den korte lyd? Så skal der to bogstaver til!",
+    look: ["ikke", "alle", "sukker", "katten", "natten"]
+  },
+  {
+    key: "konsstart", icon: "🚀", name: "To konsonanter i starten",
+    test: w => /^(bl|br|dr|fl|fr|gl|gr|kl|kn|kr|pl|pr|sk|sl|sm|sn|sp|st|sv|tr|vr|hv)/.test(w),
+    title: "Ord med to konsonanter i starten",
+    rule: "Nogle ord starter med TO konsonanter — begge skal skrives med.",
+    tip: "Sig ordet langsomt: s-k-o-l-e, s-t-u-e, b-l-o-m-s-t.",
+    look: ["skole", "stue", "spise", "blomst", "træ"]
+  },
+  {
+    key: "stumtd", icon: "🤫", name: "Stumt D efter N",
+    test: w => /nd$/.test(w),
+    title: "Det stille D efter N",
+    rule: "D'et efter N kan du ikke høre — men det SKAL skrives: mand, hund, vind.",
+    tip: "Prøv at sige 'mann' — det lyder rigtigt, men det staves med D!",
+    look: ["mand", "hund", "vind"]
+  },
+  {
+    key: "lang", icon: "🐘", name: "Lange ord",
+    test: w => w.length >= 8,
+    title: "Lange ord — del dem op",
+    rule: "Lange ord bliver nemme, når du deler dem i stavelser.",
+    tip: "fa-mi-li-e · bed-ste-far · kar-tof-fel · gå én stavelse ad gangen!",
+    look: ["familie", "bedstefar", "kartoffel", "gulerod"]
+  },
+  {
+    key: "aeoeaa", icon: "🇩🇰", name: "Æ, Ø og Å",
+    test: w => /[æøå]/.test(w),
+    title: "De danske bogstaver Æ, Ø og Å",
+    rule: "Æ, Ø og Å har deres helt egen lyd — og de skal skrives rigtigt.",
+    tip: "æ som i 'æble' · ø som i 'øje' · å som i 'år'",
+    look: ["æble", "øje", "år", "høne", "træ"]
+  }
+];
+// Find de mønstre barnet fejler på (ud fra ord-statistik + aktive svage ord)
+function patternStats() {
+  const statsWords = (state.stats && state.stats.words) || {};
+  const wrongSet = {};
+  Object.keys(state.wrong || {}).forEach(w => { wrongSet[w] = true; });
+  const out = [];
+  SPELL_PATTERNS.forEach(p => {
+    let wrong = 0, tries = 0, words = [];
+    Object.keys(statsWords).forEach(w => {
+      if (!WORDS[w] || !p.test(w)) return;
+      const s = statsWords[w] || { tries: 0, wrong: 0 };
+      tries += s.tries; wrong += s.wrong;
+      if (s.wrong > 0 && !words.includes(w)) words.push(w);
+    });
+    Object.keys(wrongSet).forEach(w => { if (WORDS[w] && p.test(w) && !words.includes(w)) words.push(w); });
+    // Kun mønstre med mindst 1 fejl OG mindst 2 ord at øve på
+    const practice = patternWords(p.key);
+    if (wrong > 0 && practice.length >= 2) {
+      out.push({ key: p.key, icon: p.icon, name: p.name, title: p.title, rule: p.rule, tip: p.tip, look: p.look, wrong, tries, words, practice });
+    }
+  });
+  return out.sort((a, b) => b.wrong - a.wrong || b.words.length - a.words.length);
+}
+// Alle ord i spillet der matcher et mønster (med mindst ét ord fra barnets svage liste først)
+function patternWords(key) {
+  const p = SPELL_PATTERNS.find(x => x.key === key);
+  if (!p) return [];
+  const all = ALL_WORDS.filter(w => p.test(w));
+  // Sorter: barnets svage ord først, derefter resten
+  const weak = all.filter(w => state.wrong[w]);
+  const rest = all.filter(w => !state.wrong[w]);
+  return weak.concat(shuffle(rest));
+}
+// Er der et nyt mønster barnet ikke har set lektionen for endnu?
+function unseenPattern() {
+  const seen = state.seenPatterns || [];
+  return patternStats().find(p => !seen.includes(p.key)) || null;
+}
+function markPatternSeen(key) {
+  if (!state.seenPatterns) state.seenPatterns = [];
+  if (!state.seenPatterns.includes(key)) { state.seenPatterns.push(key); save(); }
+}
+// Lektions-skærm: forklarer reglen med eksempler + huskeregel
+function showLesson(key) {
+  const p = patternStats().find(x => x.key === key) || SPELL_PATTERNS.find(x => x.key === key);
+  if (!p) return;
+  sfxClick();
+  markPatternSeen(key);
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-lesson").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  document.getElementById("lessonIcon").textContent = p.icon;
+  document.getElementById("lessonTitle").textContent = p.title;
+  document.getElementById("lessonRule").textContent = p.rule;
+  document.getElementById("lessonTip").textContent = p.tip;
+  const ex = document.getElementById("lessonExamples");
+  ex.innerHTML = (p.look || []).map(w => `<span class="lesson-chip">${w}</span>`).join("");
+  // Øve-knap: hvor mange ord barnet kan træne
+  const drill = patternWords(key);
+  const btn = document.getElementById("lessonDrill");
+  btn.textContent = "🎯 Øv " + Math.min(drill.length, 6) + " ord med " + p.name;
+  btn.onclick = () => startPatternDrill(key);
+  document.getElementById("lessonMeta").textContent = p.wrong
+    ? "Du har haft " + p.wrong + " fejl med denne type ord"
+    : "Godt at kende, når du møder dem";
+}
+// Trænings-mission: Fang ordet med netop dette mønsters ord
+function startPatternDrill(key) {
+  const words = patternWords(key).slice(0, 6);
+  if (words.length < 2) { toast("Ikke nok ord at øve på endnu", 2000); return; }
+  sfxClick();
+  cur = { world: cur.world, game: "type", words: shuffle(words), idx: 0, errors: 0, answered: false, wrongWords: [], drill: key };
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-type").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  renderType();
+  updateHud();
+}
+
 function starsFor(errors, total) {
   const ratio = errors / total;
   if (errors === 0) return 3;
@@ -2644,13 +2836,16 @@ function starsFor(errors, total) {
 }
 
 function finishGame() {
+  const isDrill = !!cur.drill; // lektions-træning tæller ikke som verdens-mission
   const ws = worldState(cur.world);
   const stars = starsFor(cur.errors, cur.words.length);
-  ws[cur.game] = stars;
-  ws.done[["hear","type","fill"].indexOf(cur.game)] = true;
+  if (!isDrill) {
+    ws[cur.game] = stars;
+    ws.done[["hear","type","fill"].indexOf(cur.game)] = true;
+  }
   // Log mission til historik (til forældre-statistik)
   const wrongInMission = cur.wrongWords || [];
-  state.stats.history.push({ t: Date.now(), world: cur.world, game: cur.game, stars, total: cur.words.length, wrong: wrongInMission.slice(0, 10) });
+  state.stats.history.push({ t: Date.now(), world: cur.world, game: isDrill ? "drill" : cur.game, stars, total: cur.words.length, wrong: wrongInMission.slice(0, 10), drill: cur.drill || null });
   if (state.stats.history.length > 200) state.stats.history = state.stats.history.slice(-200);
   const sd = statDay(); sd.missions++;
   // XP: stjerner × 10 + 5 pr. mission + bonus ved 0 fejl
@@ -2734,10 +2929,18 @@ function finishGame() {
 
   // Næste-knap: næste spil i verdenen, ellers til kortet
   window.resultNext = () => {
+    if (isDrill) { showWorldMap(); return; } // lektions-træning → tilbage til kortet
     if (nextGame) startGame(cur.world, nextGame);
     else showWorldMap();
   };
-  document.getElementById("resultNext").textContent = nextGame ? "Næste mission →" : "Færdig med verdenen 🎉";
+  document.getElementById("resultNext").textContent = isDrill ? "Færdig — til kortet 🗺️" : (nextGame ? "Næste mission →" : "Færdig med verdenen 🎉");
+  // ADAPTIV LÆRING: har spillet fundet et nyt fejl-mønster? Tilbyd en lektion
+  const fresh = unseenPattern();
+  if (fresh && !isDrill) {
+    setTimeout(() => {
+      toast("🎓 Spillet har fundet et mønster: " + fresh.icon + " " + fresh.name + " — se lektionen i 📊 Statistik!", 5000);
+    }, 900);
+  }
 }
 
 /* ============ HEAR & HIT ============ */
