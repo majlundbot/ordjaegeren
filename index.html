@@ -38,11 +38,14 @@
     -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
   }
   .screen {
-    position: fixed; inset: 0; z-index: 1; display: none;
-    flex-direction: column; align-items: center; justify-content: center;
-    padding: 16px; overflow-y: auto;
+    position: fixed; inset: 0; z-index: 2; display: none;
+    flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
   }
   .screen.active { display: flex; animation: fadeIn .25s ease; }
+  /* Centrér indholdet lodret KUN når der er plads — ellers kan man scrolle hele vejen.
+     (Pseudo-elementer med margin:auto giver centrering uden at klippe toppen af højt indhold.) */
+  .screen::before, .screen::after { content: ""; display: block; flex: 0 0 auto; margin: auto; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
   .title { font-size: clamp(40px, 10vw, 72px); font-weight: 900; letter-spacing: 2px;
@@ -624,7 +627,7 @@
   .stat-card .sc-label { font-size: 12px; color: #9fb0e8; margin-top: 2px; }
   .stats-section { text-align: left; margin-top: 16px; }
   .stats-section h3 { font-size: 14px; color: #9fb0e8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-  .stats-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+  .stats-list { display: flex; flex-direction: column; gap: 6px; }
   .stats-row {
     display: flex; align-items: center; gap: 10px;
     background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
