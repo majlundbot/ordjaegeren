@@ -110,7 +110,9 @@
   }
   .world-card:not(.locked):hover { transform: translate(-50%, -56%) scale(1.06); border-color: var(--accent); box-shadow: 0 12px 28px rgba(0,0,0,.5), 0 0 18px rgba(255,210,63,.25); z-index: 5; }
   .world-card:not(.locked):active { transform: translate(-50%, -50%) scale(.95); }
-  .world-card.locked { opacity: .55; cursor: not-allowed; filter: grayscale(.8); }
+  .world-card.locked { opacity: 1; cursor: not-allowed; filter: grayscale(.25) brightness(.8); border-color: rgba(255,255,255,.12); }
+  .world-card.locked .emoji { filter: grayscale(.6) opacity(.55); }
+  .world-card.locked .wname { color: rgba(255,255,255,.55); }
   .world-card .emoji { font-size: 30px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
   .world-card .wname { font-weight: 800; font-size: 12.5px; margin-top: 4px; }
   .world-card .wstars { font-size: 12px; margin-top: 4px; letter-spacing: 1px; color: var(--accent); }
