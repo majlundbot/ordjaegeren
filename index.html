@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ordjægeren — Lær de 120 vigtigste ord</title>
+<style>
+  :root {
+    --accent: #ffd23f;
+    --green: #4ade80;
+    --red: #f87171;
+    --blue: #60a5fa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at 50% -30%, #232c5e 0%, #0b1026 65%);
+    color: #fff;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  canvas#bg { position: fixed; inset: 0; z-index: 0; }
+  /* Glasmorfiske paneler med gradient-kant */
+  .panel {
+    background: linear-gradient(160deg, rgba(30,38,80,.75), rgba(15,20,45,.85));
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 24px; padding: 24px; width: 100%; max-width: 560px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    position: relative; overflow: hidden;
+  }
+  .panel::before {
+    content: ""; position: absolute; inset: 0; border-radius: 24px; padding: 1px;
+    background: linear-gradient(160deg, rgba(255,210,63,.35), rgba(96,165,250,.15) 40%, transparent 70%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+  }
+  .screen {
+    position: fixed; inset: 0; z-index: 1; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow-y: auto;
+  }
+  .screen.active { display: flex; animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .title { font-size: clamp(40px, 10vw, 72px); font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(180deg, #fff 25%, var(--accent) 90%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 22px rgba(255,210,63,.4)) drop-shadow(0 4px 10px rgba(0,0,0,.5));
+    animation: titleGlow 3s ease-in-out infinite;
+  }
+  @keyframes titleGlow {
+    0%, 100% { filter: drop-shadow(0 0 18px rgba(255,210,63,.35)) drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
+    50% { filter: drop-shadow(0 0 34px rgba(255,210,63,.65)) drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
+  }
+  .subtitle { font-size: clamp(14px, 3.5vw, 18px); color: #9fb0e8; margin-top: 6px; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+
+  .btn {
+    font-family: inherit; font-weight: 800; font-size: clamp(16px, 4vw, 22px);
+    border: none; border-radius: 16px; padding: 14px 40px; cursor: pointer;
+    color: #1a1f3d; background: linear-gradient(180deg, #ffe37a, var(--accent));
+    box-shadow: 0 6px 0 #b98a10, 0 12px 24px rgba(0,0,0,.35), 0 0 24px rgba(255,210,63,.2);
+    transition: transform .08s, box-shadow .08s, filter .15s; margin-top: 24px; position: relative; overflow: hidden;
+  }
+  .btn::after {
+    content: ""; position: absolute; top: 0; left: -80%; width: 50%; height: 100%;
+    background: linear-gradient(105deg, transparent, rgba(255,255,255,.5), transparent);
+    transform: skewX(-20deg); animation: btnShine 3.2s ease-in-out infinite;
+  }
+  @keyframes btnShine { 0%, 55% { left: -80%; } 85%, 100% { left: 140%; } }
+  .btn:hover { filter: brightness(1.1); }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b98a10, 0 6px 14px rgba(0,0,0,.3); }
+  .btn.ghost { background: rgba(255,255,255,.08); color: #fff; box-shadow: 0 4px 0 rgba(255,255,255,.15); }
+  .btn.gold { background: linear-gradient(180deg, #ffe27a, #f5b301); box-shadow: 0 6px 0 #92600a, 0 12px 24px rgba(245,179,1,.35); color: #3a2500; }
+  .btn.blue { background: linear-gradient(180deg, #8fd0ff, var(--blue)); box-shadow: 0 6px 0 #1e6ab3, 0 12px 24px rgba(0,0,0,.35); }
+  .btn.green { background: linear-gradient(180deg, #9bf5bd, var(--green)); box-shadow: 0 6px 0 #1e8f4e, 0 12px 24px rgba(0,0,0,.35); }
+
+  /* ===== OPEN-WORLD-KORT ===== */
+  .worldmap {
+    position: relative; width: 100%; max-width: 1100px; aspect-ratio: 1200/760;
+    margin-top: 20px; overflow: hidden; border-radius: 22px;
+    border: 1px solid rgba(255,255,255,.15); box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 0 80px rgba(0,0,0,.35);
+    background: #1a1035;
+  }
+  .map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .world-card {
+    position: absolute; transform: translate(-50%, -50%);
+    background: linear-gradient(160deg, rgba(20,26,58,.92), rgba(20,26,58,.75));
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 18px; padding: 10px 10px 8px; text-align: center; cursor: pointer;
+    transition: transform .12s, border-color .12s, box-shadow .12s;
+    box-shadow: 0 8px 20px rgba(0,0,0,.45); width: 128px;
+  }
+  .world-card:not(.locked):hover { transform: translate(-50%, -56%) scale(1.06); border-color: var(--accent); box-shadow: 0 12px 28px rgba(0,0,0,.5), 0 0 18px rgba(255,210,63,.25); z-index: 5; }
+  .world-card:not(.locked):active { transform: translate(-50%, -50%) scale(.95); }
+  .world-card.locked { opacity: .55; cursor: not-allowed; filter: grayscale(.8); }
+  .world-card .emoji { font-size: 30px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+  .world-card .wname { font-weight: 800; font-size: 12.5px; margin-top: 4px; }
+  .world-card .wstars { font-size: 12px; margin-top: 4px; letter-spacing: 1px; color: var(--accent); }
+  .world-card .wstars span.off { color: rgba(255,255,255,.18); }
+  .world-card .wstars span.new { color: var(--accent); }
+  /* Helt der rejser på kortet */
+  .map-hero {
+    position: absolute; transform: translate(-50%, -60%); z-index: 6; pointer-events: none;
+    font-size: 30px; filter: drop-shadow(0 0 10px rgba(255,215,106,.9));
+    transition: left .55s ease-in-out, top .55s ease-in-out;
+    animation: heroBob 1.2s ease-in-out infinite;
+  }
+  @keyframes heroBob { 0%, 100% { margin-top: 0; } 50% { margin-top: -6px; } }
+  .world-card.shake { animation: shakeX .45s ease-in-out; }
+  @keyframes shakeX { 0%,100% { transform: translate(-50%,-50%); } 20%,60% { transform: translate(-54%,-50%); } 40%,80% { transform: translate(-46%,-50%); } }
+  /* Status-badges på verdenskortet */
+  .w-badge {
+    display: inline-block; margin: 6px auto 2px; padding: 4px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 900; letter-spacing: .5px; width: fit-content;
+  }
+  .b-locked { background: rgba(255,255,255,.08); color: #9fb0e8; }
+  .b-new { background: rgba(96,165,250,.2); color: #93c5fd; border: 1px solid rgba(96,165,250,.4); }
+  .b-progress { background: rgba(251,191,36,.15); color: #fcd34d; border: 1px solid rgba(251,191,36,.4); }
+  .b-dragon { background: rgba(248,113,113,.2); color: #fca5a5; border: 1px solid rgba(248,113,113,.5); animation: badgePulse 1.6s ease-in-out infinite; }
+  .b-done { background: rgba(74,222,128,.18); color: #86efac; border: 1px solid rgba(74,222,128,.45); }
+  @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 rgba(248,113,113,0); } 50% { box-shadow: 0 0 12px rgba(248,113,113,.5); } }
+  /* Progress-bar pr. verden: 3 missioner + drage */
+  .w-progress { display: flex; gap: 4px; justify-content: center; margin-top: 8px; padding: 0 10px; }
+  .w-seg { flex: 1; height: 8px; border-radius: 4px; transition: background .3s; }
+  .w-seg.on { background: linear-gradient(90deg, #4ade80, #22c55e); box-shadow: 0 0 6px rgba(74,222,128,.5); }
+  .w-seg.off { background: rgba(255,255,255,.14); }
+  /* Status i verdens-menuen */
+  .world-status { font-size: 14px; font-weight: 800; margin: 8px 0 2px; min-height: 20px; color: #fff; }
+  .g-status { display: block; font-size: 12px; font-weight: 800; margin-top: 4px; }
+  .g-done { color: var(--green); }
+  .g-todo { color: #f87171; }
+  /* Profil-kort (skift spiller) */
+  .profile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 14px; }
+  .profile-card {
+    background: linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.03));
+    border: 2px solid rgba(255,255,255,.16); border-radius: 16px; padding: 16px 10px;
+    text-align: center; cursor: pointer; transition: transform .12s, border-color .12s, box-shadow .12s;
+  }
+  .profile-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 10px 24px rgba(0,0,0,.4); }
+  .profile-card.selected { border-color: var(--green); box-shadow: 0 0 16px rgba(74,222,128,.35); }
+  .profile-card.new { border-style: dashed; }
+  .pc-icon { font-size: 38px; }
+  .pc-name { font-weight: 900; font-size: 15px; margin-top: 6px; }
+  .pc-progress { font-size: 12px; color: #9fb0e8; margin-top: 4px; }
+  .new-profile-box { margin-top: 14px; padding: 14px; border-radius: 14px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); }
+  .new-profile-box input {
+    width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 10px; border: 2px solid rgba(255,255,255,.25);
+    background: rgba(10,14,35,.8); color: #fff; font-size: 16px; font-family: inherit; font-weight: 700; outline: none;
+  }
+  .new-profile-box input:focus { border-color: var(--blue); }
+  /* Mytisk spor i helteskærmen */
+  .mythic-track { display: flex; gap: 5px; margin: 3px 0 6px; }
+  .mythic-slot {
+    width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    font-size: 17px; background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.14); color: rgba(255,255,255,.3);
+  }
+  .mythic-slot.owned {
+    background: linear-gradient(160deg, rgba(255,215,0,.25), rgba(255,215,0,.08));
+    border-color: #ffd700; color: #fff; box-shadow: 0 0 14px rgba(255,215,0,.5);
+    animation: mythicGlow 2s ease-in-out infinite;
+  }
+  /* KLASSE-VALG (Diablo-stil) — skal ligne store klikbare helt-kort */
+  .class-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
+  .class-card {
+    position: relative; cursor: pointer; user-select: none;
+    background: linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.03));
+    border: 3px solid rgba(255,255,255,.2); border-radius: 18px; padding: 20px 12px 16px;
+    text-align: center; transition: transform .12s, border-color .12s, box-shadow .12s, background .12s;
+    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+  }
+  .class-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: var(--cls, var(--accent));
+    box-shadow: 0 14px 30px rgba(0,0,0,.5), 0 0 22px var(--cls, #ffd76a);
+  }
+  .class-card:active { transform: scale(.95); }
+  .class-card.selected {
+    border-color: var(--cls, var(--green));
+    background: linear-gradient(160deg, color-mix(in srgb, var(--cls) 28%, rgba(20,26,58,.95)), rgba(20,26,58,.85));
+    box-shadow: 0 0 26px var(--cls, #4ade80);
+  }
+  .class-card.selected::after {
+    content: "✔"; position: absolute; top: 8px; right: 12px;
+    font-size: 22px; font-weight: 900; color: var(--cls, var(--green));
+    text-shadow: 0 0 8px rgba(255,255,255,.4);
+  }
+  .class-card .cc-icon { font-size: 52px; display: block; margin-bottom: 8px; filter: drop-shadow(0 6px 12px rgba(0,0,0,.5)); }
+  .class-card .cc-name { font-size: 21px; font-weight: 900; display: block; letter-spacing: .5px; }
+  .class-card .cc-desc { font-size: 12.5px; color: #b7c3e8; margin-top: 6px; line-height: 1.45; }
+  .class-card .cc-power { display: inline-block; margin-top: 10px; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.1); color: var(--cls, var(--accent)); }
+  .class-confirm { margin-top: 16px; }
+  .class-confirm.hidden { display: none; }
+
+  .panel h2 { font-size: clamp(22px, 5.5vw, 30px); margin-bottom: 4px; }
+  .panel .big-emoji { font-size: 64px; display: block; margin: 8px 0; }
+  .game-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+  .game-btn {
+    font-family: inherit; font-weight: 800; font-size: clamp(16px, 4vw, 20px); color: #fff;
+    background: linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+    border: 1px solid rgba(255,255,255,.22); border-radius: 16px; padding: 18px; cursor: pointer;
+    display: flex; align-items: center; gap: 14px;
+    transition: transform .08s, background .1s, border-color .1s, box-shadow .1s;
+    box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  }
+  .game-btn:not(.done):hover { border-color: var(--accent); box-shadow: 0 8px 22px rgba(0,0,0,.35), 0 0 14px rgba(255,210,63,.15); }
+  .game-btn:active { transform: scale(.97); background: rgba(255,255,255,.16); }
+  .game-btn .g-emoji { font-size: 30px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.4)); }
+  .game-btn .g-meta { margin-left: auto; font-size: 13px; color: var(--accent); letter-spacing: 1px; }
+  .game-btn.done { opacity: .55; }
+  .game-btn.done .g-meta { color: var(--green); }
+
+  .speak-btn {
+    width: 96px; height: 96px; border-radius: 50%; border: none; cursor: pointer; margin: 16px auto;
+    background: radial-gradient(circle at 35% 30%, #8fd0ff, var(--blue));
+    box-shadow: 0 8px 0 #1e6ab3, 0 16px 32px rgba(0,0,0,.4); font-size: 40px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .08s, box-shadow .08s;
+  }
+  .speak-btn:active { transform: translateY(5px); box-shadow: 0 3px 0 #1e6ab3; }
+  .speak-btn.speaking { animation: pulse .5s infinite alternate; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.08); } }
+
+  .big-word { font-size: clamp(30px, 8vw, 48px); font-weight: 900; letter-spacing: 2px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 460px; margin-top: 18px; }
+  .choice {
+    font-family: inherit; font-weight: 800; font-size: clamp(18px, 4.5vw, 24px); color: #fff;
+    background: rgba(255,255,255,.09); border: 2px solid rgba(255,255,255,.2);
+    border-radius: 14px; padding: 18px 8px; cursor: pointer; transition: transform .08s, background .1s, border-color .1s;
+  }
+  .choice:active { transform: scale(.96); }
+  .choice.correct { background: rgba(74,222,128,.3); border-color: var(--green); }
+  .choice.wrong { background: rgba(248,113,113,.3); border-color: var(--red); animation: shake .3s; }
+  .choice.reveal { background: rgba(248,113,113,.45); border-color: var(--red); box-shadow: 0 0 14px rgba(248,113,113,.4); }
+  .big-red { color: #ff6b6b; font-weight: 900; font-size: 1.5em; letter-spacing: 2px; text-shadow: 0 0 12px rgba(255,80,80,.5); }
+  .big-green { color: #4ade80; font-weight: 900; font-size: 1.5em; letter-spacing: 2px; text-shadow: 0 0 12px rgba(74,222,128,.5); }
+  .syllables { font-size: 1.35em; font-weight: 900; letter-spacing: 1.5px; margin-left: 6px; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  .input-word {
+    font-family: inherit; font-weight: 800; font-size: clamp(26px, 7vw, 40px); text-align: center; color: #fff;
+    background: rgba(255,255,255,.08); border: 3px solid rgba(255,255,255,.25); border-radius: 14px;
+    padding: 12px; width: 100%; max-width: 300px; outline: none; letter-spacing: 2px;
+  }
+  .input-word:focus { border-color: var(--blue); }
+  .input-word.correct { border-color: var(--green); }
+  .input-word.wrong { border-color: var(--red); }
+  .type-hint { line-height: 1.7; }
+  .type-dots { display: block; font-size: 22px; letter-spacing: 6px; color: var(--accent); margin-top: 6px; font-weight: 900; }
+  .big-green { color: #4ade80; font-weight: 900; font-size: 1.5em; letter-spacing: 2px; text-shadow: 0 0 12px rgba(74,222,128,.5); }
+
+  .sentence { font-size: clamp(20px, 5.5vw, 28px); font-weight: 700; line-height: 1.5; min-height: 90px; display: flex; align-items: center; justify-content: center; padding: 10px; }
+  .sentence .blank { color: var(--accent); border-bottom: 3px solid var(--accent); min-width: 40px; display: inline-block; }
+
+  .hud { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 5; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+  .hud .hud-btn { pointer-events: auto; font-family: inherit; font-weight: 800; font-size: 15px; color: #fff;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 10px; padding: 8px 14px; cursor: pointer; }
+  .hud .progress { font-weight: 800; font-size: 15px; color: #9fb0e8; }
+  .hud .progress b { color: #fff; font-size: 18px; }
+
+  .result-emoji { font-size: 84px; display: block; margin: 10px 0; }
+  .stars-big { font-size: clamp(34px, 9vw, 54px); letter-spacing: 6px; margin: 8px 0; }
+  .result-msg { font-size: clamp(16px, 4.5vw, 20px); color: #c9d4f5; line-height: 1.5; margin-bottom: 8px; }
+  .reward-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.05));
+    border: 2px solid var(--accent); border-radius: 18px; padding: 14px 28px; margin: 10px 0;
+    font-weight: 800; font-size: clamp(15px, 4vw, 19px); display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 0 30px rgba(255,210,63,.25);
+  }
+  .reward-card .rc-emoji { font-size: 36px; }
+  .hidden { display: none !important; }
+  .toast {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 9;
+    background: rgba(20,25,55,.95); border: 2px solid var(--green); color: #fff; font-weight: 800;
+    padding: 10px 22px; border-radius: 14px; font-size: 15px; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  .ta { margin-top: 14px; color: #9fb0e8; font-size: 14px; }
+  .collect { font-size: 13px; color: #9fb0e8; margin-top: 6px; }
+  .flex-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* ===== HELTE-SKÆRM (Diablo-inspireret gear) ===== */
+  .hero-wrap { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: flex-start; margin-top: 12px; width: 100%; max-width: 680px; }
+  .hero-fig { flex: 0 0 auto; text-align: center; }
+  .hero-fig svg { width: 120px; height: 165px; filter: drop-shadow(0 0 18px rgba(255,210,63,.25)); }
+  .hero-fig .hero-name { font-weight: 900; font-size: 17px; margin-top: 4px; color: var(--accent); }
+  .hero-fig .hero-power { font-weight: 800; font-size: 14px; color: #9fb0e8; margin-top: 2px; }
+  /* Horadric-kuben: fast, under helten i venstre kolonne */
+  .cube-box {
+    margin-top: 10px; padding: 8px 10px 10px;
+    background: linear-gradient(160deg, rgba(60,30,90,.35), rgba(20,26,58,.5));
+    border: 2px solid rgba(192,132,252,.35); border-radius: 14px; text-align: center;
+    box-shadow: 0 0 18px rgba(192,132,252,.15); width: 190px;
+  }
+  .cube-box h3 { font-size: 13px; color: #e9d5ff; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 4px; }
+  .cube-row { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
+  .cube-slot {
+    width: 48px; height: 48px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+    background: rgba(10,14,35,.75); border: 2px dashed rgba(255,255,255,.25); font-size: 20px;
+    transition: border-color .15s, box-shadow .15s; cursor: default;
+  }
+  .cube-slot.filled { border-style: solid; border-color: #c084fc; box-shadow: 0 0 12px rgba(192,132,252,.4); background: rgba(60,30,90,.5); }
+  .cube-ic.dim { color: rgba(255,255,255,.25); }
+  /* Forvandlings-resultat */
+  .cube-result {
+    margin-top: 10px; padding: 12px; border-radius: 14px; text-align: center;
+    background: linear-gradient(160deg, rgba(30,20,60,.95), rgba(15,18,45,.95));
+    border: 2px solid #c084fc; box-shadow: 0 0 24px rgba(192,132,252,.4);
+    animation: crPop .35s ease-out;
+  }
+  @keyframes crPop { 0% { transform: scale(.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .cr-in { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 10px; }
+  .cr-inputs { display: flex; gap: 6px; }
+  .cr-inputs .cube-slot { width: 40px; height: 40px; font-size: 16px; opacity: .7; }
+  .cr-arrow { font-size: 18px; color: #c084fc; font-weight: 900; }
+  .cr-output { flex: 0 0 auto; padding: 8px 14px; border-radius: 12px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15); min-width: 120px; }
+  .cr-icon { font-size: 36px; display: block; }
+  .cr-rarity { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; }
+  .cr-name { font-weight: 900; font-size: 15px; margin: 2px 0; }
+  .cr-sub { font-size: 11px; color: #9fb0e8; }
+  .cr-output.mythic { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,.6); animation: mythicGlow 2s ease-in-out infinite; }
+  /* ===== KUBE-WOW-OVERLAY (fuldskærms forvandlingsshow) ===== */
+  .cube-overlay {
+    position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(20,10,50,.92), rgba(5,5,20,.97));
+    overflow: hidden; text-align: center;
+  }
+  .cube-overlay.hidden { display: none; }
+  .co-beam {
+    position: absolute; top: -30%; left: 50%; transform: translateX(-50%);
+    width: 160px; height: 160%;
+    background: linear-gradient(180deg, rgba(255,255,255,0), rgba(192,132,252,.55) 30%, rgba(255,215,106,.6) 50%, rgba(192,132,252,.55) 70%, rgba(255,255,255,0));
+    filter: blur(14px); opacity: 0;
+    animation: coBeam 2.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes coBeam {
+    0%, 100% { opacity: 0; transform: translateX(-50%) scaleY(.7); }
+    50% { opacity: 1; transform: translateX(-50%) scaleY(1); }
+  }
+  .co-content { position: relative; z-index: 2; padding: 20px; }
+  .co-title { font-size: clamp(18px, 5vw, 26px); font-weight: 900; color: #e9d5ff; margin-bottom: 18px; text-shadow: 0 0 18px rgba(192,132,252,.7); animation: coTitlePulse 1.6s ease-in-out infinite; }
+  @keyframes coTitlePulse { 0%,100% { text-shadow: 0 0 10px rgba(192,132,252,.5); } 50% { text-shadow: 0 0 26px rgba(255,215,106,.9); } }
+  .co-magic { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  .co-inputs { display: flex; gap: 10px; }
+  .co-inputs .cube-slot { width: 56px; height: 56px; font-size: 24px; animation: coInputFloat 1.8s ease-in-out infinite; }
+  .co-inputs .cube-slot:nth-child(2) { animation-delay: .2s; }
+  .co-inputs .cube-slot:nth-child(3) { animation-delay: .4s; }
+  @keyframes coInputFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .co-arrow { font-size: 30px; color: #ffd76a; animation: coArrowPulse .9s ease-in-out infinite; text-shadow: 0 0 14px rgba(255,215,106,.8); }
+  @keyframes coArrowPulse { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.35); opacity: 1; } }
+  .co-result { position: relative; padding: 18px 26px; border-radius: 20px; min-width: 170px; animation: coResultPop .6s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes coResultPop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .co-halo {
+    position: absolute; inset: -14px; border-radius: 26px; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,215,106,.45), rgba(192,132,252,.25) 55%, transparent 75%);
+    filter: blur(6px); animation: coHalo 1.4s ease-in-out infinite;
+  }
+  @keyframes coHalo { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.12); opacity: 1; } }
+  .co-icon { font-size: 64px; display: block; position: relative; z-index: 1; filter: drop-shadow(0 0 18px rgba(255,215,106,.8)); animation: coIconBounce .8s ease-in-out infinite; }
+  @keyframes coIconBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .co-rarity { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; position: relative; z-index: 1; }
+  .co-name { font-size: clamp(18px, 5vw, 26px); font-weight: 900; margin: 4px 0; position: relative; z-index: 1; }
+  .co-sub { font-size: 13px; color: #c9d4f5; position: relative; z-index: 1; }
+  .co-result.mythic { animation: coResultPop .6s cubic-bezier(.2,1.6,.4,1), mythicGlow 1.6s ease-in-out infinite; }
+  .co-result.mythic .co-halo { background: radial-gradient(circle, rgba(255,215,0,.6), rgba(192,132,252,.35) 55%, transparent 78%); }
+  /* ===== LYKKEHJUL (drage-sejr loot) ===== */
+  .wheel-overlay {
+    position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(20,10,50,.92), rgba(5,5,20,.97));
+    overflow-y: auto; text-align: center; padding: 12px;
+  }
+  .wheel-overlay.hidden { display: none; }
+  .wheel-x {
+    position: absolute; top: 14px; right: 14px; z-index: 6; width: 40px; height: 40px;
+    border-radius: 50%; border: 2px solid rgba(255,255,255,.3); background: rgba(20,26,58,.7);
+    color: #fff; font-size: 18px; font-weight: 900; cursor: pointer; line-height: 1;
+    transition: transform .1s, border-color .1s;
+  }
+  .wheel-x:hover { transform: scale(1.1); border-color: #f87171; }
+  .wheel-x:active { transform: scale(.95); }
+  .wheel-box { position: relative; width: min(720px, 92vw, 78vh); height: min(720px, 92vw, 78vh); margin: 4px auto 8px; }
+  .wheel-needle {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 5;
+    font-size: 34px; color: #ffd76a; text-shadow: 0 0 12px rgba(255,215,106,.9); filter: drop-shadow(0 2px 4px rgba(0,0,0,.6));
+  }
+  .wheel {
+    width: 100%; height: 100%; border-radius: 50%; position: relative;
+    border: 4px solid #ffd76a; box-shadow: 0 0 30px rgba(255,215,106,.35), inset 0 0 24px rgba(0,0,0,.4);
+    overflow: hidden;
+  }
+  .wheel.spinning { animation: wheelSpinAnim 4.2s cubic-bezier(.12,.8,.18,1) forwards; }
+  @keyframes wheelSpinAnim { from { transform: rotate(0deg); } to { transform: rotate(var(--wheel-deg, 1440deg)); } }
+  .wheel svg { width: 100%; height: 100%; display: block; }
+  .wheel-result {
+    margin: 10px auto; padding: 12px 20px; border-radius: 14px; background: rgba(255,255,255,.08);
+    border: 2px solid rgba(255,255,255,.2); font-weight: 900; font-size: 17px; animation: crPop .35s ease-out;
+  }
+  .wheel-result .wr-icon { font-size: 34px; display: block; margin-bottom: 2px; }
+  .wheel-result .wr-rarity { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
+  .wheel-result.mythic { border-color: #ffd700; box-shadow: 0 0 24px rgba(255,215,0,.6); animation: crPop .35s ease-out, mythicGlow 2s ease-in-out infinite; }
+  .gear-panel { flex: 1 1 280px; min-width: 0; }
+  .gear-panel h3 { font-size: 13px; color: #9fb0e8; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 5px; }
+  .gear-slots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .gear-slot {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.12);
+    border-radius: 10px; padding: 5px 8px; cursor: pointer;
+    transition: transform .08s, border-color .1s; text-align: left; min-width: 0;
+  }
+  .gear-slot:active { transform: scale(.98); }
+  .gear-slot .gs-icon { font-size: 17px; flex: 0 0 auto; }
+  .gear-slot .gs-info { flex: 1; min-width: 0; }
+  .gear-slot .gs-name { font-weight: 800; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gear-slot .gs-sub { font-size: 10px; color: #9fb0e8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gear-slot.empty { opacity: .45; }
+  .gear-slot.equipped { border-color: var(--accent); box-shadow: 0 0 12px rgba(255,210,63,.15); }
+  .rarity-common { color: #a3a3a3; } .rarity-magic { color: #60a5fa; } .rarity-rare { color: #fbbf24; }
+  .rarity-epic { color: #c084fc; } .rarity-legendary { color: #fb923c; }
+  .rarity-mythic { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,.9); animation: mythicGlow 2s ease-in-out infinite; }
+  @keyframes mythicGlow { 0%, 100% { text-shadow: 0 0 8px rgba(255,215,0,.6); } 50% { text-shadow: 0 0 26px rgba(255,215,0,1), 0 0 50px rgba(255,255,220,.8); } }
+  .mythic-loot { animation: mythicLootPulse 1.2s ease-in-out infinite; }
+  @keyframes mythicLootPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+  /* Rygsæk: kompakt grid — ALLE items synlige, ingen scroll */
+  .bag-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 4px; }
+  .bag-item {
+    display: flex; align-items: center; gap: 6px; min-width: 0;
+    background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.1);
+    border-radius: 9px; padding: 4px 7px; cursor: pointer; text-align: left;
+  }
+  .bag-item:active { transform: scale(.98); }
+  .bag-item .bi-icon { font-size: 15px; flex: 0 0 auto; }
+  .bag-item .bi-name { font-weight: 700; font-size: 11.5px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bag-item .bi-bonus { font-size: 10.5px; color: var(--accent); font-weight: 800; flex: 0 0 auto; }
+  .bag-item.equipped { border-color: var(--accent); }
+  .loot-card {
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+    border: 2px solid #c084fc; border-radius: 18px; padding: 16px 26px; margin: 12px 0;
+    text-align: center; box-shadow: 0 0 34px rgba(192,132,252,.3);
+  }
+  .loot-card .lc-rarity { font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; }
+  .loot-card .lc-name { font-weight: 900; font-size: clamp(18px, 5vw, 24px); margin: 4px 0; }
+  .loot-card .lc-sub { font-size: 13px; color: #9fb0e8; }
+  .loot-card .lc-icon { font-size: 44px; display: block; margin: 4px 0; }
+  .btn.small { padding: 10px 20px; font-size: 15px; margin-top: 10px; }
+  .toast-gear {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 9;
+    background: rgba(20,25,55,.96); border: 2px solid #c084fc; color: #fff; font-weight: 800;
+    padding: 12px 26px; border-radius: 14px; font-size: 15px; box-shadow: 0 8px 24px rgba(0,0,0,.45);
+    white-space: nowrap; transition: opacity .3s;
+  }
+  .toast-gear.hidden { opacity: 0; pointer-events: none; }
+  .btn.red { background: linear-gradient(180deg, #ff8a7a, #f87171); box-shadow: 0 6px 0 #991b1b, 0 12px 24px rgba(0,0,0,.35); color: #fff; }
+
+  /* ===== DRAGEKAMP ===== */
+  .boss-arena { display: flex; align-items: center; justify-content: space-around; gap: 8px; margin: 16px 0; }
+  .boss-side { flex: 1; text-align: center; min-width: 0; }
+  .boss-hero svg { width: 110px; height: 150px; filter: drop-shadow(0 0 14px rgba(255,210,63,.3)); }
+  .boss-dragon { width: 150px; height: 130px; margin: 0 auto; transition: transform .2s; filter: drop-shadow(0 0 20px rgba(248,113,113,.5)); }
+  .boss-dragon svg { width: 100%; height: 100%; }
+  .boss-dragon.hurt { animation: hurt .4s; }
+  @keyframes hurt { 25% { transform: translateX(-10px) rotate(-8deg); } 75% { transform: translateX(10px) rotate(8deg); } }
+  .boss-dragon.dead { filter: grayscale(1) brightness(.45) !important; }
+  .boss-dragon.breathe { animation: breathe 2.6s ease-in-out infinite; }
+  @keyframes breathe { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.02); } }
+  .boss-vs { font-weight: 900; font-size: 30px; color: var(--red); text-shadow: 0 0 12px rgba(248,113,113,.6); }
+  .boss-label { font-weight: 800; font-size: 15px; margin-top: 4px; }
+  .boss-power { font-size: 13px; color: var(--accent); font-weight: 700; }
+  .boss-status { font-size: 15px; font-weight: 700; min-height: 24px; margin: 8px 0 2px; color: #fff; }
+  .boss-msg { font-size: 14px; color: #c9d4f5; min-height: 20px; margin-bottom: 6px; }
+  /* D&D-terninger */
+  .dice-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 10px 0 4px; }
+  .dice-side { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .dice-label { font-size: 12px; font-weight: 800; color: #9fb0e8; }
+  .dice {
+    width: 62px; height: 62px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 900; color: #fff; background: linear-gradient(160deg, #3a2a5a, #1a1035);
+    border: 3px solid rgba(255,255,255,.3); box-shadow: 0 6px 16px rgba(0,0,0,.45), inset 0 2px 6px rgba(255,255,255,.15);
+    transition: transform .1s;
+  }
+  .dice.rolling { animation: diceRoll .4s linear; }
+  .dice.winner { border-color: #4ade80; box-shadow: 0 0 22px rgba(74,222,128,.6); transform: scale(1.08); }
+  .dice.loser { border-color: #f87171; box-shadow: 0 0 14px rgba(248,113,113,.35); opacity: .75; }
+  @keyframes diceRoll { 0% { transform: rotate(0) scale(1); } 25% { transform: rotate(90deg) scale(1.15); } 50% { transform: rotate(180deg) scale(.9); } 75% { transform: rotate(270deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+  .dice-vs { font-weight: 900; color: #8a93b5; font-size: 16px; }
+  .dice-total { font-size: 12px; font-weight: 800; color: #9fb0e8; min-height: 16px; }
+
+  /* ===== KAMP-UI ===== */
+  .hp-bar { width: 90%; height: 14px; border-radius: 8px; background: rgba(255,255,255,.12); margin: 6px auto 2px; overflow: hidden; border: 1px solid rgba(255,255,255,.15); }
+  .hp-fill { height: 100%; border-radius: 8px; transition: width .35s ease; }
+  .hp-hero { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  .hp-dragon { background: linear-gradient(90deg, #f87171, #dc2626); }
+  .attack-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+  .attack-btn {
+    font-family: inherit; font-weight: 800; font-size: 13px; color: #fff; cursor: pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.07));
+    border: 2px solid rgba(255,255,255,.25); border-radius: 12px; padding: 8px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 74px;
+    transition: transform .08s, border-color .1s;
+  }
+  .attack-btn:active { transform: scale(.95); }
+  .attack-btn .ab-icon { font-size: 24px; }
+  .attack-btn.locked { opacity: .45; cursor: not-allowed; filter: grayscale(.7); }
+  .attack-btn.hero { border-color: var(--accent); box-shadow: 0 0 12px rgba(255,210,63,.25); }
+  .attack-btn.dragon { border-color: var(--red); }
+  .attack-btn.mythic {
+    border-color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,.28), rgba(255,215,0,.08));
+    box-shadow: 0 0 14px rgba(255,215,0,.55); animation: mythicGlow 2s ease-in-out infinite;
+  }
+  #fxLayer { position: fixed; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
+  .fx-projectile {
+    position: absolute; font-size: 40px; z-index: 21;
+    animation: fxFly .5s ease-in forwards; filter: drop-shadow(0 0 12px rgba(255,180,50,.9));
+  }
+  @keyframes fxFly {
+    0% { transform: translate(0,0) scale(.6); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(1.4); opacity: 1; }
+  }
+  .fx-dmg {
+    position: absolute; font-weight: 900; font-size: 30px; color: #fff; z-index: 22;
+    text-shadow: 0 0 10px rgba(255,60,60,.9), 0 2px 4px #000; animation: fxDmg 1s ease-out forwards;
+  }
+  @keyframes fxDmg { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-46px) scale(1.5); opacity: 0; } }
+  .fx-boom {
+    position: absolute; font-size: 64px; z-index: 21; animation: fxBoom .7s ease-out forwards;
+  }
+  @keyframes fxBoom { 0% { transform: scale(.3); opacity: 1; } 60% { transform: scale(1.6); opacity: 1; } 100% { transform: scale(2.1); opacity: 0; } }
+  .fx-confetti { position: absolute; width: 10px; height: 14px; z-index: 23; animation: fxConfetti linear forwards; }
+  @keyframes fxConfetti { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(120vh) rotate(720deg); opacity: .7; } }
+  .shake { animation: shakeX .4s; }
+  @keyframes shakeX { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+
+  /* ===== STATISTIK ===== */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 14px 0; }
+  .stat-card { background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.12); border-radius: 14px; padding: 12px 8px; text-align: center; }
+  .stat-card .sc-num { font-size: 26px; font-weight: 900; color: var(--accent); }
+  .stat-card .sc-label { font-size: 12px; color: #9fb0e8; margin-top: 2px; }
+  .stats-section { text-align: left; margin-top: 16px; }
+  .stats-section h3 { font-size: 14px; color: #9fb0e8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .stats-list { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+  .stats-row {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
+    border-radius: 10px; padding: 7px 12px; font-size: 14px;
+  }
+  .stats-row .sr-word { font-weight: 800; flex: 0 0 auto; min-width: 60px; }
+  .stats-row .sr-bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
+  .stats-row .sr-bar i { display: block; height: 100%; border-radius: 4px; background: var(--red); }
+  .stats-row .sr-num { font-size: 12px; color: #9fb0e8; flex: 0 0 auto; }
+  .stats-row .sr-stars { flex: 0 0 auto; color: var(--accent); font-size: 13px; }
+  .stats-row .sr-time { font-size: 11px; color: #9fb0e8; flex: 0 0 auto; }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<!-- KUBE-WOW-OVERLAY: fuldskærms forvandlingsshow -->
+<div class="cube-overlay hidden" id="cubeOverlay">
+  <div class="co-beam"></div>
+  <div class="co-content">
+    <div class="co-title">🧪 Horadric-kuben forvandler!</div>
+    <div class="co-magic">
+      <div class="co-inputs" id="coInputs"></div>
+      <div class="co-arrow">✦</div>
+      <div class="co-result" id="coResult">
+        <div class="co-halo"></div>
+        <span class="co-icon" id="coIcon"></span>
+        <div class="co-rarity" id="coRarity"></div>
+        <div class="co-name" id="coName"></div>
+        <div class="co-sub" id="coSub"></div>
+      </div>
+    </div>
+    <button class="btn" onclick="closeCubeOverlay()">✨ Fantastisk!</button>
+  </div>
+</div>
+
+<!-- LYKKEHJUL: drage-sejr → snur hjulet for loot -->
+<div class="wheel-overlay hidden" id="wheelOverlay">
+  <div class="co-beam"></div>
+  <button class="wheel-x" onclick="closeLootWheel()">✕</button>
+  <div class="co-content">
+    <div class="co-title">🐉 Drage besejret! Snur lykkehjulet!</div>
+    <div class="wheel-box">
+      <div class="wheel-needle">▼</div>
+      <div class="wheel" id="wheelSpin"></div>
+    </div>
+    <button class="btn" id="wheelBtn" onclick="spinLootWheel()">🎰 Snur!</button>
+    <div class="wheel-result hidden" id="wheelResult"></div>
+    <button class="btn ghost hidden" id="wheelClose" onclick="closeLootWheel()">👍 Fedt!</button>
+  </div>
+</div>
+
+<div class="hud hidden" id="hud">
+  <button class="hud-btn" onclick="goHome()">🏠 Hjem</button>
+  <div class="progress" id="hudProgress"></div>
+  <button class="hud-btn" onclick="showHero()">⚔️ Helt</button>
+</div>
+
+<!-- START -->
+<div class="screen active" id="screen-start">
+  <div class="title">ORDJÆGEREN</div>
+  <div class="subtitle">Fang de 120 vigtigste ord i dansk — 12 verdener, 36 missioner, 12 samlekort!</div>
+  <button class="btn" onclick="showClassSelect()">🚀 Start eventyret</button>
+  <button class="btn ghost" onclick="showWorldMap()">🗺️ Fortsæt (kort)</button>
+  <button class="btn ghost" style="margin-top:10px" onclick="showProfiles()">👥 Skift spiller</button>
+  <button class="btn gold" style="margin-top:10px" id="freeSpinBtn" onclick="useFreeSpin()">🎰 Gratis spin (<span id="freeSpinCount">3</span>)</button>
+  <div class="ta" id="startMeta"></div>
+</div>
+
+<!-- PROFILER (hver spiller har eget fremskridt) -->
+<div class="screen" id="screen-profiles">
+  <div class="panel" style="max-width:640px">
+    <h2>👥 Hvem spiller?</h2>
+    <div class="profile-grid" id="profileGrid"></div>
+    <div class="new-profile-box hidden" id="newProfileBox">
+      <input id="newProfileName" placeholder="Skriv dit navn..." maxlength="14">
+      <button class="btn green" style="margin-top:10px" onclick="createProfile()">✨ Opret spiller</button>
+    </div>
+    <button class="btn ghost" style="margin-top:14px" onclick="goHome()">← Tilbage</button>
+  </div>
+</div>
+
+<!-- KLASSE-VALG (Diablo-stil) -->
+<div class="screen" id="screen-class">
+  <div class="panel" style="max-width:620px">
+    <h2>👤 Vælg din helt</h2>
+    <div class="ta" style="color:#9fb0e8;font-size:13px">Tryk på en helt for at vælge — hver klasse giver forskellige kræfter!</div>
+    <div class="class-grid" id="classGrid"></div>
+    <div class="class-confirm hidden" id="classConfirm">
+      <button class="btn" onclick="confirmClass()">✅ Start med denne helt</button>
+    </div>
+    <button class="btn ghost" style="margin-top:14px" onclick="goHome()">← Tilbage</button>
+  </div>
+</div>
+
+<!-- WORLD MAP -->
+<div class="screen" id="screen-map">
+  <div class="title" style="font-size:clamp(28px,7vw,44px)">Vælg verden</div>
+  <div class="worldmap" id="worldMap"></div>
+  <div class="flex-row" style="margin-top:10px">
+    <button class="btn ghost" onclick="showCollectibles()">🎁 Samlekort</button>
+    <button class="btn blue" onclick="showHero()">⚔️ Min helt</button>
+    <button class="btn ghost" onclick="showStats()">📊 Statistik</button>
+  </div>
+</div>
+
+<!-- WORLD MENU -->
+<div class="screen" id="screen-world">
+  <div class="panel">
+    <span class="big-emoji" id="worldEmoji"></span>
+    <h2 id="worldName"></h2>
+    <div class="collect" id="worldWords"></div>
+    <div class="world-status" id="worldStatus"></div>
+    <div class="game-grid" id="gameGrid"></div>
+    <button class="btn red" id="bossBtn" style="margin-top:14px;display:none" onclick="startBoss(cur.world)">🐉 Kæmp mod dragen</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="showWorldMap()">← Tilbage</button>
+  </div>
+</div>
+
+<!-- BOSS FIGHT -->
+<div class="screen" id="screen-boss">
+  <div class="panel" style="max-width:640px">
+    <h2>🐉 Dragekamp!</h2>
+    <div class="boss-arena">
+      <div class="boss-side">
+        <div class="boss-hero" id="bossHeroSvg"></div>
+        <div class="boss-label" id="bossHeroName">Ordjægeren</div>
+        <div class="hp-bar"><div class="hp-fill hp-hero" id="heroHpFill"></div></div>
+        <div class="boss-power" id="bossHeroPower">Kraft: 0</div>
+      </div>
+      <div class="boss-vs">VS</div>
+      <div class="boss-side">
+        <div class="boss-dragon" id="bossDragonEmoji">🐉</div>
+        <div class="boss-label" id="bossDragonName">Ild-dragen</div>
+        <div class="hp-bar"><div class="hp-fill hp-dragon" id="dragonHpFill"></div></div>
+        <div class="boss-power" id="bossDragonPower">Kraft: 0</div>
+      </div>
+    </div>
+    <!-- D&D-terninger: begge ruller, højeste vinder runden -->
+    <div class="dice-row" id="diceRow">
+      <div class="dice-side">
+        <div class="dice-label">🧙 Din terning</div>
+        <div class="dice" id="playerDice">?</div>
+        <div class="dice-total" id="playerDiceTotal"></div>
+      </div>
+      <div class="dice-vs">vs</div>
+      <div class="dice-side">
+        <div class="dice-label">🐉 Dragens terning</div>
+        <div class="dice" id="dragonDice">?</div>
+        <div class="dice-total" id="dragonDiceTotal"></div>
+      </div>
+    </div>
+    <div class="boss-status" id="bossStatus"></div>
+    <div class="boss-msg" id="bossMsg"></div>
+    <div class="attack-bar" id="attackBar"></div>
+    <div class="flex-row">
+      <button class="btn ghost" onclick="showWorld(cur.world)">← Tilbage</button>
+    </div>
+    <div class="ta" id="bossHint"></div>
+  </div>
+</div>
+<!-- Effekt-lag: angreb, skade-tal, konfetti -->
+<div id="fxLayer"></div>
+
+<!-- GAME: HEAR & HIT -->
+<div class="screen" id="screen-hear">
+  <div class="panel" style="max-width:620px">
+    <h2>👂 Hør & Slå</h2>
+    <div class="big-word" id="hearWord"></div>
+    <button class="speak-btn" id="hearSpeak" onclick="speakNow()">🔊</button>
+    <div class="choices" id="hearChoices"></div>
+    <div class="ta" id="hearStatus"></div>
+  </div>
+</div>
+
+<!-- GAME: TYPE IT -->
+<div class="screen" id="screen-type">
+  <div class="panel" style="max-width:620px">
+    <h2>⌨️ Fang ordet</h2>
+    <div class="sentence" id="typeHint">Tryk på højttaleren og skriv ordet</div>
+    <button class="speak-btn" onclick="speakNow()">🔊</button>
+    <input class="input-word" id="typeInput" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="12">
+    <div class="ta" id="typeStatus"></div>
+    <button class="btn blue" id="typeNext" onclick="typeSubmit()" style="margin-top:14px">Tjek svar ✓</button>
+  </div>
+</div>
+
+<!-- GAME: SENTENCE -->
+<div class="screen" id="screen-fill">
+  <div class="panel" style="max-width:620px">
+    <h2>🧩 Sætnings-gåden</h2>
+    <div class="sentence" id="fillSentence"></div>
+    <button class="speak-btn" id="fillSpeak" onclick="speakSentence()">🔊</button>
+    <div class="choices" id="fillChoices"></div>
+    <div class="ta" id="fillStatus"></div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screen-result">
+  <div class="panel" style="max-width:560px">
+    <span class="result-emoji" id="resultEmoji"></span>
+    <h2 id="resultTitle"></h2>
+    <div class="stars-big" id="resultStars"></div>
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="result-xp" id="resultXp"></div>
+    <div class="reward-card hidden" id="rewardCard"><span class="rc-emoji" id="rewardEmoji"></span><span id="rewardText"></span></div>
+    <!-- LOOT (Diablo-gear) -->
+    <div class="loot-card hidden" id="lootCard">
+      <span class="lc-icon" id="lootIcon"></span>
+      <div class="lc-rarity rarity-legendary" id="lootRarity"></div>
+      <div class="lc-name" id="lootName"></div>
+      <div class="lc-sub" id="lootSub"></div>
+    </div>
+    <div class="flex-row">
+      <button class="btn" id="resultNext" onclick="resultNext()">Næste →</button>
+      <button class="btn ghost" onclick="showWorldMap()">Kort</button>
+      <button class="btn blue" onclick="showHero()">⚔️ Min helt</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO (gear-udstyr) -->
+<div class="screen" id="screen-hero">
+  <div class="panel" style="max-width:660px">
+    <h2>⚔️ Din ordjæger-helt</h2>
+    <div class="hero-wrap">
+      <div class="hero-fig">
+        <svg id="heroSvg" viewBox="0 0 160 220" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="hero-name" id="heroName">Ordjægeren</div>
+        <div class="hero-power" id="heroPower">Kraft: 0</div>
+        <!-- Horadric-kuben: direkte under helten, altid synlig -->
+        <div class="cube-box">
+          <h3>🧪 Horadric-kuben</h3>
+          <div class="ta" style="font-size:11px;color:#9fb0e8">Tryk på 3 items i rygsækken → kuben laver ét bedre!</div>
+          <div class="cube-row" id="cubeSlots"></div>
+          <button class="btn small" id="cubeBtn" onclick="cubeTransmute()">Læg 3 items i kuben</button>
+        </div>
+        <!-- Forvandlings-resultat (vises efter kube-brug) -->
+        <div class="cube-result hidden" id="cubeResult">
+          <div class="cr-in">
+            <div class="cr-inputs" id="crInputs"></div>
+            <div class="cr-arrow">✨ →</div>
+            <div class="cr-output">
+              <span class="cr-icon" id="crIcon"></span>
+              <div class="cr-rarity" id="crRarity"></div>
+              <div class="cr-name" id="crName"></div>
+              <div class="cr-sub" id="crSub"></div>
+            </div>
+          </div>
+          <button class="btn small" onclick="closeCubeResult()">👍 Fedt!</button>
+        </div>
+      </div>
+      <div class="gear-panel">
+        <h3>⚔️ Kraft: <span id="heroPowerNum">0</span> · Niveau <span id="heroLevelNum">1</span> · <span id="heroClassLabel">Kriger</span></h3>
+        <h3>Udstyret gear</h3>
+        <div id="gearSlots"></div>
+        <h3>Rygsæk <small style="color:#9fb0e8;text-transform:none;letter-spacing:0">(tryk på et item for at lægge det i kuben)</small></h3>
+        <div class="bag-list" id="heroBag"></div>
+        <div class="ta" id="heroHint">Tryk på et slot for at skifte gear. Gear giver kraft!</div>
+        <h3>👑 Mytiske skatte <span id="mythicCount" style="color:#ffd700"></span></h3>
+        <div class="mythic-track" id="mythicTrack"></div>
+      </div>
+    </div>
+    <button class="btn ghost" style="margin-top:14px" onclick="showWorldMap()">← Tilbage til kortet</button>
+  </div>
+</div>
+
+<!-- COLLECTIBLES -->
+<div class="screen" id="screen-collect">
+  <div class="panel" style="max-width:620px">
+    <h2>🎁 Samlekort</h2>
+    <div class="worldmap" id="collectGrid" style="margin-top:14px"></div>
+    <button class="btn ghost" style="margin-top:14px" onclick="showWorldMap()">← Tilbage</button>
+  </div>
+</div>
+
+<!-- STATISTIK (forældre) -->
+<div class="screen" id="screen-stats">
+  <div class="panel" style="max-width:640px">
+    <h2>📊 Statistik</h2>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="stats-section">
+      <h3>🟥 Svageste ord (fejler oftest)</h3>
+      <div id="statsWeak" class="stats-list"></div>
+    </div>
+    <div class="stats-section">
+      <h3>🎯 Pr. spiltype</h3>
+      <div id="statsGames" class="stats-list"></div>
+    </div>
+    <div class="stats-section">
+      <h3>🕐 Seneste missioner</h3>
+      <div id="statsHistory" class="stats-list"></div>
+    </div>
+    <div class="flex-row" style="margin-top:14px">
+      <button class="btn blue" onclick="exportStats()">⬇️ Eksportér (JSON)</button>
+      <button class="btn ghost" onclick="showWorldMap()">← Tilbage</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const WORDS = {
+  jeg:"Jeg kan godt lide at spille fodbold.", det:"Det er sjovt at lege.", er:"Min hund er sød.",
+  du:"Du er min bedste ven.", ikke:"Jeg vil ikke have broccoli.", at:"Det er sjovt at lege.",
+  i:"Vi bor i Danmark.", en:"Jeg har en cykel.", og:"Jeg kan lide pizza og is.", har:"Jeg har to brødre.",
+  vi:"Vi skal i skole i morgen.", til:"Jeg går til boldtræning.", på:"Bogen ligger på bordet.",
+  hvad:"Hvad skal vi lege i dag?", med:"Jeg leger med min ven.", så:"Så lad os starte!",
+  for:"Tak for hjælpen.", mig:"Giv mig bolden.", der:"Drengen der bor i huset.", han:"Han er min storebror.",
+  dig:"Jeg kan godt lide dig.", de:"De spiller fodbold.", den:"Den hund er sød.", kan:"Jeg kan svømme.",
+  af:"Glasset er af glas.", var:"I går var det sjovt.", vil:"Jeg vil gerne have is.",
+  her:"Kom her og leg!", et:"Jeg har et æble.", skal:"Vi skal i skole.", men:"Jeg vil gerne, men jeg må ikke.",
+  ved:"Jeg ved ikke svaret.", om:"Vi snakker om vejret.", nu:"Kom nu!", ja:"Ja, det vil jeg gerne.",
+  som:"Han er lige så hurtig som mig.", hun:"Hun er min søster.", nej:"Nej, jeg gider ikke.",
+  min:"Min bold er blå.", noget:"Jeg vil have noget at spise.", ham:"Jeg gav ham bolden.",
+  være:"Det må være hemmeligt.", bare:"Det er bare en leg.", din:"Er det din taske?",
+  hvor:"Hvor er min jakke?", må:"Jeg må ikke se fjernsyn nu.", hvis:"Hvis det regner, bliver vi inde.",
+  os:"Kom med os!", kom:"Kom og kig!", ud:"Vi skal ud og lege.", dem:"Jeg gav dem kagen.",
+  godt:"Det smager godt!", fra:"Jeg er fra Herning.", have:"Jeg vil have en hund.",
+  ville:"Jeg ville gerne med.", se:"Kom og se det her!", gør:"Hvad gør du?",
+  okay:"Det er okay med mig.", hvorfor:"Hvorfor er himlen blå?", alle:"Alle børnene leger.",
+  lige:"Jeg kommer lige.", op:"Se op i luften!", hende:"Jeg gav hende bogen.",
+  sig:"Han sagde det til sig selv.", hvordan:"Hvordan laver man det?", tror:"Jeg tror det bliver sjovt.",
+  tak:"Tak for kagen!", gøre:"Hvad skal vi gøre?", kunne:"Jeg kunne godt lide det.",
+  lad:"Lad os lege!", kommer:"Far kommer snart hjem.", havde:"Jeg havde en god dag.",
+  eller:"Vil du have æble eller pære?", meget:"Jeg kan godt lide det meget.", nok:"Det er nok is.",
+  få:"Må jeg få en cookie?", da:"Det var da sjovt!", ingen:"Der er ingen hjemme.",
+  man:"Man skal huske sin taske.", gå:"Vi skal gå i skole.", går:"Han går i 4. klasse.",
+  hvem:"Hvem kommer til festen?", bliver:"Det bliver sjovt.", efter:"Vi leger efter skole.",
+  sagde:"Mor sagde at vi skulle spise.", tilbage:"Kom tilbage med det samme!",
+  når:"Når vi er færdige, leger vi.", alt:"Jeg kan lide alt slik.", måske:"Måske kommer han i morgen.",
+  også:"Jeg vil også med!", jo:"Det kan du jo!", mit:"Mit hus er stort.", ind:"Kom ind fra regnen.",
+  vores:"Vores klasse er den bedste.", hej:"Hej, hvordan går det?", mere:"Jeg vil have mere kage.",
+  hans:"Hans cykel er rød.", skulle:"Vi skulle have fri.", blev:"Det blev sent.",
+  nogen:"Er der nogen der kan hjælpe?", lidt:"Jeg vil have lidt mere.", aldrig:"Jeg giver aldrig op!",
+  får:"Jeg får en gave til jul.", siger:"Han siger altid noget sjovt.", selv:"Jeg kan klare det selv.",
+  far:"Far kommer klokken fem.", over:"Bolden fløj over hegnet.", to:"Jeg har to katte.",
+  kun:"Der er kun én tilbage.", sådan:"Sådan laver man en sandkage.", ser:"Jeg ser en fugl.",
+  dit:"Er det dit spil?", jer:"Jeg kommer til jer i morgen.", igen:"Kan vi lege igen?",
+  mor:"Mor laver pandekager.", sammen:"Vi leger sammen.", tager:"Han tager cyklen.",
+  mand:"Den mand derovre er min far.", hele:"Vi legede hele dagen.", deres:"Deres hus er gult."
+};
+
+const ALL_WORDS = Object.keys(WORDS);
+
+/* ============ STAVELSES-DELING (læring: så-dan, ikke s-t-å) ============ */
+const SYL_VOWELS = "aeiouyæøå";
+// Konsonantgrupper der KAN begynde en stavelse på dansk
+const SYL_START_GROUPS = ["hv","sk","st","sp","sl","sm","sn","sv","tr","dr","br","gr","kr","pr","pl","bl","fl","fr","gl","kl","kn","vr","tv","gn","dj","tj"];
+function syllabify(word) {
+  word = word.toLowerCase();
+  const chars = [...word];
+  const vokIdx = [];
+  chars.forEach((c, i) => { if (SYL_VOWELS.includes(c)) vokIdx.push(i); });
+  if (vokIdx.length <= 1) return [word];
+  const syl = [];
+  let start = 0;
+  for (let v = 0; v < vokIdx.length; v++) {
+    const v1 = vokIdx[v];
+    const v2 = v + 1 < vokIdx.length ? vokIdx[v + 1] : chars.length;
+    if (v + 1 >= vokIdx.length) { syl.push(word.slice(start)); break; }
+    const cons = chars.slice(v1 + 1, v2);
+    if (cons.length === 0) { continue; }
+    let splitAt = cons.length;
+    if (cons.length === 1) {
+      splitAt = 1;
+    } else if (cons.length === 2) {
+      splitAt = SYL_START_GROUPS.includes(cons.join("")) ? 2 : 1;
+    } else {
+      let s = 0;
+      for (let len = Math.min(3, cons.length); len >= 1; len--) {
+        const g = cons.slice(cons.length - len).join("");
+        if (SYL_START_GROUPS.includes(g)) { s = len; break; }
+      }
+      splitAt = s >= 1 ? s : 1;
+    }
+    const end = v1 + 1 + (cons.length - splitAt);
+    syl.push(word.slice(start, end));
+    start = end;
+  }
+  if (start < chars.length && !syl.some(s => s === word.slice(start))) syl.push(word.slice(start));
+  return syl.filter(s => s.length > 0);
+}
+function syllableDisplay(word) { return syllabify(word).join("-"); }
+// Pædagogisk visning: hver stavelse i egen farve, så grænserne springer i øjnene
+function syllableHtml(word) {
+  return syllabify(word).map((s, i) => `<span style="color:${i % 2 ? "#ffd76a" : "#ff8585"}">${s}</span>`).join('<span style="color:#8a93b5">-</span>');
+}
+
+/* ============ GEAR (Diablo-inspireret) ============ */
+const GEAR_SLOTS = [
+  { key: "helm",    label: "Hjelm",    icon: "🪖" },
+  { key: "weapon",  label: "Våben",    icon: "⚔️" },
+  { key: "armor",   label: "Rustning", icon: "🛡️" },
+  { key: "shield",  label: "Skjold",   icon: "🗡️" },
+  { key: "boots",   label: "Støvler",  icon: "👢" },
+  { key: "amulet",  label: "Amulet",   icon: "📿" }
+];
+const RARITIES = [
+  { key: "common",    label: "Almindelig",  color: "#a3a3a3", power: 1, weight: 40, glow: "" },
+  { key: "magic",     label: "Magisk",      color: "#60a5fa", power: 2, weight: 30, glow: "" },
+  { key: "rare",      label: "Sjælden",     color: "#fbbf24", power: 3, weight: 18, glow: "" },
+  { key: "epic",      label: "Episk",       color: "#c084fc", power: 4, weight: 9,  glow: "box-shadow:0 0 18px rgba(192,132,252,.5);" },
+  { key: "legendary", label: "Legendarisk", color: "#fb923c", power: 6, weight: 3,  glow: "box-shadow:0 0 24px rgba(251,146,60,.6);" },
+  { key: "mythic",    label: "Mytisk",      color: "#ffd700", power: 10, weight: 0, glow: "box-shadow:0 0 30px rgba(255,215,0,.8), 0 0 60px rgba(255,215,0,.35); animation: mythicGlow 2s ease-in-out infinite;" }
+];
+
+/* ============ SECRET MYTHIC (end-game) ============ */
+// Unikke mytiske items — én pr. slot — hver med sit eget specielle angreb og skin
+const MYTHIC_ITEMS = [
+  { slot: "helm",   name: "Kronen af Ord",        attack: { key: "wordcrown", icon: "👑", name: "Ord-krone",  mult: 9,  color: "#ffd700" }, color: "#ffd700" },
+  { slot: "weapon", name: "Runebladet",           attack: { key: "runeblade", icon: "🔮", name: "Runeblade",  mult: 10, color: "#e879f9" }, color: "#e879f9" },
+  { slot: "armor",  name: "Drageskæl af Evighed", attack: { key: "dragonscales", icon: "🐲", name: "Drage-skæl", mult: 11, color: "#4ade80" }, color: "#4ade80" },
+  { slot: "shield", name: "Skjold af Stjerner",   attack: { key: "starshield", icon: "🌟", name: "Stjerne-skjold", mult: 12, color: "#facc15" }, color: "#facc15" },
+  { slot: "boots",  name: "Tidens Støvler",       attack: { key: "timeboots", icon: "⏳", name: "Tidsspring", mult: 13, color: "#38bdf8" }, color: "#38bdf8" },
+  { slot: "amulet", name: "Galaksens Amulet",     attack: { key: "galaxy", icon: "🌌", name: "Galakse-nova", mult: 15, color: "#c084fc" }, color: "#c084fc" }
+];
+function mythicForSlot(slotKey) { return MYTHIC_ITEMS.find(m => m.slot === slotKey) || null; }
+function countMythicEquipped() {
+  let n = 0;
+  for (const m of MYTHIC_ITEMS) if (state.gear[m.slot] === "mythic") n++;
+  return n;
+}
+// 10% drop chance fra drage-sejr — vælger altid en mythic man mangler (ellers tilfældig)
+function rollMythicDrop() {
+  if (Math.random() >= 0.10) return null;
+  const missing = MYTHIC_ITEMS.filter(m => state.gear[m.slot] !== "mythic" && !state.bag.some(b => b.slot === m.slot && b.rarity === "mythic"));
+  const pool = missing.length ? missing : MYTHIC_ITEMS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+const GEAR_NAMES = {
+  helm:    ["Vikingehjelm", "Dragehjelm", "Stjernehjelm", "Ulvehjelm", "Tordenhjelm", "Ismandshjelm", "Ridderhjelm"],
+  weapon:  ["Ordsværd", "Drageklinge", "Stjerneøkse", "Ulvespyd", "Tordenhammer", "Månestav", "Riddersværd"],
+  armor:   ["Vikingebrynje", "Drageskin", "Stjernerustning", "Ulveskind", "Tordenpanser", "Isplade", "Ridderrustning"],
+  shield:  ["Runeskjold", "Drageskjold", "Stjerneskjold", "Ulveskjold", "Tordenskjold", "Isskjold", "Ridderskjold"],
+  boots:   ["Vikingestøvler", "Dragestøvler", "Stjernestøvler", "Ulvestøvler", "Tordenstøvler", "Isstøvler", "Ridderstøvler"],
+  amulet:  ["Runeramulet", "Drageøje", "Stjerneperle", "Uldetand", "Tordensten", "Is-krystal", "Ridderkors"]
+};
+const HERO_SKIN = ["Ordjægeren", "Ordkrigeren", "Mesterjægeren", "Ordhelten"];
+
+/* ============ KLASSER (Diablo-stil) ============ */
+const CLASSES = [
+  { key: "kriger",   name: "Kriger",     icon: "⚔️", color: "#f87171", desc: "Mere liv i dragekampe", bonus: "hp" },
+  { key: "troldmand",name: "Troldmand",  icon: "🧙", color: "#60a5fa", desc: "Starter med Ildkugle", bonus: "fire" },
+  { key: "jæger",    name: "Jæger",      icon: "🏹", color: "#4ade80", desc: "Gear giver ekstra kraft", bonus: "power" },
+  { key: "paladin",  name: "Paladin",    icon: "🛡️", color: "#fbbf24", desc: "Kraft fra stjerner", bonus: "stars" }
+];
+
+/* ============ XP & LEVELS ============ */
+const XP_PER_LEVEL = 120;
+function heroLevel() { return 1 + Math.floor((state.xp || 0) / XP_PER_LEVEL); }
+function levelPower() { return heroLevel() - 1; } // hvert level giver +1 kraft
+function classOf() { return CLASSES.find(c => c.key === (state.heroClass || "kriger")) || CLASSES[0]; }
+function heroPower() {
+  let p = levelPower();
+  const cls = classOf();
+  for (const rk of Object.values(state.gear)) { const r = rarityOf(rk); if (r) p += r.power; }
+  if (cls.bonus === "power") p += Object.keys(state.gear).length; // jæger: +1 kraft pr. gear-stykke
+  if (cls.bonus === "stars") p += Math.floor(totalStars() / 6);   // paladin: kraft fra stjerner
+  return p;
+}
+
+/* ============ DRAGE-BOSSER (giver manden et formål) ============ */
+const BOSSES = [
+  { name: "Slim-dragen",         emoji: "🦎", power: 5,  c1: "#6ee7b7", c2: "#059669" },
+  { name: "Skov-dragen",         emoji: "🐉", power: 8,  c1: "#86efac", c2: "#16a34a" },
+  { name: "Ild-dragen",          emoji: "🔥", power: 11, c1: "#fca5a5", c2: "#dc2626" },
+  { name: "Is-dragen",           emoji: "❄️", power: 14, c1: "#bae6fd", c2: "#0284c7" },
+  { name: "Torden-dragen",       emoji: "⚡", power: 17, c1: "#fde047", c2: "#a16207" },
+  { name: "Hav-dragen",          emoji: "🌊", power: 20, c1: "#7dd3fc", c2: "#0369a1" },
+  { name: "Sand-dragen",         emoji: "🏜️", power: 23, c1: "#fcd34d", c2: "#b45309" },
+  { name: "Stjerne-dragen",      emoji: "⭐", power: 26, c1: "#f0abfc", c2: "#a21caf" },
+  { name: "Måne-dragen",         emoji: "🌙", power: 29, c1: "#e9d5ff", c2: "#7e22ce" },
+  { name: "Skygge-dragen",       emoji: "🌑", power: 32, c1: "#a78bfa", c2: "#4c1d95" },
+  { name: "Guld-dragen",         emoji: "💰", power: 35, c1: "#fef08a", c2: "#ca8a04" },
+  { name: "Ord-kejser-dragen",   emoji: "👑", power: 40, c1: "#fdba74", c2: "#c2410c" }
+];
+
+const WORLDS = [
+  { name:"Start-planeten",      emoji:"🦖", words:["jeg","det","er","du","ikke","at","i","en","og","har"] },
+  { name:"Ord-bjergene",        emoji:"🦊", words:["vi","til","på","hvad","med","så","for","mig","der","han"] },
+  { name:"Lyd-dalen",           emoji:"🐼", words:["dig","de","den","kan","af","var","vil","her","et","skal"] },
+  { name:"Sætnings-skoven",     emoji:"🐸", words:["men","ved","om","nu","ja","som","hun","nej","min","noget"] },
+  { name:"Gåde-øen",            emoji:"🦁", words:["ham","være","bare","din","hvor","må","hvis","os","kom","ud"] },
+  { name:"Fart-floden",         emoji:"🐯", words:["dem","godt","fra","have","ville","se","gør","okay","hvorfor","alle"] },
+  { name:"Hemmelige-hulen",     emoji:"🐨", words:["lige","op","hende","sig","hvordan","tror","tak","gøre","kunne","lad"] },
+  { name:"Tids-tårnet",         emoji:"🦄", words:["kommer","havde","eller","meget","nok","få","da","ingen","man","gå"] },
+  { name:"Stjernemarken",       emoji:"🐲", words:["går","hvem","bliver","efter","sagde","tilbage","når","alt","måske","også"] },
+  { name:"Måne-byen",           emoji:"🤖", words:["jo","mit","ind","vores","hej","mere","hans","skulle","blev","nogen"] },
+  { name:"Raket-havet",         emoji:"👾", words:["lidt","aldrig","får","siger","selv","far","over","to","kun","sådan"] },
+  { name:"Galaksens kerne",     emoji:"🚀", words:["ser","dit","jer","igen","mor","sammen","tager","mand","hele","deres"] }
+];
+
+/* ============ STATE (med profiler — hver spiller har eget gemt fremskridt) ============ */
+const PROFILES_KEY = "ordjaegeren_profiles_v1";
+const ACTIVE_KEY = "ordjaegeren_active_v1";
+function profileStore() { try { return JSON.parse(localStorage.getItem(PROFILES_KEY)) || []; } catch(e) { return []; } }
+function saveProfiles(p) { try { localStorage.setItem(PROFILES_KEY, JSON.stringify(p)); } catch(e) {} }
+function activeProfile() { return profileStore().find(p => p.id === activeId()) || null; }
+function activeId() { return localStorage.getItem(ACTIVE_KEY) || ""; }
+function profileKey(id) { return "ordjaegeren_v1_" + id; }
+function defaultState() { return { worlds: {}, wrong: {}, gear: {}, bag: [], skin: 0, lootCount: 0, heroClass: "kriger", xp: 0, freeSpins: 3, stats: { words: {}, games: {}, days: {}, history: [] } }; } // worlds[i] = { hear:0-3, type:0-3, fill:0-3, done:[bool,bool,bool] }
+function loadState() {
+  // Første kørsel: migrer eksisterende data (Robins) til en profil
+  if (!profileStore().length) {
+    saveProfiles([{ id: "robin", name: "Robin", icon: "🦁" }]);
+    try { localStorage.setItem(ACTIVE_KEY, "robin"); } catch(e) {}
+    try { const old = localStorage.getItem("ordjaegeren_v1"); if (old) localStorage.setItem(profileKey("robin"), old); } catch(e) {}
+  }
+  state = defaultState();
+  try { const s = JSON.parse(localStorage.getItem(profileKey(activeId()))); if (s) state = s; } catch(e) {}
+  if (!state.worlds) state.worlds = {};
+  if (!state.wrong) state.wrong = {};
+  if (!state.gear) state.gear = {};
+  if (!state.bag) state.bag = [];
+  if (state.skin === undefined) state.skin = 0;
+  if (state.lootCount === undefined) state.lootCount = 0;
+  if (!state.heroClass) state.heroClass = "kriger";
+  if (!state.xp) state.xp = 0;
+  // Engangs-velkomstbonus: sikr at alle spillere har mindst 3 gratis spins ÉN gang
+  // (gælder også eksisterende profiler, fx Robin, der evt. brugte sine i test)
+  if (state.freeSpins === undefined || !state.spinBonus) {
+    if (state.freeSpins === undefined) state.freeSpins = 0;
+    if (state.freeSpins < 3) state.freeSpins = 3;
+    state.spinBonus = true; // kun én gang — bagefter er det ægte forbrug
+  }
+  if (state.mapAt === undefined) state.mapAt = 0;
+  // Migration: sikr at hver verdens done-array findes (gamle saves kan mangle det)
+  for (const k in state.worlds) {
+    const w = state.worlds[k];
+    if (w && !Array.isArray(w.done)) w.done = [false, false, false];
+    if (w && w.done.length < 3) w.done = [!!w.done[0], !!w.done[1], !!w.done[2]];
+  }
+  if (!state.stats) state.stats = { words: {}, games: {}, days: {}, history: [] };
+  if (!state.stats.words) state.stats.words = {};
+  if (!state.stats.games) state.stats.games = {};
+  if (!state.stats.days) state.stats.days = {};
+  if (!state.stats.history) state.stats.history = [];
+}
+let state = defaultState();
+loadState();
+function save() { localStorage.setItem(profileKey(activeId()), JSON.stringify(state)); }
+function worldState(i) { if (!state.worlds[i]) state.worlds[i] = { hear:null, type:null, fill:null, done:[false,false,false] }; return state.worlds[i]; }
+function worldUnlocked(i) {
+  if (i === 0) return true;
+  const prev = state.worlds[i-1];
+  return !!(prev && prev.boss);
+}
+function totalStars() {
+  let n = 0;
+  for (let i = 0; i < WORLDS.length; i++) { const w = state.worlds[i]; if (w) n += (w.hear||0) + (w.type||0) + (w.fill||0); }
+  return n;
+}
+function collectedCount() {
+  let n = 0;
+  for (let i = 0; i < WORLDS.length; i++) { const w = state.worlds[i]; if (w && w.boss) n++; }
+  return n;
+}
+
+/* ============ GEAR / LOOT ============ */
+function rollRarity(stars) {
+  // Flere stjerner = bedre chancer
+  const boost = stars === 3 ? 1.6 : stars === 2 ? 1.2 : 1.0;
+  const pool = [];
+  RARITIES.forEach(r => {
+    const w = Math.round(r.weight * (r.key === "epic" || r.key === "legendary" ? boost : 1));
+    for (let i = 0; i < w; i++) pool.push(r.key);
+  });
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function makeItem(slotKey, rarityKey) {
+  const slot = GEAR_SLOTS.find(s => s.key === slotKey);
+  const rarity = RARITIES.find(r => r.key === rarityKey);
+  // Mytiske items har unikke navne + angreb
+  if (rarityKey === "mythic") {
+    const m = mythicForSlot(slotKey);
+    return { slot: slotKey, rarity: "mythic", name: m ? m.name : "Mytisk Skat", mythic: true, id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
+  }
+  const names = GEAR_NAMES[slotKey];
+  return { slot: slotKey, rarity: rarityKey, name: names[Math.floor(Math.random() * names.length)], id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
+}
+function randomSlot() { return GEAR_SLOTS[Math.floor(Math.random() * GEAR_SLOTS.length)].key; }
+function rarityOf(rk) { return RARITIES.find(r => r.key === rk); }
+/* heroPower er defineret i KLASSER-sektionen (inkl. level + klassebonus) */
+function equipItem(item) {
+  // byt: gammelt gear i slotten ryger i tasken
+  if (state.gear[item.slot]) state.bag.push({ ...state.gear[item.slot], id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
+  state.gear[item.slot] = item.rarity;
+  state.bag = state.bag.filter(b => b.id !== item.id);
+  save();
+  renderHero();
+}
+function showHero() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-hero").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  renderHero();
+}
+function renderHero() {
+  const skinIdx = Math.min(state.skin, HERO_SKIN.length - 1);
+  document.getElementById("heroName").textContent = HERO_SKIN[skinIdx];
+  document.getElementById("heroPower").textContent = "Kraft: " + heroPower();
+  document.getElementById("heroPowerNum").textContent = heroPower();
+  document.getElementById("heroLevelNum").textContent = heroLevel();
+  document.getElementById("heroClassLabel").textContent = classOf().icon + " " + classOf().name;
+  // Helte-figur (SVG) — farver fra gear (genbruger markup fra dragekampen)
+  document.getElementById("heroSvg").innerHTML = heroSvgMarkup();
+  // Mytisk spor: hvilke af de 6 mytiske skatte man har (udstyret eller i tasken)
+  const owned = {};
+  MYTHIC_ITEMS.forEach(m => { if (state.gear[m.slot] === "mythic" || state.bag.some(b => b.slot === m.slot && b.rarity === "mythic")) owned[m.slot] = true; });
+  document.getElementById("mythicCount").textContent = Object.keys(owned).length + "/6";
+  const track = document.getElementById("mythicTrack");
+  track.innerHTML = "";
+  MYTHIC_ITEMS.forEach(m => {
+    const d = document.createElement("div");
+    const has = owned[m.slot];
+    d.className = "mythic-slot" + (has ? " owned" : "");
+    d.title = m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (5% chance fra drage-sejr)");
+    d.innerHTML = has ? m.attack.icon : "❓";
+    track.appendChild(d);
+  });
+  // Gear-slots (kompakt grid)
+  const slotsEl = document.getElementById("gearSlots");
+  slotsEl.innerHTML = "";
+  slotsEl.className = "gear-slots-grid";
+  GEAR_SLOTS.forEach(slot => {
+    const div = document.createElement("div");
+    const has = state.gear[slot.key];
+    const r = has ? rarityOf(has) : null;
+    div.className = "gear-slot" + (has ? " equipped" : " empty");
+    div.innerHTML = `<span class="gs-icon">${slot.icon}</span>
+      <div class="gs-info">
+        <div class="gs-name ${r ? 'rarity-' + r.key : ''}">${has ? (r.label + " " + slot.label) : slot.label}</div>
+        <div class="gs-sub">${has ? "Kraft +" + r.power : "Ingen gear — vind en mission!"}</div>
+      </div>`;
+    div.onclick = () => { // skift til næste item i tasken for denne slot
+      const candidates = state.bag.filter(b => b.slot === slot.key);
+      if (!candidates.length) { toastGear("Ingen " + slot.label.toLowerCase() + " i tasken endnu"); return; }
+      const next = candidates[0];
+      if (state.gear[slot.key]) state.bag.push({ slot: slot.key, rarity: state.gear[slot.key], name: GEAR_NAMES[slot.key][Math.floor(Math.random()*GEAR_NAMES[slot.key].length)], id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
+      state.gear[slot.key] = next.rarity;
+      state.bag = state.bag.filter(b => b.id !== next.id);
+      save(); renderHero();
+      toastGear("Udstyret " + next.name + " (" + r.label + ")");
+    };
+    slotsEl.appendChild(div);
+  });
+  // Rygsæk
+  const bagEl = document.getElementById("heroBag");
+  bagEl.innerHTML = "";
+  if (!state.bag.length) {
+    bagEl.innerHTML = '<div class="ta" style="margin-top:0">Tasken er tom. Fuldend missioner for at finde gear! 🎒</div>';
+  } else {
+    state.bag.forEach(item => {
+      const r = rarityOf(item.rarity);
+      const slot = GEAR_SLOTS.find(s => s.key === item.slot);
+      const div = document.createElement("div");
+      div.className = "bag-item";
+      div.innerHTML = `<span class="bi-icon">${slot.icon}</span>
+        <span class="bi-name ${'rarity-' + r.key}">${item.name}</span>
+        <span class="bi-bonus">+${r.power} kraft</span>`;
+      div.onclick = () => { // læg i kuben (altid synlig) — ellers udstyr
+        if (bagToCube(item)) return; // flyttet til kuben
+        if (state.gear[item.slot]) {
+          const oldRk = state.gear[item.slot];
+          // Mytisk gear beholder sit unikke navn ved udskiftning
+          const oldName = oldRk === "mythic" && mythicForSlot(item.slot) ? mythicForSlot(item.slot).name : GEAR_NAMES[item.slot][Math.floor(Math.random()*GEAR_NAMES[item.slot].length)];
+          state.bag.push({ slot: item.slot, rarity: oldRk, name: oldName, mythic: oldRk === "mythic", id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
+        }
+        state.gear[item.slot] = item.rarity;
+        state.bag = state.bag.filter(b => b.id !== item.id);
+        save(); renderHero();
+        toastGear("Udstyret " + item.name + "!");
+      };
+      bagEl.appendChild(div);
+    });
+  }
+  renderCube(); // hold kuben i sync med rygsækken
+}
+function toastGear(msg) {
+  let t = document.getElementById("toastGear");
+  if (!t) { t = document.createElement("div"); t.id = "toastGear"; t.className = "toast-gear"; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.remove("hidden");
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.add("hidden"), 3000);
+}
+function toast(msg, ms) {
+  let t = document.getElementById("toastGear");
+  if (!t) { t = document.createElement("div"); t.id = "toastGear"; t.className = "toast-gear"; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.remove("hidden");
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.add("hidden"), ms || 3000);
+}
+
+/* ============ STATISTIK (forældre) ============ */
+const GAME_LABELS = { hear: "👂 Hør & Slå", type: "⌨️ Fang ordet", fill: "🧩 Sætnings-gåden" };
+function showStats() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-stats").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  renderStats();
+}
+function renderStats() {
+  // Oversigtskort
+  const sw = state.stats.words;
+  let totalTries = 0, totalWrong = 0;
+  for (const w in sw) { totalTries += sw[w].tries; totalWrong += sw[w].wrong; }
+  const grid = document.getElementById("statsGrid");
+  grid.innerHTML = `
+    <div class="stat-card"><div class="sc-num">${totalStars()}</div><div class="sc-label">Stjerner</div></div>
+    <div class="stat-card"><div class="sc-num">${collectedCount()}/12</div><div class="sc-label">Drager besejret</div></div>
+    <div class="stat-card"><div class="sc-num">${state.lootCount || 0}</div><div class="sc-label">Missioner</div></div>
+    <div class="stat-card"><div class="sc-num">${totalTries}</div><div class="sc-label">Ord besvaret</div></div>
+    <div class="stat-card"><div class="sc-num">${totalWrong}</div><div class="sc-label">Fejl i alt</div></div>
+    <div class="stat-card"><div class="sc-num">${totalTries ? Math.round((1 - totalWrong/totalTries) * 100) + "%" : "–"}</div><div class="sc-label">Korrekt rate</div></div>
+  `;
+  // Svageste ord (sorteret efter fejlrate, min 3 forsøg)
+  const weak = ALL_WORDS
+    .map(w => ({ w, ...sw[w], rate: sw[w] ? sw[w].wrong / Math.max(1, sw[w].tries) : 0 }))
+    .filter(x => x.tries >= 3 && x.wrong > 0)
+    .sort((a, b) => b.rate - a.rate || b.wrong - a.wrong)
+    .slice(0, 8);
+  const weakEl = document.getElementById("statsWeak");
+  weakEl.innerHTML = weak.length ? weak.map(x => `
+    <div class="stats-row">
+      <span class="sr-word">${x.w}</span>
+      <span class="sr-bar"><i style="width:${Math.round(x.rate * 100)}%"></i></span>
+      <span class="sr-num">${x.wrong}/${x.tries} (${Math.round(x.rate * 100)}%)</span>
+    </div>`).join("") : '<div class="ta" style="margin-top:0">Ingen svage ord endnu — spilleren har det godt! 👍</div>';
+  // Pr. spiltype
+  const gamesEl = document.getElementById("statsGames");
+  const games = Object.keys(GAME_LABELS).map(g => {
+    const s = state.stats.games[g] || { tries: 0, wrong: 0 };
+    return { g, ...s };
+  });
+  gamesEl.innerHTML = games.map(x => `
+    <div class="stats-row">
+      <span class="sr-word" style="min-width:130px">${GAME_LABELS[x.g]}</span>
+      <span class="sr-bar"><i style="width:${x.tries ? Math.round(x.wrong/x.tries * 100) : 0}%;background:${x.tries && x.wrong/x.tries > .3 ? "var(--red)" : "var(--green)"}"></i></span>
+      <span class="sr-num">${x.wrong}/${x.tries} fejl</span>
+    </div>`).join("");
+  // Seneste missioner
+  const histEl = document.getElementById("statsHistory");
+  const hist = state.stats.history.slice(-12).reverse();
+  histEl.innerHTML = hist.length ? hist.map(h => `
+    <div class="stats-row">
+      <span class="sr-word" style="min-width:90px">V${h.world + 1} ${GAME_LABELS[h.game]}</span>
+      <span class="sr-stars">${"★".repeat(h.stars)}${"☆".repeat(3 - h.stars)}</span>
+      <span class="sr-num">${h.wrong.length ? "fejl: " + h.wrong.join(", ") : "0 fejl"}</span>
+      <span class="sr-time">${new Date(h.t).toLocaleDateString("da-DK", { day: "2-digit", month: "2-digit" })} ${new Date(h.t).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" })}</span>
+    </div>`).join("") : '<div class="ta" style="margin-top:0">Ingen missioner endnu.</div>';
+}
+function exportStats() {
+  const data = {
+    eksporteret: new Date().toISOString(),
+    ord_laert: ALL_WORDS.length,
+    stjerner: totalStars(),
+    drager_besejret: collectedCount(),
+    missioner: state.lootCount || 0,
+    gear: state.gear,
+    tasken: state.bag,
+    ord_statistik: state.stats.words,
+    spiltype_statistik: state.stats.games,
+    daglig_statistik: state.stats.days,
+    historik: state.stats.history
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "ordjaegeren-statistik-" + new Date().toISOString().slice(0, 10) + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ============ SPEECH ============ */
+let hasDanishVoice = false;
+function pickVoice() {
+  const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("da"));
+  return vs[0] || null;
+}
+function speak(text, onend) {
+  try {
+    const v = pickVoice();
+    if (!v) { if (onend) setTimeout(onend, 700); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "da-DK"; u.voice = v; u.rate = 0.92;
+    u.onend = () => { if (onend) onend(); };
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch(e) { if (onend) onend(); }
+}
+function refreshVoiceFlag() { hasDanishVoice = !!pickVoice(); }
+speechSynthesis.onvoiceschanged = refreshVoiceFlag;
+refreshVoiceFlag();
+
+/* ============ MP3-STEMME (edge-tts, Jeppe) med Web Speech som fallback ============ */
+function playWordAudio(word, onend) {
+  const src = "audio/words/" + encodeURIComponent(word) + ".mp3";
+  const a = new Audio(src);
+  a.onerror = () => { // MP3 mangler (f.eks. åbnet fra Drive uden lydmappen) → brug tale-syntese
+    if (onend) onend();
+    speak(word);
+  };
+  a.onended = () => { if (onend) onend(); };
+  a.play().catch(() => { if (onend) onend(); speak(word); });
+}
+function playSentenceAudio(word, onend) {
+  const src = "audio/sentences/" + encodeURIComponent(word) + ".mp3";
+  const a = new Audio(src);
+  a.onerror = () => { if (onend) onend(); speak(WORDS[word]); };
+  a.onended = () => { if (onend) onend(); };
+  a.play().catch(() => { if (onend) onend(); speak(WORDS[word]); });
+}
+// "Fang ordet": sig ordet alene, derefter i en sætning — lettere at høre
+function playWordAndSentence(word, onend) {
+  playWordAudio(word, () => playSentenceAudio(word, onend));
+}
+
+/* ============ AUDIO FX ============ */
+let actx = null;
+function beep(freq, dur, type, vol) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || "sine"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol || .2, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+  } catch(e) {}
+}
+const sfxRight = () => { beep(660,.12,"sine",.25); setTimeout(()=>beep(880,.15,"sine",.25),90); };
+const sfxWrong = () => { beep(180,.3,"sawtooth",.18); };
+const sfxWin   = () => { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.18,"triangle",.22), i*130)); };
+const sfxClick = () => beep(440,.06,"square",.12);
+const sfxCard  = () => { [784,988,1175,1568].forEach((f,i)=>setTimeout(()=>beep(f,.22,"triangle",.25), i*110)); };
+
+/* ============ NAVIGATION ============ */
+function goHome() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-start").classList.add("active");
+  document.getElementById("hud").classList.add("hidden");
+  updateStartMeta();
+}
+/* ============ PROFILER (hver spiller har eget fremskridt) ============ */
+function showProfiles() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-profiles").classList.add("active");
+  document.getElementById("hud").classList.add("hidden");
+  const grid = document.getElementById("profileGrid");
+  grid.innerHTML = "";
+  const profiles = profileStore();
+  profiles.forEach(p => {
+    const d = document.createElement("div");
+    const active = p.id === activeId();
+    d.className = "profile-card" + (active ? " selected" : "");
+    // Vis spillerens fremskridt på kortet
+    const pstate = JSON.parse(localStorage.getItem(profileKey(p.id)) || "null");
+    const stars = pstate && pstate.worlds ? Object.values(pstate.worlds).reduce((n, w) => n + (w.hear||0) + (w.type||0) + (w.fill||0), 0) : 0;
+    const bosses = pstate && pstate.worlds ? Object.values(pstate.worlds).filter(w => w.boss).length : 0;
+    d.innerHTML = `<div class="pc-icon">${p.icon}</div><div class="pc-name">${p.name}</div><div class="pc-progress">⭐ ${stars} · 🐉 ${bosses}/12</div>`;
+    if (!active) d.onclick = () => switchProfile(p.id);
+    grid.appendChild(d);
+  });
+  // "Ny spiller"-knap
+  const nb = document.createElement("button");
+  nb.className = "profile-card new";
+  nb.innerHTML = `<div class="pc-icon">➕</div><div class="pc-name">Ny spiller</div><div class="pc-progress">Lad Joey prøve!</div>`;
+  nb.onclick = () => {
+    const box = document.getElementById("newProfileBox");
+    box.classList.remove("hidden");
+    document.getElementById("newProfileName").focus();
+  };
+  grid.appendChild(nb);
+}
+function switchProfile(id) {
+  try { localStorage.setItem(ACTIVE_KEY, id); } catch(e) {}
+  loadState();
+  sfxCard();
+  toast("👤 Hej, " + (activeProfile() ? activeProfile().name : "") + "!", 2000);
+  goHome();
+}
+function createProfile() {
+  const name = document.getElementById("newProfileName").value.trim();
+  if (!name) { toast("Skriv et navn først!", 2000); return; }
+  const id = "p" + Date.now().toString(36);
+  const profiles = profileStore();
+  const icons = ["🦁","🐼","🐸","🦊","🐯","🦄","🐲","🤖","👾","🚀","🐨","🐰","🦖","🐺","🦈","🦉"];
+  profiles.push({ id, name, icon: icons[profiles.length % icons.length] });
+  saveProfiles(profiles);
+  switchProfile(id);
+}
+/* ============ KLASSE-VALG ============ */
+let pendingClass = null;
+function showClassSelect() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-class").classList.add("active");
+  const grid = document.getElementById("classGrid");
+  grid.innerHTML = "";
+  document.getElementById("classConfirm").classList.add("hidden");
+  pendingClass = null;
+  CLASSES.forEach(c => {
+    const d = document.createElement("div");
+    const sel = (state.heroClass || "kriger") === c.key;
+    d.className = "class-card" + (sel ? " selected" : "");
+    d.style.setProperty("--cls", c.color);
+    const bonus = c.bonus === "hp" ? "❤️ +30 liv i kampe"
+      : c.bonus === "fire" ? "🔥 Ildkugle fra start"
+      : c.bonus === "power" ? "⚔️ +1 kraft pr. gear"
+      : "⭐ Kraft fra stjerner";
+    d.innerHTML = `<span class="cc-icon">${c.icon}</span><span class="cc-name">${c.name}</span><span class="cc-desc">${c.desc}</span><span class="cc-power">${bonus}</span>`;
+    d.onclick = () => {
+      pendingClass = c.key;
+      state.heroClass = c.key;
+      save();
+      grid.querySelectorAll(".class-card").forEach(el => el.classList.remove("selected"));
+      d.classList.add("selected");
+      sfxCard();
+      const confirm = document.getElementById("classConfirm");
+      confirm.classList.remove("hidden");
+      confirm.querySelector("button").textContent = "✅ Start med " + c.icon + " " + c.name;
+      confirm.querySelector("button").style.setProperty("--cls", c.color);
+      toast(c.icon + " " + c.name + " valgt!", 1500);
+    };
+    grid.appendChild(d);
+  });
+}
+function confirmClass() {
+  sfxWin();
+  toast("⚔️ God jagt, " + classOf().icon + " " + classOf().name + "!", 2500);
+  showWorldMap();
+}
+/* ============ HORADRIC-KUBEN (3 items → 1 bedre) ============ */
+const CUBE_SLOTS = [null, null, null];
+function renderCube() {
+  const slots = document.getElementById("cubeSlots");
+  if (!slots) return;
+  slots.innerHTML = "";
+  CUBE_SLOTS.forEach((item, i) => {
+    const s = document.createElement("div");
+    s.className = "cube-slot" + (item ? " filled" : "");
+    if (item) {
+      const slotDef = GEAR_SLOTS.find(g => g.key === item.slot);
+      const r = rarityOf(item.rarity);
+      s.innerHTML = `<span class="cube-ic" style="color:${r ? r.color : "#fff"}">${slotDef ? slotDef.icon : "🎒"}</span>`;
+    } else {
+      s.innerHTML = `<span class="cube-ic dim">·</span>`;
+    }
+    // Tryk på fyldt slot = tag itemet TILBAGE i tasken (intet forsvinder!)
+    if (item) s.onclick = () => {
+      state.bag.push(item);      // læg tilbage i rygsækken
+      CUBE_SLOTS[i] = null;      // tøm kube-slot
+      save();
+      renderHero();              // opdater rygsæk + kube
+      toast("↩️ " + item.name + " tilbage i rygsækken", 1400);
+    };
+    slots.appendChild(s);
+  });
+  const btn = document.getElementById("cubeBtn");
+  const full = CUBE_SLOTS.every(x => x);
+  if (btn) {
+    btn.disabled = !full;
+    btn.innerHTML = full ? "✨ Forvandl!" : "Vælg 3 items fra rygsækken";
+  }
+}
+function cubeAdd(item) {
+  // Mytiske items kan ikke lægges i kuben — de er unikke og kan ikke forvandles
+  if (item.rarity === "mythic") { toast("👑 Mytiske items kan ikke forvandles — de er unikke!", 2500); return; }
+  const i = CUBE_SLOTS.indexOf(null);
+  if (i === -1) { toast("Kuben er fuld — forvandl eller tag et item ud!", 2000); return; }
+  CUBE_SLOTS[i] = item;
+  renderCube();
+  sfxCard();
+  toast("🧪 Lagt i kuben (" + (CUBE_SLOTS.filter(x => x).length) + "/3)", 1200);
+}
+// Flyt item fra rygsækken til kuben (returnerer true hvis det lykkedes)
+function bagToCube(item) {
+  if (item.rarity === "mythic") { toast("👑 Mytiske items kan ikke forvandles — de er unikke!", 2500); return false; }
+  const i = CUBE_SLOTS.indexOf(null);
+  if (i === -1) { toast("Kuben er fuld — forvandl eller tag et item ud!", 2000); return false; }
+  CUBE_SLOTS[i] = item;
+  state.bag = state.bag.filter(b => b.id !== item.id);
+  save();
+  renderHero();
+  sfxCard();
+  toast("🧪 " + item.name + " lagt i kuben (" + (CUBE_SLOTS.filter(x => x).length) + "/3)", 1400);
+  return true;
+}
+function cubeTransmute() {
+  if (!CUBE_SLOTS.every(x => x)) return;
+  sfxCard();
+  const inputs = CUBE_SLOTS.slice();
+  let item;
+  // 10% chance for SECRET MYTHIC fra kuben (vælger en man mangler)
+  const mythicDrop = rollMythicDrop();
+  if (mythicDrop) {
+    item = makeItem(mythicDrop.slot, "mythic");
+  } else {
+    // Raritet: næste trin op (Legendarisk forbliver)
+    const levels = ["common", "magic", "rare", "epic", "legendary"];
+    const best = Math.max(...CUBE_SLOTS.map(it => levels.indexOf(it.rarity)));
+    const next = Math.min(best + 1, levels.length - 1);
+    item = makeItem(randomSlot(), levels[next]);
+  }
+  state.bag.push(item);
+  CUBE_SLOTS[0] = CUBE_SLOTS[1] = CUBE_SLOTS[2] = null;
+  save();
+  renderCube();
+  renderHero();
+  showCubeResult(inputs, item);
+  if (item.rarity === "mythic") { fxConfetti(); sfxWin(); }
+}
+
+// Vis forvandlings-resultatet: fuldskærms WOW-show med lysstråle, partikler og glød
+function showCubeResult(inputs, item) {
+  const overlay = document.getElementById("cubeOverlay");
+  const inputsEl = document.getElementById("coInputs");
+  inputsEl.innerHTML = "";
+  inputs.forEach((it, idx) => {
+    const slotDef = GEAR_SLOTS.find(g => g.key === it.slot);
+    const r = rarityOf(it.rarity);
+    const s = document.createElement("div");
+    s.className = "cube-slot filled";
+    s.innerHTML = `<span class="cube-ic" style="color:${r ? r.color : "#fff"}">${slotDef ? slotDef.icon : "🎒"}</span>`;
+    inputsEl.appendChild(s);
+  });
+  const slotDef = GEAR_SLOTS.find(g => g.key === item.slot);
+  const r = rarityOf(item.rarity);
+  const resultEl = document.getElementById("coResult");
+  document.getElementById("coIcon").textContent = slotDef ? slotDef.icon : "🎒";
+  const rarityEl = document.getElementById("coRarity");
+  rarityEl.textContent = r ? r.label : item.rarity;
+  rarityEl.className = "co-rarity rarity-" + item.rarity;
+  document.getElementById("coName").textContent = item.name;
+  if (item.rarity === "mythic") {
+    const m = mythicForSlot(item.slot);
+    document.getElementById("coSub").textContent = "⚡ Unikt angreb: " + (m ? m.attack.name + " ×" + m.attack.mult : "?") + " · Kraft +" + (r ? r.power : "?");
+    resultEl.className = "co-result mythic";
+  } else {
+    document.getElementById("coSub").textContent = "Kraft +" + (r ? r.power : "?") + " — udstyr den i helteskærmen!";
+    resultEl.className = "co-result";
+  }
+  // WOW: vis overlay → magisk eksplosion med partikler i raritets-farven
+  overlay.classList.remove("hidden");
+  sfxCard();
+  const colors = [r ? r.color : "#ffd76a", "#ffffff", "#ffd76a"];
+  for (let i = 0; i < 36; i++) {
+    const p = document.createElement("div");
+    p.className = "fx-confetti";
+    p.style.left = (30 + Math.random() * 40) + "vw";
+    p.style.top = "38vh";
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (1.0 + Math.random() * 1.4) + "s";
+    p.style.animationDelay = (Math.random() * 0.4) + "s";
+    p.style.transform = `rotate(${Math.random() * 360}deg) scale(${0.8 + Math.random()})`;
+    overlay.appendChild(p);
+    setTimeout(() => p.remove(), 3200);
+  }
+  // Lyd-boost: højere tone for bedre raritet
+  const freq = item.rarity === "mythic" ? 1245 : item.rarity === "legendary" ? 988 : item.rarity === "epic" ? 784 : 659;
+  setTimeout(() => beep(freq, .3, "triangle", .3), 300);
+  if (item.rarity === "mythic") { fxConfetti(); sfxWin(); }
+  else setTimeout(() => sfxRight(), 350);
+}
+function closeCubeOverlay() {
+  const overlay = document.getElementById("cubeOverlay");
+  overlay.classList.add("hidden");
+  overlay.querySelectorAll(".fx-confetti").forEach(el => el.remove());
+}
+function showWorldMap() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-map").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  renderWorldMap();
+}
+function showWorld(i) {
+  sfxClick();
+  cur.world = i; // KRITISK: kamp og boss skal vide hvilken verden vi er i
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-world").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  const w = WORLDS[i];
+  document.getElementById("worldEmoji").textContent = w.emoji;
+  document.getElementById("worldName").textContent = "Verden " + (i+1) + ": " + w.name;
+  document.getElementById("worldWords").textContent = w.words.join(" · ");
+  const g = document.getElementById("gameGrid");
+  g.innerHTML = "";
+  const ws = worldState(i);
+  const games = [
+    { key:"hear", emoji:"👂", label:"Hør & Slå", desc:"Lyt og ram det rigtige ord" },
+    { key:"type", emoji:"⌨️", label:"Fang ordet", desc:"Lyt og skriv ordet" },
+    { key:"fill", emoji:"🧩", label:"Sætnings-gåden", desc:"Vælg ordet der mangler" }
+  ];
+  games.forEach(game => {
+    const b = document.createElement("button");
+    const done = ws.done[games.indexOf(game)];
+    b.className = "game-btn" + (done ? " done" : "");
+    const s = ws[game.key];
+    const stars = (s === null || s === undefined) ? "☆☆☆" : "★".repeat(s) + "☆".repeat(3 - s);
+    const status = done
+      ? '<span class="g-status g-done">✔ Gennemført</span>'
+      : '<span class="g-status g-todo">✘ Mangler</span>';
+    b.innerHTML = `<span class="g-emoji">${game.emoji}</span><span><b>${game.label}</b><br><small>${game.desc}</small></span><span class="g-meta">${stars}</span>${status}`;
+    b.onclick = () => startGame(i, game.key);
+    g.appendChild(b);
+  });
+  // Overordnet status for verdenen
+  const statusLine = document.getElementById("worldStatus");
+  const missionsDone = ws.done[0] && ws.done[1] && ws.done[2];
+  if (ws.boss) statusLine.innerHTML = "✅ Verdenen er færdig!";
+  else if (missionsDone) statusLine.innerHTML = "🐉 Alle missioner klaret — kæmp mod dragen!";
+  else {
+    const n = ws.done.filter(Boolean).length;
+    statusLine.innerHTML = `🚧 ${n}/3 missioner gennemført — gennemfør alle 3 for at møde dragen`;
+  }
+  // Drage-knap: vises når alle 3 missioner er gennemført OG dragen ikke er besejret endnu
+  const bossBtn = document.getElementById("bossBtn");
+  const dragon = BOSSES[i];
+  const defeated = ws.boss;
+  // KRITISK: nulstil altid disabled/done-klasse — ellers forbliver knappen låst
+  // fra en tidligere verdens drage-sejr (disabled kan man ikke klikke!)
+  bossBtn.disabled = false;
+  bossBtn.classList.remove("done");
+  if (ws.done[0] && ws.done[1] && ws.done[2] && !defeated) {
+    bossBtn.style.display = "block";
+    bossBtn.textContent = "🐉 Kæmp mod " + dragon.name + " (kraft " + dragon.power + ")";
+  } else if (defeated) {
+    bossBtn.style.display = "block";
+    bossBtn.textContent = "🏆 " + dragon.name + " besejret!";
+    bossBtn.disabled = true;
+    bossBtn.classList.add("done");
+  } else {
+    bossBtn.style.display = "none";
+  }
+}
+function showCollectibles() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-collect").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  const grid = document.getElementById("collectGrid");
+  grid.innerHTML = "";
+  WORLDS.forEach((w, i) => {
+    const d = document.createElement("div");
+    d.className = "world-card" + (collectedCount() ? "" : "");
+    const ws = state.worlds[i];
+    const got = ws && ws.boss;
+    d.innerHTML = `<div class="emoji">${got ? w.emoji : "❓"}</div><div class="wname">${got ? w.name : "???"}</div>`;
+    grid.appendChild(d);
+  });
+}
+/* ============ DRAGEKAMP ============ */
+// Angreb låses op efterhånden som drager besejres
+const ATTACKS = [
+  { key: "slash",  icon: "⚔️", name: "Slag",      mult: 2, unlock: 0, color: "#ffffff" },
+  { key: "fire",   icon: "🔥", name: "Ildkugle",  mult: 3, unlock: 1, color: "#f97316" },
+  { key: "bolt",   icon: "⚡", name: "Lyn",       mult: 4, unlock: 3, color: "#eab308" },
+  { key: "frost",  icon: "❄️", name: "Is-storm",  mult: 5, unlock: 5, color: "#38bdf8" },
+  { key: "meteor", icon: "☄️", name: "Meteor",    mult: 7, unlock: 7, color: "#f43f5e" }
+];
+let bossState = null; // { playerHp, playerMax, dragonHp, dragonMax, over }
+
+function startBoss(worldIdx) {
+  if (worldIdx !== undefined) cur.world = worldIdx; // eksplicit verden fra knappen
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-boss").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  const dragon = BOSSES[cur.world];
+  const power = heroPower();
+  const cls = classOf();
+  const hpBonus = cls.bonus === "hp" ? 30 : 0; // kriger: ekstra liv
+  bossState = {
+    playerMax: 50 + power * 6 + hpBonus,
+    playerHp: 50 + power * 6 + hpBonus,
+    dragonMax: dragon.power * 6,
+    dragonHp: dragon.power * 6,
+    over: false
+  };
+  document.getElementById("bossHeroSvg").innerHTML = heroSvgMarkup();
+  document.getElementById("bossHeroName").textContent = HERO_SKIN[Math.min(state.skin, HERO_SKIN.length - 1)];
+  document.getElementById("bossHeroPower").textContent = "Kraft: " + power;
+  // Rigtig SVG-drage med dragens farver
+  const dragonEl = document.getElementById("bossDragonEmoji");
+  dragonEl.innerHTML = dragonSvgMarkup(dragon.c1, dragon.c2);
+  dragonEl.className = "boss-dragon breathe";
+  dragonEl.style.filter = "drop-shadow(0 0 24px " + dragon.c1 + "88)";
+  document.getElementById("bossDragonName").textContent = dragon.name;
+  document.getElementById("bossDragonPower").textContent = "Kraft: " + dragon.power;
+  document.getElementById("bossStatus").textContent = "Dragen blokerer vejen videre!";
+  document.getElementById("bossMsg").textContent = "Vælg et angreb og besejr dragen! Nye angreb låses op, når du besejrer drager.";
+  document.getElementById("bossHint").textContent = "Mere gear = mere kraft = stærkere angreb.";
+  renderBossHp();
+  renderAttacks();
+}
+function renderBossHp() {
+  const b = bossState;
+  document.getElementById("heroHpFill").style.width = Math.max(0, b.playerHp / b.playerMax * 100) + "%";
+  document.getElementById("dragonHpFill").style.width = Math.max(0, b.dragonHp / b.dragonMax * 100) + "%";
+}
+function renderAttacks() {
+  const bar = document.getElementById("attackBar");
+  bar.innerHTML = "";
+  const beaten = collectedCount();
+  const cls = classOf();
+  ATTACKS.forEach(a => {
+    // Troldmand starter med Ildkugle (fire) låst op
+    let unlocked = beaten >= a.unlock;
+    if (cls.bonus === "fire" && a.key === "fire") unlocked = true;
+    const b = document.createElement("button");
+    b.className = "attack-btn" + (unlocked ? "" : " locked");
+    b.innerHTML = `<span class="ab-icon">${a.icon}</span><span>${a.name} ×${a.mult}</span>`;
+    if (unlocked) b.onclick = () => bossAttack(a);
+    else b.title = "Besejr " + a.unlock + (a.unlock === 1 ? " drage" : " drager") + " for at låse op";
+    bar.appendChild(b);
+  });
+  // SECRET MYTHIC-angreb: hvert UDSTYRET mytisk item låser sit unikke angreb op
+  MYTHIC_ITEMS.forEach(m => {
+    if (state.gear[m.slot] !== "mythic") return;
+    const a = m.attack;
+    const b = document.createElement("button");
+    b.className = "attack-btn mythic";
+    b.innerHTML = `<span class="ab-icon">${a.icon}</span><span>${a.name} ×${a.mult}</span>`;
+    b.onclick = () => bossAttack(a);
+    bar.appendChild(b);
+  });
+}
+function heroSvgMarkup() {
+  const g = c => c || "#8a8f98";
+  const helmC = g(state.gear.helm && rarityOf(state.gear.helm).color);
+  const weaponC = g(state.gear.weapon && rarityOf(state.gear.weapon).color);
+  const armorC = g(state.gear.armor && rarityOf(state.gear.armor).color);
+  const shieldC = g(state.gear.shield && rarityOf(state.gear.shield).color);
+  const bootsC = g(state.gear.boots && rarityOf(state.gear.boots).color);
+  const amuletC = g(state.gear.amulet && rarityOf(state.gear.amulet).color);
+  return `
+    <svg viewBox="0 0 160 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="heroArmor" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${armorC}"/><stop offset="100%" stop-color="${armorC}" stop-opacity=".6"/>
+        </linearGradient>
+        <linearGradient id="heroBlade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="${weaponC}"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="80" cy="205" rx="42" ry="8" fill="rgba(0,0,0,.35)"/>
+      <!-- Kappe -->
+      <path d="M56 120 Q40 160 44 196 L66 188 Q62 150 66 128 Z" fill="rgba(96,60,160,.55)"/>
+      <path d="M104 120 Q120 160 116 196 L94 188 Q98 150 94 128 Z" fill="rgba(96,60,160,.55)"/>
+      <!-- Ben -->
+      <rect x="50" y="176" width="24" height="30" rx="8" fill="${bootsC}"/>
+      <rect x="86" y="176" width="24" height="30" rx="8" fill="${bootsC}"/>
+      <rect x="48" y="172" width="28" height="8" rx="4" fill="#4b3a2a"/>
+      <rect x="84" y="172" width="28" height="8" rx="4" fill="#4b3a2a"/>
+      <!-- Krop/rustning -->
+      <rect x="62" y="118" width="36" height="62" rx="10" fill="url(#heroArmor)"/>
+      <rect x="56" y="130" width="48" height="26" rx="12" fill="${armorC}" opacity=".75"/>
+      <rect x="63" y="126" width="34" height="6" rx="3" fill="rgba(255,255,255,.25)"/>
+      <!-- Skjold (venstre arm) -->
+      <rect x="42" y="112" width="7" height="26" rx="3" fill="#6b4f2a" transform="rotate(-24 49 125)"/>
+      <circle cx="50" cy="108" r="12" fill="${shieldC}"/>
+      <circle cx="50" cy="108" r="8" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+      <path d="M50 100 v16 M44 108 h12" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+      <!-- Våben (højre arm) -->
+      <rect x="100" y="108" width="10" height="34" rx="4" fill="#6b4f2a" transform="rotate(24 105 125)"/>
+      <rect x="106" y="96" width="30" height="7" rx="3" fill="url(#heroBlade)" transform="rotate(24 121 99)"/>
+      <rect x="118" y="104" width="8" height="4" rx="2" fill="${weaponC}" transform="rotate(24 122 106)"/>
+      <!-- Hoved -->
+      <circle cx="80" cy="96" r="22" fill="#f2c9a0"/>
+      <path d="M62 104 Q62 116 80 118 Q98 116 98 104" fill="#f2c9a0"/>
+      <circle cx="73" cy="96" r="2.8" fill="#2b2b35"/>
+      <circle cx="87" cy="96" r="2.8" fill="#2b2b35"/>
+      <circle cx="74" cy="95" r="1" fill="#fff"/>
+      <circle cx="88" cy="95" r="1" fill="#fff"/>
+      <path d="M76 106 Q80 110 84 106" stroke="#2b2b35" stroke-width="2" fill="none"/>
+      <!-- Hjelm -->
+      <rect x="58" y="74" width="44" height="26" rx="8" fill="${helmC}"/>
+      <rect x="70" y="70" width="20" height="10" rx="4" fill="${helmC}"/>
+      <rect x="60" y="82" width="40" height="3" rx="1.5" fill="rgba(255,255,255,.3)"/>
+      <path d="M80 70 L86 62 L80 64 L74 62 Z" fill="${helmC}"/>
+      <!-- Amulet -->
+      <path d="M74 84 Q80 92 86 84" stroke="${amuletC}" stroke-width="2.5" fill="none"/>
+      <circle cx="80" cy="72" r="4" fill="${amuletC}"/>
+      <circle cx="80" cy="72" r="2" fill="#fff" opacity=".6"/>
+      ${mythicAuraMarkup()}
+    </svg>`;
+}
+// SECRET MYTHIC skin: aura bag helten — styrke/farve efter antal mytiske items
+function mythicAuraMarkup() {
+  const n = countMythicEquipped();
+  if (n === 0) return "";
+  // Aura-farver fra udstyrede mytiske items
+  const colors = MYTHIC_ITEMS.filter(m => state.gear[m.slot] === "mythic").map(m => m.color);
+  const c1 = colors[0] || "#ffd700";
+  const c2 = colors[Math.min(1, colors.length - 1)] || "#c084fc";
+  const o = 0.18 + n * 0.06;
+  let glow = `<defs><radialGradient id="mythAura" cx="50%" cy="42%" r="55%">
+    <stop offset="0%" stop-color="${c1}" stop-opacity="0"/><stop offset="70%" stop-color="${c2}" stop-opacity="${o}"/><stop offset="100%" stop-color="${c1}" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="80" cy="108" rx="${40 + n * 5}" ry="${46 + n * 6}" fill="url(#mythAura)"/>`;
+  // Stjerner/partikler omkring helten ved næsten fuldt sæt
+  if (n >= 4) {
+    glow += `<circle cx="52" cy="88" r="2.4" fill="${c1}" opacity=".9"><animate attributeName="opacity" values=".3;1;.3" dur="1.4s" repeatCount="indefinite"/></circle>
+      <circle cx="112" cy="80" r="2" fill="${c2}" opacity=".9"><animate attributeName="opacity" values="1;.3;1" dur="1.2s" repeatCount="indefinite"/></circle>
+      <circle cx="60" cy="140" r="2" fill="${c1}" opacity=".9"><animate attributeName="opacity" values=".5;1;.5" dur="1.6s" repeatCount="indefinite"/></circle>
+      <circle cx="104" cy="146" r="2.4" fill="${c2}" opacity=".9"><animate attributeName="opacity" values="1;.4;1" dur="1.1s" repeatCount="indefinite"/></circle>`;
+  }
+  return glow;
+}
+/* Rigtig SVG-drage med gradienter og skæl-detaljer */
+function dragonSvgMarkup(c1, c2) {
+  const gid = "dg" + Math.random().toString(36).slice(2, 7);
+  return `
+    <svg viewBox="0 0 220 190" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+        </linearGradient>
+        <radialGradient id="${gid}e" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff"/><stop offset="40%" stop-color="#fde047"/><stop offset="100%" stop-color="#b45309"/>
+        </radialGradient>
+      </defs>
+      <!-- Hale -->
+      <path d="M30 150 Q10 140 6 120 Q4 106 14 100 Q22 94 30 102 Q36 108 34 118 L52 132" fill="url(#${gid})"/>
+      <path d="M6 120 L0 108 L8 112 Z" fill="${c2}"/>
+      <!-- Krop -->
+      <ellipse cx="100" cy="128" rx="52" ry="34" fill="url(#${gid})"/>
+      <path d="M60 118 Q58 104 70 100 Q82 97 88 108" fill="${c1}" opacity=".5"/>
+      <!-- Bug-skæl -->
+      <path d="M84 142 Q100 152 116 142 M78 132 Q100 144 122 132" stroke="rgba(0,0,0,.25)" stroke-width="2" fill="none"/>
+      <!-- Bagben -->
+      <path d="M120 150 Q128 162 122 170 L136 174 Q142 166 138 156 Z" fill="url(#${gid})"/>
+      <path d="M122 170 L116 178 L128 174 Z" fill="${c2}"/>
+      <!-- Forben -->
+      <path d="M72 148 Q64 160 70 168 L56 174 Q50 164 56 152 Z" fill="url(#${gid})"/>
+      <path d="M70 168 L62 176 L76 172 Z" fill="${c2}"/>
+      <!-- Vinge -->
+      <path d="M118 108 Q150 78 190 70 Q176 90 168 96 Q188 96 198 104 Q170 108 150 110 Q138 118 126 120 Z" fill="url(#${gid})" opacity=".9"/>
+      <path d="M126 112 Q140 100 156 96" stroke="${c2}" stroke-width="2" fill="none" opacity=".5"/>
+      <!-- Hals + hoved -->
+      <path d="M120 96 Q132 78 140 62 Q146 52 152 54" fill="url(#${gid})"/>
+      <path d="M138 66 Q150 50 158 46 Q166 44 170 50 Q172 58 166 66 Q160 74 152 74 Z" fill="url(#${gid})"/>
+      <!-- Øje -->
+      <circle cx="158" cy="54" r="6" fill="url(#${gid}e)"/>
+      <circle cx="158" cy="54" r="3" fill="#1f1300"/>
+      <!-- Næsebor -->
+      <circle cx="170" cy="54" r="1.6" fill="${c2}"/>
+      <!-- Horn -->
+      <path d="M150 48 Q146 34 154 30 Q158 36 156 46 Z" fill="${c2}"/>
+      <path d="M162 44 Q164 30 172 28 Q174 36 170 46 Z" fill="${c2}"/>
+      <!-- Ryg-pigge -->
+      <path d="M96 96 L102 82 L110 98 M116 100 L122 86 L130 102 M136 106 L140 94 L146 108" fill="${c2}" opacity=".85"/>
+      <!-- Ildglimt -->
+      <path d="M174 58 Q182 56 188 50 Q184 60 176 64 Q182 64 186 68 Q176 68 170 62 Z" fill="#f97316" opacity=".9"/>
+    </svg>`;
+}
+// --- Effekter ---
+function fxProjectile(fromX, fromY, toX, toY, icon) {
+  const el = document.createElement("div");
+  el.className = "fx-projectile";
+  el.textContent = icon;
+  el.style.left = fromX + "px"; el.style.top = fromY + "px";
+  el.style.setProperty("--dx", (toX - fromX) + "px");
+  el.style.setProperty("--dy", (toY - fromY) + "px");
+  document.getElementById("fxLayer").appendChild(el);
+  setTimeout(() => el.remove(), 600);
+}
+function fxDmg(x, y, tal, color) {
+  const el = document.createElement("div");
+  el.className = "fx-dmg";
+  el.textContent = "-" + tal;
+  el.style.left = x + "px"; el.style.top = y + "px";
+  if (color) el.style.color = color;
+  document.getElementById("fxLayer").appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+function fxBoom(x, y) {
+  const el = document.createElement("div");
+  el.className = "fx-boom";
+  el.textContent = "💥";
+  el.style.left = x + "px"; el.style.top = y + "px";
+  document.getElementById("fxLayer").appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+function fxConfetti() {
+  const colors = ["#fbbf24", "#f87171", "#60a5fa", "#4ade80", "#c084fc", "#fb923c"];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement("div");
+    el.className = "fx-confetti";
+    el.style.left = (Math.random() * 100) + "vw";
+    el.style.top = "-20px";
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (1.4 + Math.random() * 1.6) + "s";
+    el.style.animationDelay = (Math.random() * 0.5) + "s";
+    document.getElementById("fxLayer").appendChild(el);
+    setTimeout(() => el.remove(), 3600);
+  }
+}
+function centerOf(id) {
+  const el = document.getElementById(id);
+  if (!el || !el.getBoundingClientRect) return { x: innerWidth / 2, y: innerHeight / 2 };
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+function shakeEl(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove("shake");
+  void el.offsetWidth;
+  el.classList.add("shake");
+}
+// D&D-stil: begge ruller d20, højeste vinder runden
+function rollDice(n) { let s = 0; for (let i = 0; i < n; i++) s += 1 + Math.floor(Math.random() * 20); return s; }
+// Kampniveau: efter 4 besejrede drager ruller begge 2 terninger i stedet for 1
+function bossDiceCount() { return collectedCount() >= 4 ? 2 : 1; }
+function bossAttack(attack) {
+  if (!bossState || bossState.over) return;
+  const dragon = BOSSES[cur.world];
+  const power = heroPower();
+  const dice = bossDiceCount();
+  const statusEl = document.getElementById("bossStatus");
+  const playerDiceEl = document.getElementById("playerDice");
+  const dragonDiceEl = document.getElementById("dragonDice");
+  const playerTotalEl = document.getElementById("playerDiceTotal");
+  const dragonTotalEl = document.getElementById("dragonDiceTotal");
+  // Rul resultater (kraft giver bonus)
+  const playerRoll = rollDice(dice) + Math.floor(power / 2);
+  const dragonRoll = rollDice(dice) + Math.floor(dragon.power / 2);
+  const playerWins = playerRoll >= dragonRoll;
+  // Synlig terninge-animation: hurtige tilfældige tal → lander på resultatet
+  const diceLabel = dice === 2 ? "2×d20" : "d20";
+  statusEl.textContent = "🎲 Begge ruller " + diceLabel + "!";
+  playerDiceEl.classList.add("rolling");
+  dragonDiceEl.classList.add("rolling");
+  playerDiceEl.classList.remove("winner", "loser");
+  dragonDiceEl.classList.remove("winner", "loser");
+  playerTotalEl.textContent = "";
+  dragonTotalEl.textContent = "";
+  let spins = 0;
+  const spin = setInterval(() => {
+    playerDiceEl.textContent = 1 + Math.floor(Math.random() * 20);
+    dragonDiceEl.textContent = 1 + Math.floor(Math.random() * 20);
+    if (++spins >= (dice === 2 ? 10 : 8)) {
+      clearInterval(spin);
+      // Land på resultatet
+      playerDiceEl.textContent = playerRoll;
+      dragonDiceEl.textContent = dragonRoll;
+      playerTotalEl.textContent = "🎲 " + playerRoll + (dice === 2 ? " (2×d20)" : "");
+      dragonTotalEl.textContent = "🎲 " + dragonRoll + (dice === 2 ? " (2×d20)" : "");
+      if (playerWins) { playerDiceEl.classList.add("winner"); dragonDiceEl.classList.add("loser"); }
+      else { dragonDiceEl.classList.add("winner"); playerDiceEl.classList.add("loser"); }
+      resolveRound(attack, playerRoll, dragonRoll, playerWins);
+    }
+  }, 55);
+  // Skade + animationer afgøres i resolveRound
+  const from = centerOf("bossHeroSvg");
+  const to = centerOf("bossDragonEmoji");
+  function resolveRound(att, pRoll, dRoll, pWins) {
+    statusEl.textContent = "🎲 Du rullede " + pRoll + " · Dragen rullede " + dRoll + (pWins ? " → Du vinder runden!" : " → Dragen vinder runden!");
+    if (pWins) {
+      // Spiller vinder: skade = angrebets styrke + terningeforskel
+      const dmg = att.mult * 2 + Math.max(0, Math.floor((pRoll - dRoll) / 2));
+      bossState.dragonHp = Math.max(0, bossState.dragonHp - dmg);
+      fxProjectile(from.x, from.y, to.x, to.y, att.icon);
+      setTimeout(() => {
+        fxBoom(to.x, to.y);
+        fxDmg(to.x + 30, to.y - 30, dmg, att.color);
+        shakeEl("bossDragonEmoji");
+        sfxRight();
+        renderBossHp();
+        statusEl.textContent = att.name + " rammer! -" + dmg;
+        if (bossState.dragonHp <= 0) { bossWin(); return; }
+      }, 520);
+    } else {
+      // Dragen vinder runden — dens modangreb rammer
+      const ddmg = 3 + dragon.power;
+      bossState.playerHp = Math.max(0, bossState.playerHp - ddmg);
+      setTimeout(() => {
+        const from2 = centerOf("bossDragonEmoji");
+        const to2 = centerOf("bossHeroSvg");
+        fxProjectile(from2.x, from2.y, to2.x, to2.y, "🐲");
+        setTimeout(() => {
+          fxDmg(to2.x + 30, to2.y - 30, ddmg, "#f87171");
+          shakeEl("bossHeroSvg");
+          sfxWrong();
+          renderBossHp();
+          statusEl.textContent = "Dragen rammer dig! -" + ddmg;
+          if (bossState.playerHp <= 0) { bossLose(); }
+        }, 500);
+      }, 300);
+    }
+  }
+}
+function bossWin() {
+  if (bossState.over) return;
+  bossState.over = true;
+  const dragon = BOSSES[cur.world];
+  // State opdateres med det samme (kort + fremskridt)
+  const ws = worldState(cur.world);
+  ws.boss = true;
+  save();
+  const completed = collectedCount();
+  state.skin = Math.min(Math.floor(completed / 3), HERO_SKIN.length - 1);
+  // UI opdateres med kort animations-delay
+  setTimeout(() => {
+    document.getElementById("bossDragonEmoji").classList.add("dead");
+    fxConfetti();
+    sfxWin();
+    const reward = document.getElementById("rewardCard");
+    reward.classList.remove("hidden");
+    document.getElementById("rewardEmoji").textContent = WORLDS[cur.world].emoji;
+    document.getElementById("rewardText").textContent = "Drage besejret! Samlekort: " + WORLDS[cur.world].name + "!";
+    sfxCard();
+    document.getElementById("bossStatus").textContent = "🏆 SEJR! " + dragon.name + " er besejret!";
+    document.getElementById("bossMsg").textContent = "Snur lykkehjulet og se hvad dragen efterlader! 🎰";
+    document.getElementById("bossHint").textContent = "25% Mytisk · 25% Legendarisk · 50% Magisk";
+    renderAttacks();
+    showLootWheel(); // lykkehjul med loot-chancer
+  }, 400);
+}
+
+/* ============ LYKKEHJUL (drage-sejr) ============ */
+// Segmenter: Mytisk 25% · Legendarisk 25% · Magisk (blå) 50%
+const WHEEL_SEGS = [
+  { key: "mythic",    label: "Mytisk",       icon: "👑", color: "#ffd700", pct: .25 },
+  { key: "legendary", label: "Legendarisk",  icon: "🟠", color: "#fb923c", pct: .25 },
+  { key: "magic",     label: "Magisk",       icon: "🔵", color: "#60a5fa", pct: .50 }
+];
+let wheelPending = null; // { rk, item } der blev rullet
+function wheelSvgMarkup() {
+  const cx = 100, cy = 100, r = 92;
+  let acc = 0, parts = "";
+  WHEEL_SEGS.forEach((s, i) => {
+    const a0 = acc * 360 - 90, a1 = (acc + s.pct) * 360 - 90; // start øverst
+    acc += s.pct;
+    const x0 = cx + r * Math.cos(a0 * Math.PI / 180), y0 = cy + r * Math.sin(a0 * Math.PI / 180);
+    const x1 = cx + r * Math.cos(a1 * Math.PI / 180), y1 = cy + r * Math.sin(a1 * Math.PI / 180);
+    const large = s.pct > .5 ? 1 : 0;
+    parts += `<path d="M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1} Z" fill="${s.color}" stroke="#1a1035" stroke-width="2"/>`;
+    // Tekst midt i segmentet
+    const ma = ((acc - s.pct / 2) * 360 - 90) * Math.PI / 180;
+    const tx = cx + (r * .58) * Math.cos(ma), ty = cy + (r * .58) * Math.sin(ma);
+    parts += `<text x="${tx}" y="${ty - 6}" text-anchor="middle" font-size="20">${s.icon}</text>`;
+    parts += `<text x="${tx}" y="${ty + 14}" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">${s.label}</text>`;
+  });
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${parts}<circle cx="${cx}" cy="${cy}" r="22" fill="#1a1035" stroke="#ffd76a" stroke-width="3"/></svg>`;
+}
+function showLootWheel() {
+  // Rul resultatet NU (25/25/50), loot uddeles når hjulet lander
+  const roll = Math.random();
+  let rk;
+  if (roll < .25) rk = "mythic";
+  else if (roll < .50) rk = "legendary";
+  else rk = "magic";
+  let item;
+  if (rk === "mythic") {
+    // Vælg altid en mythic man mangler
+    const missing = MYTHIC_ITEMS.filter(m => state.gear[m.slot] !== "mythic" && !state.bag.some(b => b.slot === m.slot && b.rarity === "mythic"));
+    const pool = missing.length ? missing : MYTHIC_ITEMS;
+    const m = pool[Math.floor(Math.random() * pool.length)];
+    item = makeItem(m.slot, "mythic");
+  } else {
+    item = makeItem(randomSlot(), rk);
+  }
+  wheelPending = { rk, item };
+  // Byg hjulet
+  const wheel = document.getElementById("wheelSpin");
+  wheel.innerHTML = wheelSvgMarkup();
+  // Annullér eventuelle gamle spin-animationer og nulstil position
+  if (wheel.getAnimations) wheel.getAnimations().forEach(a => a.cancel());
+  wheel.style.transform = "rotate(0deg)";
+  document.getElementById("wheelOverlay").classList.remove("hidden");
+  document.getElementById("wheelResult").classList.add("hidden");
+  document.getElementById("wheelClose").classList.add("hidden");
+  const wBtn = document.getElementById("wheelBtn");
+  wBtn.classList.remove("hidden");
+  wBtn.disabled = false; // KRITISK: nulstil disabled fra forrige spin — ellers kan man ikke spinde igen
+  wBtn.textContent = "🎰 Snur!";
+}
+function spinLootWheel() {
+  if (!wheelPending) return;
+  const wheel = document.getElementById("wheelSpin");
+  const btn = document.getElementById("wheelBtn");
+  btn.disabled = true;
+  sfxCard();
+  // Uddel loot MED DET SAMME — hjulet er kun show, loot er sikret uanset hvad
+  state.bag.push(wheelPending.item);
+  save();
+  // Find segmentets midtervinkel → roter så nålen (top) lander på det
+  let acc = 0, target = 0;
+  WHEEL_SEGS.forEach(s => {
+    if (s.key === wheelPending.rk) target = (acc + s.pct / 2) * 360;
+    acc += s.pct;
+  });
+  const fullTurns = 4 + Math.floor(Math.random() * 3); // 4-6 fulde omgange
+  const finalDeg = fullTurns * 360 + (360 - target); // nålen peger op = 0°
+  // Web Animations API — virker på ALLE browsere (også Safari/iPad).
+  // Annullér ALTID gamle animationer først — ellers holder den forrige
+  // fill:forwards-animation fast i transform og næste spin starter forkert.
+  if (wheel.getAnimations) wheel.getAnimations().forEach(a => a.cancel());
+  wheel.style.transform = "rotate(0deg)";
+  void wheel.offsetWidth; // reflow: sikr at nulstillingen er malet
+  wheel.animate(
+    [{ transform: "rotate(0deg)" }, { transform: "rotate(" + finalDeg + "deg)" }],
+    { duration: 4200, easing: "cubic-bezier(.12,.8,.18,1)", fill: "forwards" }
+  );
+  btn.textContent = "…";
+  setTimeout(() => {
+    // UI-resultat — try/catch så "Fedt!"-knappen ALTID dukker op
+    try {
+      const r = rarityOf(wheelPending.rk);
+      const slot = GEAR_SLOTS.find(s => s.key === wheelPending.item.slot);
+      const res = document.getElementById("wheelResult");
+      res.classList.remove("hidden");
+      res.className = "wheel-result" + (wheelPending.rk === "mythic" ? " mythic" : "");
+      res.innerHTML = `<span class="wr-icon">${slot ? slot.icon : "🎒"}</span><div class="wr-rarity rarity-${wheelPending.rk}">${r ? r.label : ""}</div><div>${wheelPending.item.name}</div>`;
+      if (wheelPending.rk === "mythic") {
+        const m = mythicForSlot(wheelPending.item.slot);
+        res.innerHTML += `<div style="font-size:13px;color:#9fb0e8;margin-top:4px">⚡ Unikt angreb: ${m ? m.attack.name + " ×" + m.attack.mult : "?"} · Kraft +${r ? r.power : "?"}</div>`;
+        fxConfetti();
+        sfxWin();
+      } else {
+        res.innerHTML += `<div style="font-size:12px;color:#9fb0e8;margin-top:4px">Kraft +${r ? r.power : "?"} — udstyr den i helteskærmen!</div>`;
+        setTimeout(() => sfxRight(), 250);
+      }
+    } catch(e) {}
+    btn.classList.add("hidden");
+    document.getElementById("wheelClose").classList.remove("hidden");
+    wheelPending = null;
+  }, 4300); // efter spin-animationen (4.2s)
+}
+function closeLootWheel() {
+  document.getElementById("wheelOverlay").classList.add("hidden");
+}
+function bossLose() {
+  if (bossState.over) return;
+  bossState.over = true;
+  const dragon = BOSSES[cur.world];
+  setTimeout(() => {
+    sfxWrong();
+    document.getElementById("bossStatus").textContent = "Du er slået ud...";
+    document.getElementById("bossMsg").textContent = "Dragen " + dragon.name + " er for stærk. Spil flere missioner, find bedre gear og prøv igen!";
+    document.getElementById("bossHint").textContent = "Tip: udstyr dit bedste gear i helteskærmen (⚔️-knap) — hvert gear giver kraft.";
+    renderAttacks();
+  }, 400);
+}
+function updateStartMeta() {
+  const ap = activeProfile();
+  document.getElementById("startMeta").textContent =
+    (ap ? "👤 " + ap.icon + " " + ap.name + "  ·  " : "") +
+    "⭐ " + totalStars() + " stjerner · 🎁 " + collectedCount() + "/12 kort samlet";
+  // Gratis spins-knap
+  const fsBtn = document.getElementById("freeSpinBtn");
+  const fsCount = document.getElementById("freeSpinCount");
+  if (fsBtn && fsCount) {
+    const n = state.freeSpins || 0;
+    fsCount.textContent = n;
+    fsBtn.style.display = n > 0 ? "inline-block" : "none";
+  }
+}
+// Gratis spin: brug ét af de gratis spins → åbn lykkehjulet (loot uddeles ved spin)
+function useFreeSpin() {
+  if ((state.freeSpins || 0) <= 0) return;
+  state.freeSpins--;
+  save();
+  updateStartMeta();
+  showLootWheel();
+}
+
+/* ============ GAME CORE ============ */
+let cur = { world: 0, game: null, words: [], idx: 0, errors: 0, answered: false };
+
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i+1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function buildWordList(worldIdx, count) {
+  const worldWords = WORLDS[worldIdx].words;
+  // Reserver plads til genøvning af svage ord (maks 2-3 pr. runde)
+  const reviewCount = Math.min(3, Math.max(1, Math.floor(count / 3)));
+  const freshCount = count - reviewCount;
+  // 1) Nye ord fra verdenen
+  const fresh = shuffle(worldWords).slice(0, freshCount);
+  // 2) Svage ord fra HELE spillet (ikke allerede i denne runde) — de svageste først
+  const weak = weakestWords(count * 2).filter(w => !fresh.includes(w) && !worldWords.includes(w));
+  const review = shuffle(weak).slice(0, reviewCount);
+  // 3) Hvis der ikke er nok svage ord, fyld op med verdens-ord
+  let list = fresh.concat(review);
+  while (list.length < count) {
+    const extra = shuffle(worldWords).filter(w => !list.includes(w));
+    if (!extra.length) break;
+    list.push(extra[0]);
+  }
+  return shuffle(list);
+}
+
+function distractors(word, n) {
+  const others = shuffle(ALL_WORDS.filter(w => w !== word)).slice(0, n);
+  return shuffle([word].concat(others));
+}
+
+function startGame(worldIdx, game) {
+  sfxClick();
+  cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.wrongWords = [];
+  cur.words = buildWordList(worldIdx, game === "hear" ? 8 : 6);
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("hud").classList.remove("hidden");
+  if (game === "hear") { document.getElementById("screen-hear").classList.add("active"); renderHear(); }
+  if (game === "type") { document.getElementById("screen-type").classList.add("active"); renderType(); }
+  if (game === "fill") { document.getElementById("screen-fill").classList.add("active"); renderFill(); }
+  updateHud();
+}
+
+function updateHud() {
+  document.getElementById("hudProgress").innerHTML =
+    `<b>${cur.idx + 1}</b> / ${cur.words.length} · Verden ${cur.world + 1}`;
+}
+
+function todayKey() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function statWord(word) {
+  if (!state.stats.words[word]) state.stats.words[word] = { tries: 0, wrong: 0 };
+  return state.stats.words[word];
+}
+function statGame(game) {
+  if (!state.stats.games[game]) state.stats.games[game] = { tries: 0, wrong: 0 };
+  return state.stats.games[game];
+}
+function statDay() {
+  const k = todayKey();
+  if (!state.stats.days[k]) state.stats.days[k] = { tries: 0, wrong: 0, missions: 0 };
+  return state.stats.days[k];
+}
+function markWrong(word) {
+  state.wrong[word] = (state.wrong[word] || 0) + 1;
+  const sw = statWord(word); sw.tries++; sw.wrong++;
+  const sg = statGame(cur.game); sg.tries++; sg.wrong++;
+  const sd = statDay(); sd.tries++; sd.wrong++;
+  save();
+}
+function markRight(word) {
+  if (state.wrong[word]) { state.wrong[word]--; if (state.wrong[word] <= 0) delete state.wrong[word]; }
+  const sw = statWord(word); sw.tries++;
+  const sg = statGame(cur.game); sg.tries++;
+  const sd = statDay(); sd.tries++;
+  save();
+}
+// Svaghedsscore: jo flere fejl og jo højere fejlrate, jo oftere skal ordet øves
+function weaknessScore(word) {
+  const sw = state.stats.words[word];
+  if (!sw || sw.tries < 2) return 0;
+  const rate = sw.wrong / sw.tries;
+  const freq = Math.min(sw.wrong, 10) / 10;
+  return rate * 2 + freq;
+}
+// Vælg de svageste ord (høj score) — bruges til at øve dem oftere
+function weakestWords(n) {
+  return ALL_WORDS
+    .map(w => ({ w, s: weaknessScore(w) }))
+    .filter(x => x.s > 0)
+    .sort((a, b) => b.s - a.s)
+    .slice(0, n)
+    .map(x => x.w);
+}
+
+function starsFor(errors, total) {
+  const ratio = errors / total;
+  if (errors === 0) return 3;
+  if (ratio <= .2) return 3;   // max 1 fejl
+  if (ratio <= .5) return 2;
+  return 1;
+}
+
+function finishGame() {
+  const ws = worldState(cur.world);
+  const stars = starsFor(cur.errors, cur.words.length);
+  ws[cur.game] = stars;
+  ws.done[["hear","type","fill"].indexOf(cur.game)] = true;
+  // Log mission til historik (til forældre-statistik)
+  const wrongInMission = cur.wrongWords || [];
+  state.stats.history.push({ t: Date.now(), world: cur.world, game: cur.game, stars, total: cur.words.length, wrong: wrongInMission.slice(0, 10) });
+  if (state.stats.history.length > 200) state.stats.history = state.stats.history.slice(-200);
+  const sd = statDay(); sd.missions++;
+  // XP: stjerner × 10 + 5 pr. mission + bonus ved 0 fejl
+  const xpGain = stars * 10 + 5 + (cur.errors === 0 ? 10 : 0);
+  const lvlBefore = heroLevel();
+  state.xp = (state.xp || 0) + xpGain;
+  save();
+  const worldComplete = ws.done[0] && ws.done[1] && ws.done[2];
+  const nextGameOrder = ["hear","type","fill"];
+  const curGameIdx = nextGameOrder.indexOf(cur.game);
+  const nextGame = nextGameOrder[curGameIdx + 1] || null;
+
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  const scr = document.getElementById("screen-result");
+  scr.classList.add("active");
+  document.getElementById("resultEmoji").textContent = stars === 3 ? "🏆" : stars === 2 ? "🎉" : "👍";
+  document.getElementById("resultTitle").textContent = stars === 3 ? "Fantastisk!" : stars === 2 ? "Godt gået!" : "Flot forsøg!";
+  document.getElementById("resultStars").textContent = "★".repeat(stars) + "☆".repeat(3 - stars);
+  const wrongList = cur.words.filter((w, i) => cur.wrongIdx && cur.wrongIdx.includes(i));
+  const msg = cur.errors === 0
+    ? "Uden en eneste fejl! Du er en ægte ordjæger! 🚀"
+    : cur.errors === 1
+    ? "Kun én fejl — super flot!"
+    : "Du ramte " + (cur.words.length - cur.errors) + " af " + cur.words.length + " ord. Øv lidt mere på dem du ramte forkert — så sidder de snart!";
+  document.getElementById("resultMsg").textContent = msg;
+  // Level-up-besked
+  const lvlNow = heroLevel();
+  const xpLine = document.getElementById("resultXp");
+  if (lvlNow > lvlBefore) {
+    xpLine.innerHTML = "🎉 <b>LEVEL UP!</b> Du er nu level " + lvlNow + " (+" + levelPower() + " kraft)!";
+    xpLine.style.color = "#fbbf24";
+    fxConfetti();
+  } else {
+    const inLvl = (state.xp || 0) % XP_PER_LEVEL;
+    xpLine.innerHTML = "⭐ +" + xpGain + " XP · Level " + lvlNow + " (" + inLvl + "/" + XP_PER_LEVEL + ")";
+    xpLine.style.color = "#9fb0e8";
+  }
+
+  const reward = document.getElementById("rewardCard");
+  if (worldComplete) {
+    reward.classList.remove("hidden");
+    document.getElementById("rewardEmoji").textContent = "🐉";
+    document.getElementById("rewardText").textContent = "Alle missioner klaret! Kæmp mod " + BOSSES[cur.world].name + " for at få samlekortet og låse næste verden op!";
+    sfxCard();
+  } else {
+    reward.classList.add("hidden");
+  }
+
+  // LOOT: hver gennemført mission giver et stykke gear
+  state.lootCount++;
+  const rk = rollRarity(stars);
+  const item = makeItem(randomSlot(), rk);
+  state.bag.push(item);
+  save();
+  const loot = document.getElementById("lootCard");
+  const r = rarityOf(rk);
+  const slot = GEAR_SLOTS.find(s => s.key === item.slot);
+  loot.classList.remove("hidden");
+  document.getElementById("lootIcon").textContent = slot.icon;
+  const lootRarity = document.getElementById("lootRarity");
+  lootRarity.textContent = r.label;
+  lootRarity.className = "lc-rarity rarity-" + rk;
+  document.getElementById("lootName").textContent = item.name;
+  document.getElementById("lootName").className = "lc-name rarity-" + rk;
+  document.getElementById("lootSub").textContent = "Kraft +" + r.power + " — tryk på slot i helteskærmen for at udstyre";
+  loot.style.borderColor = r.color;
+  loot.style.boxShadow = "0 0 34px " + r.color + "66";
+  if (rk === "epic" || rk === "legendary") sfxCard();
+
+  // Næste-knap: næste spil i verdenen, ellers til kortet
+  window.resultNext = () => {
+    if (nextGame) startGame(cur.world, nextGame);
+    else showWorldMap();
+  };
+  document.getElementById("resultNext").textContent = nextGame ? "Næste mission →" : "Færdig med verdenen 🎉";
+}
+
+/* ============ HEAR & HIT ============ */
+let hearTimer = null;
+function renderHear() {
+  cur.answered = false;
+  const word = cur.words[cur.idx];
+  document.getElementById("hearWord").textContent = "???";
+  document.getElementById("hearStatus").textContent = "Tryk på højttaleren — du hører ordet OG en sætning 👂";
+  const box = document.getElementById("hearChoices");
+  box.innerHTML = "";
+  distractors(word, 3).forEach(w => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = w;
+    b.onclick = () => answerHear(w, word, b);
+    box.appendChild(b);
+  });
+  setTimeout(() => speakNow(), 350);
+}
+function speakNow() {
+  const word = cur.words[cur.idx];
+  const btn = document.getElementById("hearSpeak");
+  btn.classList.add("speaking");
+  // Ord siges først alene, derefter i en sætning — ellers kan det være svært at høre ordet
+  playWordAndSentence(word, () => btn.classList.remove("speaking"));
+}
+function answerHear(picked, word, btn) {
+  if (cur.answered) return;
+  cur.answered = true;
+  if (picked === word) {
+    btn.classList.add("correct"); sfxRight(); markRight(word);
+    document.getElementById("hearStatus").textContent = "✔️ " + word;
+  } else {
+    btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
+    const correctBtn = [...document.querySelectorAll("#hearChoices .choice")].find(b => b.textContent === word);
+    if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
+    document.getElementById("hearStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span>";
+  }
+  setTimeout(nextHear, 1100);
+}
+function nextHear() {
+  cur.idx++;
+  if (cur.idx >= cur.words.length) { finishGame(); return; }
+  renderHear();
+  updateHud();
+}
+
+/* ============ TYPE IT ============ */
+function renderType() {
+  cur.answered = false;
+  const word = cur.words[cur.idx];
+  const sentence = WORDS[word];
+  // Sætning med tydeligt hul i stedet for ordet — så man ved præcis HVAD man leder efter
+  const withHole = sentence.replace(new RegExp("(?<![\\p{L}\\p{N}_])" + word + "(?![\\p{L}\\p{N}_])", "iu"), "___");
+  document.getElementById("typeHint").innerHTML =
+    "Sætningen: <b>" + withHole + "</b><br><span class='type-dots'>" + "•".repeat(word.length) + "</span> (" + word.length + " bogstaver)";
+  document.getElementById("typeHint").className = "sentence type-hint";
+  const inp = document.getElementById("typeInput");
+  inp.value = ""; inp.className = "input-word";
+  inp.placeholder = "Skriv ordet her...";
+  document.getElementById("typeStatus").textContent = "Tryk på højttaleren 🔊, lyt til ordet og sætningen — og skriv ordet der mangler.";
+  setTimeout(() => speakNow(), 300);
+  setTimeout(() => inp.focus(), 500);
+}
+function typeSubmit() {
+  if (cur.answered) return;
+  cur.answered = true;
+  const word = cur.words[cur.idx];
+  const inp = document.getElementById("typeInput");
+  const val = inp.value.trim().toLowerCase();
+  if (val === word) {
+    inp.classList.add("correct"); sfxRight(); markRight(word);
+    document.getElementById("typeStatus").innerHTML = "✔️ Rigtigt: <span class='big-green'>" + word + "</span>";
+  } else {
+    inp.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
+    document.getElementById("typeStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span>";
+    document.getElementById("typeHint").innerHTML = "Ordet staves i stavelser: <span class='big-red'>" + syllableDisplay(word) + "</span>";
+  }
+  document.getElementById("typeNext").textContent = "Næste →";
+  document.getElementById("typeNext").onclick = () => { document.getElementById("typeNext").textContent = "Tjek svar ✓"; document.getElementById("typeNext").onclick = typeSubmit; nextType(); };
+}
+function nextType() {
+  cur.idx++;
+  if (cur.idx >= cur.words.length) { finishGame(); return; }
+  renderType();
+  updateHud();
+}
+document.getElementById("typeInput").addEventListener("keydown", e => { if (e.key === "Enter") typeSubmit(); });
+
+/* ============ SENTENCE FILL ============ */
+function renderFill() {
+  cur.answered = false;
+  const word = cur.words[cur.idx];
+  const sentence = WORDS[word];
+  // Unicode-sikker ordgrænse: \b er ikke bevidst om æøå i JS, så brug lookaround med \p{L}
+  const shown = sentence.replace(new RegExp("(?<![\\p{L}\\p{N}_])" + word + "(?![\\p{L}\\p{N}_])", "iu"), "____");
+  document.getElementById("fillSentence").innerHTML = shown.replace("____", '<span class="blank">____</span>');
+  document.getElementById("fillStatus").textContent = "Tryk på højttaleren og hør sætningen 🧩";
+  const box = document.getElementById("fillChoices");
+  box.innerHTML = "";
+  distractors(word, 3).forEach(w => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = w;
+    b.onclick = () => answerFill(w, word, b);
+    box.appendChild(b);
+  });
+}
+function speakSentence() {
+  const word = cur.words[cur.idx];
+  const btn = document.getElementById("fillSpeak");
+  btn.classList.add("speaking");
+  playSentenceAudio(word, () => btn.classList.remove("speaking"));
+}
+function answerFill(picked, word, btn) {
+  if (cur.answered) return;
+  cur.answered = true;
+  if (picked === word) {
+    btn.classList.add("correct"); sfxRight(); markRight(word);
+    document.getElementById("fillStatus").textContent = "✔️ " + WORDS[word];
+  } else {
+    btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
+    const correctBtn = [...document.querySelectorAll("#fillChoices .choice")].find(b => b.textContent === word);
+    if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
+    document.getElementById("fillStatus").innerHTML = "Rigtige ord: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span> — " + WORDS[word];
+  }
+  setTimeout(nextFill, 1200);
+}
+function nextFill() {
+  cur.idx++;
+  if (cur.idx >= cur.words.length) { finishGame(); return; }
+  renderFill();
+  updateHud();
+}
+
+/* ============ WORLD MAP RENDER — OPEN WORLD ============ */
+// Geografiske positioner (x%, y%) — en snoet sti gennem landet
+const MAP_POS = [
+  { x: 10, y: 80 }, { x: 24, y: 60 }, { x: 18, y: 30 }, { x: 38, y: 16 },
+  { x: 58, y: 26 }, { x: 74, y: 16 }, { x: 88, y: 32 }, { x: 80, y: 58 },
+  { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 }
+];
+// Terræn/biom pr. verden (dekorative SVG-elementer i baggrunden)
+const MAP_BIOMES = ["skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne"];
+const MAP_COLORS = {
+  skov: "#2d5a3d", bjerg: "#5a4a3a", dal: "#3d5a2a", ø: "#2a4a5a",
+  flod: "#1f5f8f", hule: "#3a2a3a", tårn: "#4a3a5a", mark: "#5a4a1a",
+  by: "#5a3a2a", hav: "#1a3a5f", kerne: "#6a2a1a"
+};
+function terrainMarkup(biome, x, y) {
+  const parts = [];
+  const cx = (x / 100) * 1200, cy = (y / 100) * 760;
+  if (biome === "bjerg") {
+    for (let i = -2; i <= 2; i++) {
+      const bx = cx + i * 46, h = 40 + ((i + 3) % 3) * 14;
+      parts.push(`<polygon points="${bx-30},${cy+40} ${bx},${cy-h} ${bx+30},${cy+40}" fill="#6a5848" opacity=".55"/>`);
+      parts.push(`<polygon points="${bx-10},${cy+20} ${bx},${cy-h} ${bx+10},${cy+20}" fill="#8a7460" opacity=".5"/>`);
+    }
+  } else if (biome === "skov") {
+    for (let i = -2; i <= 2; i++) {
+      const bx = cx + i * 34;
+      parts.push(`<rect x="${bx-3}" y="${cy-2}" width="6" height="18" fill="#4a3a28" opacity=".6"/>`);
+      parts.push(`<circle cx="${bx}" cy="${cy-14}" r="16" fill="#2d6a3d" opacity=".6"/>`);
+      parts.push(`<circle cx="${bx-8}" cy="${cy-8}" r="11" fill="#3a7a4d" opacity=".55"/>`);
+    }
+  } else if (biome === "flod" || biome === "ø" || biome === "hav") {
+    for (let i = -2; i <= 2; i++) {
+      parts.push(`<path d="M${cx-50+i*30},${cy+20} q15,-8 30,0 t30,0" stroke="#4a9acf" stroke-width="4" fill="none" opacity=".5"/>`);
+    }
+    if (biome === "ø") parts.push(`<ellipse cx="${cx}" cy="${cy+10}" rx="34" ry="22" fill="#d8c878" opacity=".5"/>`);
+  } else if (biome === "tårn") {
+    parts.push(`<rect x="${cx-10}" y="${cy-30}" width="20" height="40" fill="#6a5a8a" opacity=".6"/>`);
+    parts.push(`<polygon points="${cx-14},${cy-30} ${cx},${cy-46} ${cx+14},${cy-30}" fill="#8a7aaa" opacity=".6"/>`);
+    parts.push(`<rect x="${cx-14}" y="${cy-22}" width="28" height="8" fill="#9a8aba" opacity=".5"/>`);
+  } else if (biome === "by") {
+    for (let i = -2; i <= 2; i++) {
+      parts.push(`<rect x="${cx+i*22-7}" y="${cy-18-(i%3)*10}" width="14" height="${30+(i%3)*10}" rx="2" fill="#7a6a5a" opacity=".6"/>`);
+      if (i % 2 === 0) parts.push(`<rect x="${cx+i*22-4}" y="${cy-12-(i%3)*10}" width="3" height="4" fill="#ffd76a" opacity=".9"/>`);
+    }
+  } else if (biome === "kerne") {
+    parts.push(`<circle cx="${cx}" cy="${cy}" r="38" fill="#c24a2a" opacity=".35"/>`);
+    parts.push(`<circle cx="${cx}" cy="${cy}" r="22" fill="#f27a3a" opacity=".5"/>`);
+    parts.push(`<circle cx="${cx}" cy="${cy}" r="9" fill="#ffd76a" opacity=".9"/>`);
+  } else if (biome === "hule") {
+    parts.push(`<ellipse cx="${cx}" cy="${cy+8}" rx="32" ry="20" fill="#2a1a2a" opacity=".7"/>`);
+    parts.push(`<ellipse cx="${cx}" cy="${cy+4}" rx="20" ry="12" fill="#1a101a" opacity=".8"/>`);
+  } else {
+    for (let i = -2; i <= 2; i++) {
+      parts.push(`<circle cx="${cx + i*26}" cy="${cy - 8 - (i%3)*12}" r="${6 + (i%3)*3}" fill="#ffd76a" opacity=".35"/>`);
+    }
+  }
+  return parts.join("");
+}
+function renderWorldMap() {
+  const map = document.getElementById("worldMap");
+  map.innerHTML = "";
+  // 1) Baggrunds-SVG med himmel, terræn og stier
+  let terr = "";
+  WORLDS.forEach((w, i) => { const p = MAP_POS[i]; terr += `<g>${terrainMarkup(MAP_BIOMES[i], p.x, p.y)}</g>`; });
+  let paths = "";
+  for (let i = 0; i < WORLDS.length - 1; i++) {
+    const a = MAP_POS[i], b = MAP_POS[i + 1];
+    const open = worldUnlocked(i + 1);
+    const x1 = (a.x / 100) * 1200, y1 = (a.y / 100) * 760, x2 = (b.x / 100) * 1200, y2 = (b.y / 100) * 760;
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - 26; // svag bue
+    paths += `<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${open ? "#ffd76a" : "#4a5578"}" stroke-width="${open ? 5 : 3}" stroke-dasharray="${open ? "" : "7 7"}" opacity="${open ? ".85" : ".5"}"/>`;
+    if (open) paths += `<circle cx="${(x1+x2)/2}" cy="${my}" r="4" fill="#ffd76a" opacity=".9"/>`;
+  }
+  map.innerHTML = `<svg class="map-svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient></defs><rect width="1200" height="760" fill="url(#sky)"/>${terr}${paths}</svg>`;
+  // 2) Verdener — absolut positionerede kort oven på landskabet
+  WORLDS.forEach((w, i) => {
+    const d = document.createElement("div");
+    const p = MAP_POS[i];
+    const unlocked = worldUnlocked(i);
+    const ws = state.worlds[i];
+    const missionsDone = ws && ws.done && ws.done[0] && ws.done[1] && ws.done[2];
+    const bossDone = ws && ws.boss;
+    let badge = "";
+    if (!unlocked) badge = '<div class="w-badge b-locked">🔒 Låst</div>';
+    else if (bossDone) badge = '<div class="w-badge b-done">✅ Færdig</div>';
+    else if (missionsDone) badge = '<div class="w-badge b-dragon">🐉 Slå dragen!</div>';
+    else if (ws && (ws.done[0] || ws.done[1] || ws.done[2])) badge = '<div class="w-badge b-progress">🚧 I gang</div>';
+    else badge = '<div class="w-badge b-new">🆕 Start her</div>';
+    let segs = "";
+    const doneArr = ws && ws.done ? ws.done : [false, false, false];
+    const segStates = [doneArr[0], doneArr[1], doneArr[2], !!(ws && ws.boss)];
+    for (let si = 0; si < 4; si++) segs += `<div class="w-seg ${segStates[si] ? "on" : "off"}"></div>`;
+    d.className = "world-card" + (unlocked ? "" : " locked");
+    d.style.left = p.x + "%";
+    d.style.top = p.y + "%";
+    d.innerHTML = `<div class="emoji">${unlocked ? w.emoji : "🔒"}</div><div class="wname">${w.name}</div>${badge}<div class="w-progress">${segs}</div>`;
+    d.onclick = () => travelToWorld(i);
+    map.appendChild(d);
+  });
+  // 3) Helten — rejser langs stien til valgte verden
+  const hero = document.createElement("div");
+  hero.id = "mapHero";
+  hero.className = "map-hero";
+  const at = MAP_POS[state.mapAt || 0] || MAP_POS[0];
+  hero.style.left = at.x + "%";
+  hero.style.top = at.y + "%";
+  hero.textContent = classOf().icon;
+  map.appendChild(hero);
+}
+function travelToWorld(i) {
+  if (!worldUnlocked(i)) {
+    const prev = WORLDS[i - 1];
+    toast("🔒 Besejr dragen i " + prev.name + " først!", 2500);
+    const el = document.querySelectorAll(".world-card")[i];
+    if (el) { el.classList.add("shake"); setTimeout(() => el.classList.remove("shake"), 500); }
+    return;
+  }
+  const hero = document.getElementById("mapHero");
+  if (hero) {
+    const p = MAP_POS[i];
+    hero.style.left = p.x + "%";
+    hero.style.top = p.y + "%";
+  }
+  state.mapAt = i; save();
+  setTimeout(() => showWorld(i), 550); // rejse-animation før verdenen åbnes
+}
+
+/* ============ STARFIELD (nebula + planeter + parallax) ============ */
+const cv = document.getElementById("bg"), ctx = cv.getContext("2d");
+let stars = [], planets = [], nebulae = [];
+function resize() {
+  cv.width = innerWidth; cv.height = innerHeight;
+  // Planeter placeres relativt til skærmstørrelse
+  planets = [
+    { x: innerWidth * .12, y: innerHeight * .16, r: 30, c1: "rgba(192,132,252,.5)", c2: "rgba(76,29,149,.9)", ring: true },
+    { x: innerWidth * .88, y: innerHeight * .7, r: 46, c1: "rgba(125,211,252,.45)", c2: "rgba(3,105,161,.85)", ring: false },
+    { x: innerWidth * .72, y: innerHeight * .1, r: 16, c1: "rgba(253,224,71,.5)", c2: "rgba(202,138,4,.85)", ring: false }
+  ];
+  nebulae = [];
+  for (let i = 0; i < 6; i++) {
+    nebulae.push({
+      x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+      r: 100 + Math.random() * 180,
+      hue: [265, 190, 330, 150, 210, 20][i % 6],
+      a: .04 + Math.random() * .06
+    });
+  }
+}
+resize(); addEventListener("resize", resize);
+for (let i = 0; i < 140; i++) stars.push({
+  x: Math.random(), y: Math.random(), r: Math.random() * 1.7 + .3,
+  s: Math.random() * .8 + .2, p: Math.random() * Math.PI * 2,
+  tw: Math.random() > .85, layer: Math.random() // parallax-lag
+});
+(function twinkle() {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  // 1) Nebula-tåger (bagest)
+  nebulae.forEach(n => {
+    const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+    g.addColorStop(0, `hsla(${n.hue}, 75%, 60%, ${n.a})`);
+    g.addColorStop(1, "transparent");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+  });
+  // 2) Stjerner med twinkle + svag parallax
+  const t = performance.now() / 1000;
+  stars.forEach(st => {
+    const driftX = st.layer * Math.sin(t * .05) * 8;
+    const driftY = st.layer * Math.cos(t * .04) * 5;
+    const a = st.tw
+      ? .35 + .65 * Math.abs(Math.sin(t * st.s + st.p))
+      : .55 + .3 * Math.sin(t * st.s * .4 + st.p);
+    ctx.beginPath();
+    ctx.arc(st.x * cv.width + driftX, st.y * cv.height + driftY, st.r, 0, 7);
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fill();
+  });
+  // 3) Planeter med gradient + ringe
+  planets.forEach(p => {
+    const g = ctx.createRadialGradient(p.x - p.r * .3, p.y - p.r * .3, p.r * .1, p.x, p.y, p.r);
+    g.addColorStop(0, p.c1); g.addColorStop(1, p.c2);
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fillStyle = g; ctx.fill();
+    if (p.ring) {
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, p.r * 1.7, p.r * .45, -.3, 0, 7);
+      ctx.strokeStyle = "rgba(200,180,255,.35)"; ctx.lineWidth = 3; ctx.stroke();
+    }
+    // Måneskin
+    ctx.beginPath(); ctx.arc(p.x - p.r * .4, p.y - p.r * .4, p.r * .18, 0, 7);
+    ctx.fillStyle = "rgba(255,255,255,.7)"; ctx.fill();
+  });
+  requestAnimationFrame(twinkle);
+})();
+
+/* ============ INIT ============ */
+updateStartMeta();
+</script>
+</body>
+</html>
