@@ -252,6 +252,31 @@
     border: 2px solid rgba(255,210,63,.5); color: #ffe37a;
     text-shadow: 0 0 10px rgba(255,210,63,.5);
   }
+  /* Øjeblikkelig fejl-forklaring (vises i spillet når barnet staver forkert) */
+  .fail-hint {
+    display: flex; align-items: center; gap: 10px; margin: 12px auto 0; padding: 10px 14px;
+    border-radius: 12px; max-width: 460px;
+    background: linear-gradient(160deg, rgba(251,191,36,.2), rgba(255,255,255,.04));
+    border: 2px solid rgba(251,191,36,.5); text-align: left; cursor: pointer;
+    font-size: 13.5px; line-height: 1.45; animation: crPop .3s ease-out;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  }
+  .fail-hint:hover { border-color: #fbbf24; box-shadow: 0 6px 18px rgba(0,0,0,.35), 0 0 16px rgba(251,191,36,.35); }
+  .fail-hint .fh-icon { font-size: 24px; flex: 0 0 auto; }
+  .fail-hint .fh-text { flex: 1; color: #ffeec2; }
+  .fail-hint .fh-text b { color: #fff; }
+  .fail-hint .fh-more { font-size: 11.5px; font-weight: 800; color: var(--accent); flex: 0 0 auto; white-space: nowrap; }
+  /* Mønster-mestring: status-badge på mønster-kort */
+  .mastery { font-size: 11px; font-weight: 900; padding: 3px 9px; border-radius: 999px; letter-spacing: .4px; }
+  .mastery.weak { background: rgba(248,113,113,.2); color: #fca5a5; border: 1px solid rgba(248,113,113,.5); }
+  .mastery.learning { background: rgba(251,191,36,.18); color: #fcd34d; border: 1px solid rgba(251,191,36,.45); }
+  .mastery.strong { background: rgba(74,222,128,.2); color: #86efac; border: 1px solid rgba(74,222,128,.5); }
+  /* Adaptiv note (fx "flere ord fordi du er blevet god") */
+  .adapt-note {
+    font-size: 12.5px; font-weight: 800; color: #86efac; margin-top: 8px;
+    background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.35);
+    border-radius: 10px; padding: 7px 12px; display: inline-block;
+  }
   /* KLASSE-VALG (Diablo-stil) — skal ligne store klikbare helt-kort */
   .class-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
   .class-card {
@@ -852,6 +877,7 @@
     <div class="stars-big" id="resultStars"></div>
     <div class="result-msg" id="resultMsg"></div>
     <div class="result-xp" id="resultXp"></div>
+    <div id="resultLearn"></div>
     <div class="reward-card hidden" id="rewardCard"><span class="rc-emoji" id="rewardEmoji"></span><span id="rewardText"></span></div>
     <!-- LOOT (Diablo-gear) -->
     <div class="loot-card hidden" id="lootCard">
@@ -959,6 +985,10 @@
     <div class="stats-section">
       <h3>🎓 Svage mønstre — spillet laver lektioner til dem</h3>
       <div id="statsPatterns" class="pattern-list"></div>
+    </div>
+    <div class="stats-section">
+      <h3>🌟 Mestrede mønstre</h3>
+      <div id="statsMastered" class="pattern-list"></div>
     </div>
     <div class="stats-section">
       <h3>🕐 Seneste missioner</h3>
@@ -1382,6 +1412,7 @@ function loadState() {
   if (state.talents.crit === undefined) state.talents.crit = 0;
   if (state.achievements === undefined) state.achievements = [];
   if (!state.seenPatterns) state.seenPatterns = [];
+  if (!state.mastered) state.mastered = [];
 }
 let state = defaultState();
 loadState();
@@ -1622,18 +1653,33 @@ function renderStats() {
       <span class="sr-bar"><i style="width:${x.tries ? Math.round(x.wrong/x.tries * 100) : 0}%;background:${x.tries && x.wrong/x.tries > .3 ? "var(--red)" : "var(--green)"}"></i></span>
       <span class="sr-num">${x.wrong}/${x.tries} fejl</span>
     </div>`).join("");
-  // Svage mønstre → knapper der åbner en målrettet lektion
+  // Svage mønstre → knapper der åbner en målrettet lektion (med mestrings-status)
   const patEl = document.getElementById("statsPatterns");
   const pats = patternStats();
-  patEl.innerHTML = pats.length ? pats.map(p => `
+  patEl.innerHTML = pats.length ? pats.map(p => {
+    const m = patternMastery(p.key);
+    const badge = `<span class="mastery ${m.level}">${MASTERY_LABEL[m.level]}</span>`;
+    return `
     <button class="pattern-card" onclick="showLesson('${p.key}')">
       <span class="pc-emoji">${p.icon}</span>
       <span class="pc-body">
-        <b>${p.name}</b>
-        <small>${p.wrong} fejl · ${p.practice.length} ord at øve på</small>
+        <b>${p.name} ${badge}</b>
+        <small>${p.wrong} fejl · ${p.practice.length} ord at øve på${m.tries >= 4 ? " · " + Math.round(m.rate * 100) + "% fejl" : ""}</small>
       </span>
       <span class="pc-go">Se lektion →</span>
-    </button>`).join("") : '<div class="ta" style="margin-top:0">Ingen mønstre fundet endnu — spil et par missioner, så finder spillet dem! 🔍</div>';
+    </button>`;
+  }).join("") : '<div class="ta" style="margin-top:0">Ingen mønstre fundet endnu — spil et par missioner, så finder spillet dem! 🔍</div>';
+  // Mestrede mønstre vises også selvom de ikke længere har fejl
+  const masteredEl = document.getElementById("statsMastered");
+  if (masteredEl) {
+    const mast = (state.mastered || []);
+    masteredEl.innerHTML = mast.length
+      ? mast.map(k => {
+          const p = SPELL_PATTERNS.find(x => x.key === k);
+          return p ? `<div class="pattern-card" style="cursor:default"><span class="pc-emoji">${p.icon}</span><span class="pc-body"><b>${p.name} <span class="mastery strong">🟩 Mestret</span></b><small>Spillet har set dig blive stærk her 🌟</small></span></div>` : "";
+        }).join("")
+      : '<div class="ta" style="margin-top:0">Ingen mønstre mestret endnu — øv løs, så kommer de! 💪</div>';
+  }
   // Seneste missioner
   const histEl = document.getElementById("statsHistory");
   const hist = state.stats.history.slice(-12).reverse();
@@ -2625,10 +2671,21 @@ function buildWordList(worldIdx, count) {
   const freshCount = count - reviewCount;
   // 1) Nye ord fra verdenen
   const fresh = shuffle(worldWords).slice(0, freshCount);
-  // 2) Svage ord fra HELE spillet (ikke allerede i denne runde) — de svageste først
+  // 2) SMART REVIEW: ord fra SVAGE MØNSTRE kommer først (kernen i selvforbedringen —
+  //    spillet genøver netop den TYPE ord barnet kæmper med, ikke tilfældige ord)
+  const weakPatternWords = [];
+  patternStats().forEach(p => {
+    if (patternMastery(p.key).level === "weak") {
+      p.words.forEach(w => { if (!weakPatternWords.includes(w)) weakPatternWords.push(w); });
+    }
+  });
+  // 3) Svage enkelt-ord fra hele spillet (spaced repetition)
   const weak = weakestWords(count * 2).filter(w => !fresh.includes(w) && !worldWords.includes(w));
-  const review = shuffle(weak).slice(0, reviewCount);
-  // 3) Hvis der ikke er nok svage ord, fyld op med verdens-ord
+  // 4) Samlet review-pulje: svage mønster-ord først, derefter svage enkelt-ord
+  const patPool = shuffle(weakPatternWords.filter(w => !fresh.includes(w) && !worldWords.includes(w)));
+  const otherPool = shuffle(weak).filter(w => !patPool.includes(w));
+  const review = patPool.concat(otherPool).slice(0, reviewCount);
+  // 5) Hvis der ikke er nok svage ord, fyld op med verdens-ord
   let list = fresh.concat(review);
   while (list.length < count) {
     const extra = shuffle(worldWords).filter(w => !list.includes(w));
@@ -2645,8 +2702,10 @@ function distractors(word, n) {
 
 function startGame(worldIdx, game) {
   sfxClick();
-  cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.wrongWords = [];
-  cur.words = buildWordList(worldIdx, game === "hear" ? 8 : 6);
+  cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.wrongWords = []; cur.drill = null;
+  // ADAPTIV: antal ord tilpasses hvor godt det går (flere når det flyver, færre når det er tungt)
+  const base = game === "hear" ? 8 : 6;
+  cur.words = buildWordList(worldIdx, adaptiveWordCount(base));
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("hud").classList.remove("hidden");
   if (game === "hear") { document.getElementById("screen-hear").classList.add("active"); renderHear(); }
@@ -2724,7 +2783,7 @@ const SPELL_PATTERNS = [
     title: "To ens bogstaver (dobbelthit)",
     rule: "Når lyden er kort, skrives den tit med TO ens bogstaver: ik-ke, al-le, suk-ker.",
     tip: "Klap ordet: 'ik-ke' — hører du den korte lyd? Så skal der to bogstaver til!",
-    look: ["ikke", "alle", "sukker", "katten", "natten"]
+    look: ["ikke", "alle", "sukker", "klasse", "køkken"]
   },
   {
     key: "konsstart", icon: "🚀", name: "To konsonanter i starten",
@@ -2736,27 +2795,59 @@ const SPELL_PATTERNS = [
   },
   {
     key: "stumtd", icon: "🤫", name: "Stumt D efter N",
-    test: w => /nd$/.test(w),
+    test: w => /nd/.test(w),
     title: "Det stille D efter N",
-    rule: "D'et efter N kan du ikke høre — men det SKAL skrives: mand, hund, vind.",
+    rule: "D'et efter N kan du ikke høre — men det SKAL skrives: mand, hund, vind, hånd.",
     tip: "Prøv at sige 'mann' — det lyder rigtigt, men det staves med D!",
-    look: ["mand", "hund", "vind"]
+    look: ["mand", "hund", "hånd", "mund", "vind"]
   },
   {
     key: "lang", icon: "🐘", name: "Lange ord",
-    test: w => w.length >= 8,
+    test: w => w.length >= 7,
     title: "Lange ord — del dem op",
     rule: "Lange ord bliver nemme, når du deler dem i stavelser.",
     tip: "fa-mi-li-e · bed-ste-far · kar-tof-fel · gå én stavelse ad gangen!",
     look: ["familie", "bedstefar", "kartoffel", "gulerod"]
   },
   {
-    key: "aeoeaa", icon: "🇩🇰", name: "Æ, Ø og Å",
-    test: w => /[æøå]/.test(w),
-    title: "De danske bogstaver Æ, Ø og Å",
-    rule: "Æ, Ø og Å har deres helt egen lyd — og de skal skrives rigtigt.",
-    tip: "æ som i 'æble' · ø som i 'øje' · å som i 'år'",
-    look: ["æble", "øje", "år", "høne", "træ"]
+    key: "ae", icon: "🇩🇰", name: "Æ-lyden",
+    test: w => w.indexOf("æ") >= 0,
+    title: "Bogstavet Æ",
+    rule: "Æ har sin egen lyd — den findes ikke i andre sprog!",
+    tip: "æ som i 'æble', 'træ', 'næse' — lyt efter den åbne lyd.",
+    look: ["æble", "træ", "næse", "lærer", "græs"]
+  },
+  {
+    key: "oe", icon: "🇩🇰", name: "Ø-lyden",
+    test: w => w.indexOf("ø") >= 0,
+    title: "Bogstavet Ø",
+    rule: "Ø lyder som noget midt mellem O og E — og den skal skrives rigtigt.",
+    tip: "ø som i 'øje', 'øre', 'høne' — rund i munden!",
+    look: ["øje", "øre", "høne", "dør", "smør"]
+  },
+  {
+    key: "aa", icon: "🇩🇰", name: "Å-lyden",
+    test: w => w.indexOf("å") >= 0,
+    title: "Bogstavet Å",
+    rule: "Å er et dobbelt-a — den lyder som et langt 'o' eller 'å'.",
+    tip: "å som i 'år', 'hår', 'hånd' — husk cirklen over!",
+    look: ["år", "hår", "hånd", "gå", "stå"]
+  },
+  {
+    key: "j", icon: "✍️", name: "Ord med J",
+    test: w => w.indexOf("j") >= 0,
+    title: "Ord med J",
+    rule: "J-lyden skrives næsten altid med bogstavet J — også når den gemmer sig.",
+    tip: "jeg, ja, nej, tøj, trøje — hør J'et, skriv J'et.",
+    look: ["jeg", "ja", "nej", "tøj", "trøje"]
+  },
+  {
+    key: "erendelse", icon: "📝", name: "-er-endelser",
+    test: w => /er$/.test(w),
+    title: "Ord der ender på -er",
+    rule: "Mange ord slutter med -er — både navneord og udsagnsord.",
+    tip: "læ-rer, sø-ster, suk-ker, van-ter — hør endelsen.",
+    look: ["lærer", "søster", "sukker", "vanter", "fætter"]
   }
 ];
 // Find de mønstre barnet fejler på (ud fra ord-statistik + aktive svage ord)
@@ -2791,6 +2882,75 @@ function patternWords(key) {
   const weak = all.filter(w => state.wrong[w]);
   const rest = all.filter(w => !state.wrong[w]);
   return weak.concat(shuffle(rest));
+}
+// ØJEBLIKKELIG FEJL-FORKLARING: når barnet staver forkert, forklares REGLEN med det samme
+// (det er kernen i selvforbedringen — ikke bare "forkert", men "her er hvorfor")
+function patternHintFor(word) {
+  const p = SPELL_PATTERNS.find(x => x.test(word));
+  if (!p) return "";
+  return `<div class="fail-hint" onclick="showLesson('${p.key}')">
+    <span class="fh-icon">${p.icon}</span>
+    <span class="fh-text"><b>${p.name}:</b> ${p.rule}</span>
+    <span class="fh-more">Lær mere →</span>
+  </div>`;
+}
+// Antal fejl i træk uden hjælp? (til adaptiv sværhedsgrad)
+function recentPerformance() {
+  const h = (state.stats.history || []).slice(-5);
+  if (!h.length) return { stars: 0, errors: 0, count: 0, avgStars: 0, errRate: 0 };
+  const stars = h.reduce((n, m) => n + (m.stars || 0), 0);
+  const errors = h.reduce((n, m) => n + ((m.wrong || []).length), 0);
+  const total = h.reduce((n, m) => n + (m.total || 0), 0);
+  return { stars, errors, count: h.length, avgStars: stars / h.length, errRate: total ? errors / total : 0 };
+}
+
+/* ============ MØNSTER-MESTRING: spillet anerkender når et mønster er lært ============ */
+// Niveau ud fra fejlrate: weak (>30%) · learning · strong (<15% og nok forsøg)
+function patternMastery(key) {
+  const p = SPELL_PATTERNS.find(x => x.key === key);
+  if (!p) return { level: "learning", rate: 0, tries: 0 };
+  const sw = (state.stats && state.stats.words) || {};
+  let tries = 0, wrong = 0;
+  Object.keys(sw).forEach(w => {
+    if (!WORDS[w] || !p.test(w)) return;
+    tries += sw[w].tries; wrong += sw[w].wrong;
+  });
+  if (tries < 4) return { level: "learning", rate: 0, tries };
+  const rate = wrong / tries;
+  const level = rate >= 0.30 ? "weak" : (rate <= 0.15 ? "strong" : "learning");
+  return { level, rate, tries, wrong };
+}
+const MASTERY_LABEL = { weak: "🟥 Svag", learning: "🟨 Øver", strong: "🟩 Stærk" };
+// Fejr når et mønster går fra svag/øver → stærk (det er spillets "jeg har lært det!")
+function checkPatternMastery() {
+  if (!state.mastered) state.mastered = [];
+  patternStats().forEach(p => {
+    const m = patternMastery(p.key);
+    if (m.level === "strong" && !state.mastered.includes(p.key)) {
+      state.mastered.push(p.key);
+      save();
+      fxConfetti();
+      sfxWin();
+      setTimeout(() => {
+        toast("🌟 MESTRET! Du er nu stærk i " + p.icon + " " + p.name + "!", 5000);
+      }, 600);
+    }
+  });
+}
+// Adaptiv sværhedsgrad: flere ord når det går godt, færre når det går tungt
+function adaptiveWordCount(base) {
+  const rp = recentPerformance();
+  if (rp.count < 2) return base; // ikke nok data endnu
+  if (rp.avgStars >= 2.6 && rp.errRate < 0.15) return base + 2; // flyvende → udfordre
+  if (rp.errRate > 0.35) return Math.max(4, base - 2);          // kæmper → færre ad gangen
+  return base;
+}
+function adaptiveNote() {
+  const rp = recentPerformance();
+  if (rp.count < 2) return "";
+  if (rp.avgStars >= 2.6 && rp.errRate < 0.15) return '<div class="adapt-note">🚀 Du er blevet rigtig god — derfor får du flere ord!</div>';
+  if (rp.errRate > 0.35) return '<div class="adapt-note" style="color:#fca5a5;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.35)">💙 Vi tager lidt færre ord ad gangen — så bliver det lettere.</div>';
+  return "";
 }
 // Er der et nyt mønster barnet ikke har set lektionen for endnu?
 function unseenPattern() {
@@ -2906,6 +3066,28 @@ function finishGame() {
   }
   if (cur.errors === 0) unlockAchievement("perfect_game"); // fejlfri mission
   checkAchievements();
+  checkPatternMastery(); // 🌟 fejr hvis et mønster er blevet mestret
+
+  // 📚 LÆRINGS-OPSUMMERING: hvad gik galt i denne mission — og hvad kan han lære af det?
+  const learnEl = document.getElementById("resultLearn");
+  const wrongWordsThis = cur.wrongWords || [];
+  const missed = [];
+  SPELL_PATTERNS.forEach(p => {
+    const hits = wrongWordsThis.filter(w => p.test(w));
+    if (hits.length) missed.push({ p, hits });
+  });
+  let learnHtml = adaptiveNote();
+  if (missed.length) {
+    learnHtml += missed.slice(0, 2).map(x =>
+      `<div class="fail-hint" onclick="showLesson('${x.p.key}')">
+        <span class="fh-icon">${x.p.icon}</span>
+        <span class="fh-text"><b>${x.p.name}</b> — du ramte ${x.hits.length} ord forkert: ${x.hits.join(", ")}</span>
+        <span class="fh-more">Lær reglen →</span>
+      </div>`).join("");
+  } else if (wrongWordsThis.length === 0 && cur.words.length) {
+    learnHtml += '<div class="adapt-note">🎯 Perfekt runde — ingen fejl at lære af! Prøv en sværere verden.</div>';
+  }
+  learnEl.innerHTML = learnHtml;
 
   const reward = document.getElementById("rewardCard");
   if (worldComplete) {
@@ -2989,7 +3171,7 @@ function answerHear(picked, word, btn) {
     btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
     const correctBtn = [...document.querySelectorAll("#hearChoices .choice")].find(b => b.textContent === word);
     if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
-    document.getElementById("hearStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span>";
+    document.getElementById("hearStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span>" + patternHintFor(word);
   }
   setTimeout(nextHear, 1100);
 }
@@ -3028,7 +3210,7 @@ function typeSubmit() {
     document.getElementById("typeStatus").innerHTML = "✔️ Rigtigt: <span class='big-green'>" + word + "</span>";
   } else {
     inp.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
-    document.getElementById("typeStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span>";
+    document.getElementById("typeStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span>" + patternHintFor(word);
     document.getElementById("typeHint").innerHTML = "Ordet staves i stavelser: <span class='big-red'>" + syllableDisplay(word) + "</span>";
   }
   document.getElementById("typeNext").textContent = "Næste →";
@@ -3077,7 +3259,7 @@ function answerFill(picked, word, btn) {
     btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
     const correctBtn = [...document.querySelectorAll("#fillChoices .choice")].find(b => b.textContent === word);
     if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
-    document.getElementById("fillStatus").innerHTML = "Rigtige ord: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span> — " + WORDS[word];
+    document.getElementById("fillStatus").innerHTML = "Rigtige ord: <span class='big-red'>" + word + "</span> <span class='syllables'>" + syllableHtml(word) + "</span> — " + WORDS[word] + patternHintFor(word);
   }
   setTimeout(nextFill, 1200);
 }
