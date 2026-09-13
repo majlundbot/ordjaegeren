@@ -1,25 +1,66 @@
-# Ordjægeren 🚀
+# Ordjægeren — CURRENT
 
-Læringsspil til Robin: de 120 mest brugte ord i dansk, fordelt på 12 verdener.
+**Status:** Live og stabil. Selvforbedring er kernen i spillet.
 
-## Sådan åbner du spillet
+## Links
+- **Spil (live):** https://majlundbot.github.io/ordjaegeren/
+- **GitHub:** https://github.com/majlundbot/ordjaegeren
+- **Drive-kopi:** `~/Library/CloudStorage/GoogleDrive-kennedmajlund@gmail.com/Mit drev/02 Projects/Personal/Ordjægeren/`
+- **Git tag:** `v1.0.0` (før Verden 2)
 
-**Dobbeltklik på `index.html`** — det åbner i browseren (Chrome/Safari/iPad).
-Alt kører lokalt og offline. Ingen installation, ingen login.
+## Kør tests (altid før deploy)
+```bash
+bash tests/run-all.sh      # 296 tests i 18 pakker — alle skal være grønne
+```
 
-## Spillet
+## Spillets indhold
+- **24 verdener × 10 ord = 240 ord**, med lyd (edge-tts `da-DK-JeppeNeural`)
+  - 🌌 Verden 1 (0-11): **Galaksen** — funktionsord
+  - 🎓 Verden 2 (12-23): **Ord-akademiet** — sværere børneord
+- **3 spil pr. verden:** Hør & Slå (lyt+vælg), Fang ordet (stav), Sætningsgåden (fyld hul)
+- **24 drager** med D&D-d20-kampe (2d20 efter 4 besejrede drager)
+- **Gear/loot**, Horadric-kuben (altid synlig under helten), lykkehjul
+- **MYTISK** (10% drop), **SECRET** (7% fra akademi-drager, kan ikke cubes)
+- **Profiler** pr. spiller (Robin, Joey …), forældre-statistik
+- **To verdenskort med swipe** (native scroll-snap — virker på iPad)
 
-- **12 verdener** á 10 ord (sorteret efter hyppighed — Robin starter med de vigtigste)
-- **3 missioner pr. verden:** 👂 Hør & Slå (lyt + ram ordet), ⌨️ Fang ordet (lyt + skriv), 🧩 Sætnings-gåden (vælg manglende ord)
-- **Stjerner** pr. mission (3 stjerner = max 1 fejl) — låser næste verden op
-- **Samlekort:** én fuld verden = 1 kort (12 dyr/robotter at samle)
-- **Spaced repetition:** ord Robin svarer forkert på, dukker op igen i senere verdener
+## Selvforbedring (nøglen)
+1. **12 lærings-mønstre — alle 240 ord dækket**
+   💨 hv-ord · ✌️ dobbelt-bogstaver · 🚀 to konsonanter i starten · 🤫 stumt D efter N · 🐘 lange ord
+   🇩🇰 æ · 🇩🇰 ø · 🇩🇰 å · ✍️ ord med J · 📝 -er-endelser · 📏 korte ord · 🔤 flere stavelser
+2. **Øjeblikkelig fejl-forklaring** — fejler han et ord, vises reglen med det samme (gul boks → lektion)
+3. **Mønster-mestring** — 🟥 svag / 🟨 øver / 🟩 stærk, med konfetti + "🌟 MESTRET!" ved stærk
+4. **Synlig fremgang** — "📈 80% → 20% fejl" i statistikken
+5. **Adaptiv sværhedsgrad** — +2 ord når det flyver, -2 når det er tungt
+6. **Smart review** — ord fra svage mønstre prioriteres
+7. **Midt-i-mission-nudge** — 3 fejl af samme mønster → tilbyd lektionen straks
+8. **Adaptiv træningslængde** — drill giver 6/8/10 ord efter svaghed
+9. **Lærings-opsummering** på resultat-skærmen
 
-## Vigtigt
+## Kode-struktur (index.html — én selvstændig fil)
+- `WORDS` (240 ord→sætninger), `WORLDS` (24×10), `BOSSES` (24 drager), `MAP_POS` (24)
+- `SPELL_PATTERNS` (12 mønstre) + `patternStats()` / `patternMastery()` / `patternImprovement()`
+- `markWrong` / `markRight` — registrerer fejl + mønster-tælling pr. mission
+- `buildWordList` — smart review (svage mønster-ord først, derpå svage enkelt-ord)
+- `adaptiveWordCount` / `adaptiveNote` / `checkPatternMastery` / `updatePatternSnapshots`
+- `startPatternDrill` — adaptiv drill-længde
+- `finishGame` — lærings-opsummering + mestrings-check + snapshots
+- Skærme: `screen-stats`/`screen-hero`/`screen-achieve`/`screen-lesson` har klassen `tall`
+  (blok-layout → kan ALTID scrolles helt ned)
+- `state`: `worlds, wrong, gear, bag, skin, lootCount, heroClass, xp, potions, talentPoints,
+  talents, achievements, seenPatterns, mastered, patternSnapshots, mapAt, stats`
 
-- **Lyd:** ordene siges på dansk via tale-syntese (Web Speech API). Fungerer i Chrome/Safari på Mac + iPad. Hvis der ikke er en dansk stemme på enheden, sker der ingen lyd — men spillet virker stadig. Indstil dansk stemme i Systemindstillinger hvis nødvendigt.
-- **Fremskridt gemmes automatisk** i browseren (localStorage). Ryd aldrig browserdata hvis fremskridt skal bevares.
+## Kendte faldgruber
+- **Flexbox-centrering + overflow klipper indhold.** Brug aldrig `justify-content: center` på
+  scrollbare containere — brug `justify-content: flex-start` + `::before/::after { margin: auto }`,
+  eller `display: block` (klassen `tall`).
+- **CSS-transform til kort-swipe virker ikke på iPad/Safari** → brug native scroll-snap.
+- **CSS-variabler i WAAPI-keyframes virker ikke på ældre Safari** → sæt keyframes i JS.
+- **WAAPI med `fill: "forwards"` holder fat** → annullér gamle animationer før ny.
+- **MP3 skal regenereres** når en sætning ændres:
+  `/tmp/ttsvenv/bin/edge-tts --voice da-DK-JeppeNeural --text "..." --write-media audio/sentences/<ord>.mp3`
 
-## Filer
-
-- `index.html` — hele spillet (én fil, klar til brug)
+## Næste skridt (ikke bygget)
+- Matematik-modul (samme motor, tal-verdener der følger niveau)
+- Ugentlig forældre-rapport
+- Flere spil-typer der bruger mønster-data
