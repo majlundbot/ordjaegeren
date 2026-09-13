@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ordjægeren — Lær de 120 vigtigste ord</title>
+<title>Ordjægeren — Lær de 240 vigtigste ord</title>
 <style>
   :root {
     --accent: #ffd23f;
@@ -161,6 +161,12 @@
     background: linear-gradient(160deg, rgba(255,215,0,.25), rgba(255,215,0,.08));
     border-color: #ffd700; color: #fff; box-shadow: 0 0 14px rgba(255,215,0,.5);
     animation: mythicGlow 2s ease-in-out infinite;
+  }
+  .mythic-slot.secret:not(.owned) { border-color: rgba(255,78,205,.5); color: rgba(255,78,205,.7); }
+  .mythic-slot.secret.owned {
+    background: linear-gradient(160deg, rgba(255,78,205,.3), rgba(64,224,255,.1));
+    border-color: #ff4ecd; color: #fff; box-shadow: 0 0 16px rgba(255,78,205,.7), 0 0 30px rgba(64,224,255,.4);
+    animation: secretGlow 1.4s ease-in-out infinite;
   }
   /* KLASSE-VALG (Diablo-stil) — skal ligne store klikbare helt-kort */
   .class-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
@@ -419,7 +425,9 @@
   .rarity-common { color: #a3a3a3; } .rarity-magic { color: #60a5fa; } .rarity-rare { color: #fbbf24; }
   .rarity-epic { color: #c084fc; } .rarity-legendary { color: #fb923c; }
   .rarity-mythic { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,.9); animation: mythicGlow 2s ease-in-out infinite; }
+  .rarity-secret { color: #ff4ecd; text-shadow: 0 0 12px rgba(255,78,205,.9), 0 0 26px rgba(64,224,255,.6); animation: secretGlow 1.4s ease-in-out infinite; }
   @keyframes mythicGlow { 0%, 100% { text-shadow: 0 0 8px rgba(255,215,0,.6); } 50% { text-shadow: 0 0 26px rgba(255,215,0,1), 0 0 50px rgba(255,255,220,.8); } }
+  @keyframes secretGlow { 0%, 100% { text-shadow: 0 0 8px rgba(255,78,205,.7); } 50% { text-shadow: 0 0 26px rgba(255,78,205,1), 0 0 55px rgba(64,224,255,.9); } }
   .mythic-loot { animation: mythicLootPulse 1.2s ease-in-out infinite; }
   @keyframes mythicLootPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
   /* Rygsæk: kompakt grid — ALLE items synlige, ingen scroll */
@@ -507,6 +515,10 @@
   .attack-btn.mythic {
     border-color: #ffd700; background: linear-gradient(180deg, rgba(255,215,0,.28), rgba(255,215,0,.08));
     box-shadow: 0 0 14px rgba(255,215,0,.55); animation: mythicGlow 2s ease-in-out infinite;
+  }
+  .attack-btn.secret {
+    border-color: #ff4ecd; background: linear-gradient(180deg, rgba(255,78,205,.3), rgba(64,224,255,.08));
+    box-shadow: 0 0 16px rgba(255,78,205,.65); animation: secretGlow 1.4s ease-in-out infinite;
   }
   #fxLayer { position: fixed; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
   .fx-projectile {
@@ -601,7 +613,7 @@
 <!-- START -->
 <div class="screen active" id="screen-start">
   <div class="title">ORDJÆGEREN</div>
-  <div class="subtitle">Fang de 120 vigtigste ord i dansk — 12 verdener, 36 missioner, 12 samlekort!</div>
+  <div class="subtitle">Fang de 240 vigtigste ord i dansk — 24 verdener, 72 missioner, 24 samlekort!</div>
   <button class="btn" onclick="showClassSelect()">🚀 Start eventyret</button>
   <button class="btn ghost" onclick="showWorldMap()">🗺️ Fortsæt (kort)</button>
   <button class="btn ghost" style="margin-top:10px" onclick="showProfiles()">👥 Skift spiller</button>
@@ -881,7 +893,19 @@ const WORDS = {
   kun:"Der er kun én tilbage.", sådan:"Sådan laver man en sandkage.", ser:"Jeg ser en fugl.",
   dit:"Er det dit spil?", jer:"Jeg kommer til jer i morgen.", igen:"Kan vi lege igen?",
   mor:"Mor laver pandekager.", sammen:"Vi leger sammen.", tager:"Han tager cyklen.",
-  mand:"Den mand derovre er min far.", hele:"Vi legede hele dagen.", deres:"Deres hus er gult."
+  mand:"Den mand derovre er min far.", hele:"Vi legede hele dagen.", deres:"Deres hus er gult.",
+  skole:"Vi går i skole hver dag.", bog:"Jeg læser en sjov bog.", læse:"Jeg kan læse selv.", skrive:"Jeg skal skrive mit navn.", tegne:"Jeg kan godt lide at tegne.", time:"Vi har dansk i denne time.", klasse:"Der er mange børn i min klasse.", lærer:"Vores lærer er sød.", lektie:"Jeg laver min lektie efter skole.", tavle:"Læreren skriver på tavlen.",
+  hus:"Vi bor i et stort hus.", køkken:"Mor laver mad i køkkenet.", stue:"Vi ser fjernsyn i stuen.", seng:"Jeg sover i min seng.", dør:"Luk døren, når du går ud.", vindue:"Jeg kigger ud ad vinduet.", værelse:"Mit værelse er ryddeligt.", gulv:"Bolden rullede hen ad gulvet.", loft:"Der hænger en lampe i loftet.", væg:"Billedet hænger på væggen.",
+  familie:"Min familie er stor.", bror:"Min bror er ældre end mig.", søster:"Min søster kan godt lide at danse.", bedstefar:"Bedstefar fortæller gode historier.", bedstemor:"Bedstemor bager de bedste kager.", onkel:"Min onkel bor i Jylland.", moster:"Moster kommer på besøg i morgen.", fætter:"Min fætter er god til fodbold.", kusine:"Min kusine har en sød kat.", barn:"Hvert barn fik en ballon.",
+  hund:"Hunden logrer med halen.", kat:"Katten sover på sofaen.", hest:"Hesten løber hurtigt på marken.", ko:"Koen spiser græs.", gris:"Grisen bor i stalden.", ræv:"Ræven er snu og rød.", and:"Anden svømmer i søen.", høne:"Hønen lægger æg.", kanin:"Kaninen elsker gulerødder.", mus:"Musen gemmer sig i hullet.",
+  bold:"Jeg sparker bolden i mål.", cykel:"Jeg cykler på min nye cykel.", lege:"Vi skal lege i parken.", løbe:"Jeg kan løbe rigtig hurtigt.", hoppe:"Kaninen kan hoppe højt.", kaste:"Jeg kan kaste langt.", fange:"Vi leger fange i skolegården.", spil:"Vi spiller et sjovt spil.", dukke:"Min lillesøster leger med dukken.", klods:"Jeg bygger et tårn af klodser.",
+  mad:"Maden smager godt i dag.", mælk:"Jeg drikker et glas mælk.", brød:"Vi smører brød til morgenmad.", ost:"Jeg kan godt lide ost på brødet.", æble:"Æblet er rødt og sprødt.", banan:"Bananen er gul og lang.", gulerod:"Kaninen spiser en gulerod.", kartoffel:"Jeg spiser en varm kartoffel.", smør:"Smørret smelter på panden.", sukker:"Der er sukker i kagen.",
+  tøj:"Jeg lægger mit tøj i skabet.", trøje:"Min trøje er blå.", bukser:"Jeg har nye bukser på.", kjole:"Moster har en rød kjole på.", sko:"Mine sko er for små nu.", sokker:"Jeg tager rene sokker på.", jakke:"Tag din jakke på, det er koldt.", hue:"Huen varmer om vinteren.", vanter:"Jeg har vanter på i sneen.", bælte:"Bæltet holder bukserne oppe.",
+  krop:"Mennesket har én krop.", hoved:"Jeg har hår på hovedet.", hår:"Mit hår er lyst.", øje:"Jeg har et blåt øje.", øre:"Jeg hører med mit øre.", næse:"Jeg dufter med min næse.", mund:"Jeg åbner munden for at spise.", tand:"Jeg børster min tand hver morgen.", hånd:"Jeg vasker min hånd.", fod:"Jeg sparker med min fod.",
+  sol:"Solen skinner på himlen.", måne:"Månen lyser om natten.", stjerne:"Jeg ser en stjerne på himlen.", sky:"Der er en hvid sky på himlen.", regn:"Regnen falder på taget.", sne:"Sneen er hvid og kold.", vind:"Vinden blæser i træerne.", træ:"Træet har grønne blade.", blomst:"Blomsten dufter godt.", græs:"Græsset er vådt om morgenen.",
+  spise:"Jeg skal spise min frokost.", sove:"Jeg skal sove nu.", sidde:"Jeg sidder på stolen.", stå:"Jeg skal stå op nu.", sige:"Jeg skal sige noget vigtigt.", give:"Jeg skal give mor en gave.", bygge:"Vi bygger et slot af sand.", male:"Jeg maler et flot billede.", synge:"Vi synger en sang sammen.", danse:"Jeg kan godt lide at danse.",
+  dag:"Det er en dejlig dag i dag.", nat:"Om natten sover vi.", morgen:"Godmorgen, sagde far om morgenen.", aften:"Om aftenen ser vi fjernsyn.", uge:"Der er syv dage i en uge.", måned:"Januar er årets første måned.", år:"Jeg fylder år om et år.", klokken:"Klokken er ti om formiddagen.", minut:"Vent et minut, så kommer jeg.", sekund:"Et sekund er meget kort tid.",
+  glad:"Jeg er glad for min gave.", trist:"Jeg bliver trist, når det regner.", bange:"Jeg er ikke bange for mørket.", vred:"Jeg bliver vred, når nogen tager min ting.", træt:"Jeg er træt efter skole.", sulten:"Jeg er sulten efter lege.", tørstig:"Jeg er tørstig efter løbetur.", sjov:"Det var en sjov leg.", kedelig:"Filmen var kedelig.", modig:"Hunden er modig og stærk."
 };
 
 const ALL_WORDS = Object.keys(WORDS);
@@ -945,7 +969,8 @@ const RARITIES = [
   { key: "rare",      label: "Sjælden",     color: "#fbbf24", power: 3, weight: 18, glow: "" },
   { key: "epic",      label: "Episk",       color: "#c084fc", power: 4, weight: 9,  glow: "box-shadow:0 0 18px rgba(192,132,252,.5);" },
   { key: "legendary", label: "Legendarisk", color: "#fb923c", power: 6, weight: 3,  glow: "box-shadow:0 0 24px rgba(251,146,60,.6);" },
-  { key: "mythic",    label: "Mytisk",      color: "#ffd700", power: 10, weight: 0, glow: "box-shadow:0 0 30px rgba(255,215,0,.8), 0 0 60px rgba(255,215,0,.35); animation: mythicGlow 2s ease-in-out infinite;" }
+  { key: "mythic",    label: "Mytisk",      color: "#ffd700", power: 10, weight: 0, glow: "box-shadow:0 0 30px rgba(255,215,0,.8), 0 0 60px rgba(255,215,0,.35); animation: mythicGlow 2s ease-in-out infinite;" },
+  { key: "secret",    label: "HEMMELIG",    color: "#ff4ecd", power: 15, weight: 0, glow: "box-shadow:0 0 30px rgba(255,78,205,.9), 0 0 70px rgba(64,224,255,.6); animation: secretGlow 1.4s ease-in-out infinite;" }
 ];
 
 /* ============ SECRET MYTHIC (end-game) ============ */
@@ -958,10 +983,26 @@ const MYTHIC_ITEMS = [
   { slot: "boots",  name: "Tidens Støvler",       attack: { key: "timeboots", icon: "⏳", name: "Tidsspring", mult: 13, color: "#38bdf8" }, color: "#38bdf8" },
   { slot: "amulet", name: "Galaksens Amulet",     attack: { key: "galaxy", icon: "🌌", name: "Galakse-nova", mult: 15, color: "#c084fc" }, color: "#c084fc" }
 ];
+// ============ VERDEN 2: SECRET ITEMS (end-game på akademiet — mega specielle) ============
+// Kun fra Verden 2-drager og lykkehjulet der. 6 unikke items, hver med et MEGA-angreb.
+const SECRET_ITEMS = [
+  { slot: "helm",   name: "Akademi-kronen",          attack: { key: "secretcrown",   icon: "🎓", name: "Videns-blitz",   mult: 22, color: "#ff4ecd" }, color: "#ff4ecd" },
+  { slot: "weapon", name: "Ordets Forbandede Sværd", attack: { key: "secretblade",   icon: "🗡️", name: "Ord-kaos",       mult: 25, color: "#40e0ff" }, color: "#40e0ff" },
+  { slot: "armor",  name: "Evighedens Rustning",     attack: { key: "secretarmor",   icon: "🛡️", name: "Evigheds-værn",  mult: 28, color: "#7cf8a8" }, color: "#7cf8a8" },
+  { slot: "shield", name: "Den Glemte Aegis",        attack: { key: "secretshield",  icon: "🪩", name: "Glemt-skjold",   mult: 30, color: "#ffd166" }, color: "#ffd166" },
+  { slot: "boots",  name: "Skyggestøvlerne",         attack: { key: "secretboots",   icon: "👟", name: "Skygge-skridt",  mult: 33, color: "#b388ff" }, color: "#b388ff" },
+  { slot: "amulet", name: "Kejserens Hemmelige Øje", attack: { key: "secreteye",     icon: "👁️", name: "Hemmeligt Øje",  mult: 36, color: "#ff6b6b" }, color: "#ff6b6b" }
+];
 function mythicForSlot(slotKey) { return MYTHIC_ITEMS.find(m => m.slot === slotKey) || null; }
+function secretForSlot(slotKey) { return SECRET_ITEMS.find(m => m.slot === slotKey) || null; }
 function countMythicEquipped() {
   let n = 0;
   for (const m of MYTHIC_ITEMS) if (state.gear[m.slot] === "mythic") n++;
+  return n;
+}
+function countSecretEquipped() {
+  let n = 0;
+  for (const m of SECRET_ITEMS) if (state.gear[m.slot] === "secret") n++;
   return n;
 }
 // 10% drop chance fra drage-sejr — vælger altid en mythic man mangler (ellers tilfældig)
@@ -969,6 +1010,13 @@ function rollMythicDrop() {
   if (Math.random() >= 0.10) return null;
   const missing = MYTHIC_ITEMS.filter(m => state.gear[m.slot] !== "mythic" && !state.bag.some(b => b.slot === m.slot && b.rarity === "mythic"));
   const pool = missing.length ? missing : MYTHIC_ITEMS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+// SECRET drop: 7% fra Verden 2-drager (12+) — meget specielle, altid en man mangler
+function rollSecretDrop() {
+  if (Math.random() >= 0.07) return null;
+  const missing = SECRET_ITEMS.filter(m => state.gear[m.slot] !== "secret" && !state.bag.some(b => b.slot === m.slot && b.rarity === "secret"));
+  const pool = missing.length ? missing : SECRET_ITEMS;
   return pool[Math.floor(Math.random() * pool.length)];
 }
 const GEAR_NAMES = {
@@ -1015,8 +1063,21 @@ const BOSSES = [
   { name: "Stjerne-dragen",      emoji: "⭐", power: 26, c1: "#f0abfc", c2: "#a21caf" },
   { name: "Måne-dragen",         emoji: "🌙", power: 29, c1: "#e9d5ff", c2: "#7e22ce" },
   { name: "Skygge-dragen",       emoji: "🌑", power: 32, c1: "#a78bfa", c2: "#4c1d95" },
-  { name: "Guld-dragen",         emoji: "💰", power: 35, c1: "#fef08a", c2: "#ca8a04" },
-  { name: "Ord-kejser-dragen",   emoji: "👑", power: 40, c1: "#fdba74", c2: "#c2410c" }
+  { name:"Guld-dragen",         emoji:"💰", power: 35, c1: "#fef08a", c2: "#ca8a04" },
+  { name:"Ord-kejser-dragen",   emoji:"👑", power: 40, c1: "#fdba74", c2: "#c2410c" },
+  /* ============ VERDEN 2-drager (Ord-akademiet — sværere) ============ */
+  { name:"Bog-dragen",          emoji:"📖", power: 44, c1: "#fcd34d", c2: "#92400e" },
+  { name:"Pennalhus-dragen",    emoji:"✒️", power: 48, c1: "#f9a8d4", c2: "#9d174d" },
+  { name:"Familie-dragen",      emoji:"🏡", power: 52, c1: "#86efac", c2: "#166534" },
+  { name:"Dyre-dragen",         emoji:"🐾", power: 56, c1: "#fdba74", c2: "#9a3412" },
+  { name:"Lege-dragen",         emoji:"🤸", power: 60, c1: "#fde047", c2: "#a16207" },
+  { name:"Mad-dragen",          emoji:"🍲", power: 64, c1: "#fca5a5", c2: "#b91c1c" },
+  { name:"Tøj-dragen",          emoji:"🧥", power: 68, c1: "#c4b5fd", c2: "#6d28d9" },
+  { name:"Krop-dragen",         emoji:"💪", power: 72, c1: "#f9a8d4", c2: "#be185d" },
+  { name:"Natur-dragen",        emoji:"🌿", power: 76, c1: "#a7f3d0", c2: "#047857" },
+  { name:"Handling-dragen",     emoji:"🏃", power: 80, c1: "#93c5fd", c2: "#1d4ed8" },
+  { name:"Tid-dragen",          emoji:"⏳", power: 85, c1: "#e9d5ff", c2: "#7e22ce" },
+  { name:"Akademi-kejser-dragen", emoji:"🎓", power: 90, c1: "#fde68a", c2: "#b45309" }
 ];
 
 const WORLDS = [
@@ -1031,7 +1092,20 @@ const WORLDS = [
   { name:"Stjernemarken",       emoji:"🐲", words:["går","hvem","bliver","efter","sagde","tilbage","når","alt","måske","også"] },
   { name:"Måne-byen",           emoji:"🤖", words:["jo","mit","ind","vores","hej","mere","hans","skulle","blev","nogen"] },
   { name:"Raket-havet",         emoji:"👾", words:["lidt","aldrig","får","siger","selv","far","over","to","kun","sådan"] },
-  { name:"Galaksens kerne",     emoji:"🚀", words:["ser","dit","jer","igen","mor","sammen","tager","mand","hele","deres"] }
+  { name:"Galaksens kerne",     emoji:"🚀", words:["ser","dit","jer","igen","mor","sammen","tager","mand","hele","deres"] },
+  /* ============ VERDEN 2: Ord-akademiet (sværere hverdagsord) ============ */
+  { name:"Bog-klassen",         emoji:"📚", words:["skole","bog","læse","skrive","tegne","time","klasse","lærer","lektie","tavle"] },
+  { name:"Skrive-værkstedet",   emoji:"✏️", words:["hus","køkken","stue","seng","dør","vindue","værelse","gulv","loft","væg"] },
+  { name:"Familiens hus",       emoji:"🏠", words:["familie","bror","søster","bedstefar","bedstemor","onkel","moster","fætter","kusine","barn"] },
+  { name:"Dyre-parken",         emoji:"🐾", words:["hund","kat","hest","ko","gris","ræv","and","høne","kanin","mus"] },
+  { name:"Lege-pladsen",        emoji:"⚽", words:["bold","cykel","lege","løbe","hoppe","kaste","fange","spil","dukke","klods"] },
+  { name:"Mad-markedet",        emoji:"🍎", words:["mad","mælk","brød","ost","æble","banan","gulerod","kartoffel","smør","sukker"] },
+  { name:"Tøj-kammeret",        emoji:"👕", words:["tøj","trøje","bukser","kjole","sko","sokker","jakke","hue","vanter","bælte"] },
+  { name:"Krop-værkstedet",     emoji:"💪", words:["krop","hoved","hår","øje","øre","næse","mund","tand","hånd","fod"] },
+  { name:"Natur-haven",         emoji:"🌳", words:["sol","måne","stjerne","sky","regn","sne","vind","træ","blomst","græs"] },
+  { name:"Handle-hallen",       emoji:"🏃", words:["spise","sove","sidde","stå","sige","give","bygge","male","synge","danse"] },
+  { name:"Tids-uret",           emoji:"⏰", words:["dag","nat","morgen","aften","uge","måned","år","klokken","minut","sekund"] },
+  { name:"Følelses-skoven",     emoji:"💖", words:["glad","trist","bange","vred","træt","sulten","tørstig","sjov","kedelig","modig"] }
 ];
 
 /* ============ STATE (med profiler — hver spiller har eget gemt fremskridt) ============ */
@@ -1119,6 +1193,11 @@ function makeItem(slotKey, rarityKey) {
     const m = mythicForSlot(slotKey);
     return { slot: slotKey, rarity: "mythic", name: m ? m.name : "Mytisk Skat", mythic: true, id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
   }
+  // VERDEN 2: secret items har også unikke navne + mega-angreb
+  if (rarityKey === "secret") {
+    const m = secretForSlot(slotKey);
+    return { slot: slotKey, rarity: "secret", name: m ? m.name : "Hemmelig Skat", secret: true, id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
+  }
   const names = GEAR_NAMES[slotKey];
   return { slot: slotKey, rarity: rarityKey, name: names[Math.floor(Math.random() * names.length)], id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
 }
@@ -1149,18 +1228,28 @@ function renderHero() {
   document.getElementById("heroClassLabel").textContent = classOf().icon + " " + classOf().name;
   // Helte-figur (SVG) — farver fra gear (genbruger markup fra dragekampen)
   document.getElementById("heroSvg").innerHTML = heroSvgMarkup();
-  // Mytisk spor: hvilke af de 6 mytiske skatte man har (udstyret eller i tasken)
+  // Mytisk + SECRET spor: hvilke af de 6 mytiske + 6 hemmelige skatte man har (udstyret eller i tasken)
   const owned = {};
   MYTHIC_ITEMS.forEach(m => { if (state.gear[m.slot] === "mythic" || state.bag.some(b => b.slot === m.slot && b.rarity === "mythic")) owned[m.slot] = true; });
-  document.getElementById("mythicCount").textContent = Object.keys(owned).length + "/6";
+  SECRET_ITEMS.forEach(m => { if (state.gear[m.slot] === "secret" || state.bag.some(b => b.slot === m.slot && b.rarity === "secret")) owned["s_" + m.slot] = true; });
+  const totalUnique = MYTHIC_ITEMS.length + SECRET_ITEMS.length;
+  document.getElementById("mythicCount").textContent = Object.keys(owned).length + "/" + totalUnique;
   const track = document.getElementById("mythicTrack");
   track.innerHTML = "";
   MYTHIC_ITEMS.forEach(m => {
     const d = document.createElement("div");
     const has = owned[m.slot];
     d.className = "mythic-slot" + (has ? " owned" : "");
-    d.title = m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (5% chance fra drage-sejr)");
+    d.title = m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (10% chance fra drage-sejr)");
     d.innerHTML = has ? m.attack.icon : "❓";
+    track.appendChild(d);
+  });
+  SECRET_ITEMS.forEach(m => {
+    const d = document.createElement("div");
+    const has = owned["s_" + m.slot];
+    d.className = "mythic-slot secret" + (has ? " owned" : "");
+    d.title = "🔮 " + m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (7% chance fra akademi-drager!)");
+    d.innerHTML = has ? m.attack.icon : "🔮";
     track.appendChild(d);
   });
   // Gear-slots (kompakt grid)
@@ -1207,9 +1296,11 @@ function renderHero() {
         if (bagToCube(item)) return; // flyttet til kuben
         if (state.gear[item.slot]) {
           const oldRk = state.gear[item.slot];
-          // Mytisk gear beholder sit unikke navn ved udskiftning
-          const oldName = oldRk === "mythic" && mythicForSlot(item.slot) ? mythicForSlot(item.slot).name : GEAR_NAMES[item.slot][Math.floor(Math.random()*GEAR_NAMES[item.slot].length)];
-          state.bag.push({ slot: item.slot, rarity: oldRk, name: oldName, mythic: oldRk === "mythic", id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
+          // Mytisk/secret gear beholder sit unikke navn ved udskiftning
+          const oldName = oldRk === "mythic" && mythicForSlot(item.slot) ? mythicForSlot(item.slot).name
+            : oldRk === "secret" && secretForSlot(item.slot) ? secretForSlot(item.slot).name
+            : GEAR_NAMES[item.slot][Math.floor(Math.random()*GEAR_NAMES[item.slot].length)];
+          state.bag.push({ slot: item.slot, rarity: oldRk, name: oldName, mythic: oldRk === "mythic", secret: oldRk === "secret", id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
         }
         state.gear[item.slot] = item.rarity;
         state.bag = state.bag.filter(b => b.id !== item.id);
@@ -1255,7 +1346,7 @@ function renderStats() {
   const grid = document.getElementById("statsGrid");
   grid.innerHTML = `
     <div class="stat-card"><div class="sc-num">${totalStars()}</div><div class="sc-label">Stjerner</div></div>
-    <div class="stat-card"><div class="sc-num">${collectedCount()}/12</div><div class="sc-label">Drager besejret</div></div>
+    <div class="stat-card"><div class="sc-num">${collectedCount()}/${WORLDS.length}</div><div class="sc-label">Drager besejret</div></div>
     <div class="stat-card"><div class="sc-num">${state.lootCount || 0}</div><div class="sc-label">Missioner</div></div>
     <div class="stat-card"><div class="sc-num">${totalTries}</div><div class="sc-label">Ord besvaret</div></div>
     <div class="stat-card"><div class="sc-num">${totalWrong}</div><div class="sc-label">Fejl i alt</div></div>
@@ -1406,7 +1497,7 @@ function showProfiles() {
     const pstate = JSON.parse(localStorage.getItem(profileKey(p.id)) || "null");
     const stars = pstate && pstate.worlds ? Object.values(pstate.worlds).reduce((n, w) => n + (w.hear||0) + (w.type||0) + (w.fill||0), 0) : 0;
     const bosses = pstate && pstate.worlds ? Object.values(pstate.worlds).filter(w => w.boss).length : 0;
-    d.innerHTML = `<div class="pc-icon">${p.icon}</div><div class="pc-name">${p.name}</div><div class="pc-progress">⭐ ${stars} · 🐉 ${bosses}/12</div>`;
+    d.innerHTML = `<div class="pc-icon">${p.icon}</div><div class="pc-name">${p.name}</div><div class="pc-progress">⭐ ${stars} · 🐉 ${bosses}/${WORLDS.length}</div>`;
     if (!active) d.onclick = () => switchProfile(p.id);
     grid.appendChild(d);
   });
@@ -1513,8 +1604,9 @@ function renderCube() {
   }
 }
 function cubeAdd(item) {
-  // Mytiske items kan ikke lægges i kuben — de er unikke og kan ikke forvandles
+  // Mytiske + secret items kan ikke lægges i kuben — de er unikke og kan ikke forvandles
   if (item.rarity === "mythic") { toast("👑 Mytiske items kan ikke forvandles — de er unikke!", 2500); return; }
+  if (item.rarity === "secret") { toast("🔮 HEMMELIGE items kan ikke forvandles — de er unikke!", 2500); return; }
   const i = CUBE_SLOTS.indexOf(null);
   if (i === -1) { toast("Kuben er fuld — forvandl eller tag et item ud!", 2000); return; }
   CUBE_SLOTS[i] = item;
@@ -1525,6 +1617,7 @@ function cubeAdd(item) {
 // Flyt item fra rygsækken til kuben (returnerer true hvis det lykkedes)
 function bagToCube(item) {
   if (item.rarity === "mythic") { toast("👑 Mytiske items kan ikke forvandles — de er unikke!", 2500); return false; }
+  if (item.rarity === "secret") { toast("🔮 HEMMELIGE items kan ikke forvandles — de er unikke!", 2500); return false; }
   const i = CUBE_SLOTS.indexOf(null);
   if (i === -1) { toast("Kuben er fuld — forvandl eller tag et item ud!", 2000); return false; }
   CUBE_SLOTS[i] = item;
@@ -1774,6 +1867,16 @@ function renderAttacks() {
     b.onclick = () => bossAttack(a);
     bar.appendChild(b);
   });
+  // VERDEN 2 SECRET-angreb: endnu stærkere — kun fra udstyret HEMMELIGT gear
+  SECRET_ITEMS.forEach(m => {
+    if (state.gear[m.slot] !== "secret") return;
+    const a = m.attack;
+    const b = document.createElement("button");
+    b.className = "attack-btn secret";
+    b.innerHTML = `<span class="ab-icon">${a.icon}</span><span>${a.name} ×${a.mult}</span>`;
+    b.onclick = () => bossAttack(a);
+    bar.appendChild(b);
+  });
 }
 function heroSvgMarkup() {
   const g = c => c || "#8a8f98";
@@ -1833,6 +1936,7 @@ function heroSvgMarkup() {
       <circle cx="80" cy="72" r="4" fill="${amuletC}"/>
       <circle cx="80" cy="72" r="2" fill="#fff" opacity=".6"/>
       ${mythicAuraMarkup()}
+      ${secretAuraMarkup()}
     </svg>`;
 }
 // SECRET MYTHIC skin: aura bag helten — styrke/farve efter antal mytiske items
@@ -1856,7 +1960,25 @@ function mythicAuraMarkup() {
   }
   return glow;
 }
-/* Rigtig SVG-drage med gradienter og skæl-detaljer */
+// VERDEN 2 SECRET-aura: regnbue-glød + glitrende stjerner — end-game look
+function secretAuraMarkup() {
+  const n = countSecretEquipped();
+  if (n === 0) return "";
+  const colors = SECRET_ITEMS.filter(m => state.gear[m.slot] === "secret").map(m => m.color);
+  const c1 = colors[0] || "#ff4ecd";
+  const c2 = colors[Math.min(1, colors.length - 1)] || "#40e0ff";
+  const o = 0.22 + n * 0.07;
+  let glow = `<defs><radialGradient id="secAura" cx="50%" cy="42%" r="60%">
+    <stop offset="0%" stop-color="${c1}" stop-opacity="0"/><stop offset="65%" stop-color="${c2}" stop-opacity="${o}"/><stop offset="100%" stop-color="${c1}" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="80" cy="108" rx="${45 + n * 6}" ry="${52 + n * 7}" fill="url(#secAura)"/>`;
+  // Glitrende stjerner + gyldne kugler — meget specielle
+  for (let i = 0; i < 4 + n; i++) {
+    const px = 40 + Math.random() * 80, py = 60 + Math.random() * 100;
+    const col = i % 2 ? c1 : c2;
+    glow += `<circle cx="${px.toFixed(0)}" cy="${py.toFixed(0)}" r="${(i % 3 ? 2 : 2.6).toFixed(1)}" fill="${col}" opacity=".95"><animate attributeName="opacity" values=".2;1;.2" dur="${(0.9 + (i % 3) * 0.35).toFixed(2)}s" repeatCount="indefinite"/></circle>`;
+  }
+  return glow;
+}
 function dragonSvgMarkup(c1, c2) {
   const gid = "dg" + Math.random().toString(36).slice(2, 7);
   return `
@@ -2044,12 +2166,16 @@ function bossWin() {
   if (bossState.over) return;
   bossState.over = true;
   const dragon = BOSSES[cur.world];
+  const inAcademy = cur.world >= 12; // VERDEN 2: Ord-akademiet
   // State opdateres med det samme (kort + fremskridt)
   const ws = worldState(cur.world);
   ws.boss = true;
   save();
   const completed = collectedCount();
   state.skin = Math.min(Math.floor(completed / 3), HERO_SKIN.length - 1);
+  // SECRET drop? Kun fra akademi-drager (verden 2) — 7% chance, mega speciel
+  let secretDrop = null;
+  if (inAcademy) secretDrop = rollSecretDrop();
   // UI opdateres med kort animations-delay
   setTimeout(() => {
     document.getElementById("bossDragonEmoji").classList.add("dead");
@@ -2061,25 +2187,42 @@ function bossWin() {
     document.getElementById("rewardText").textContent = "Drage besejret! Samlekort: " + WORLDS[cur.world].name + "!";
     sfxCard();
     document.getElementById("bossStatus").textContent = "🏆 SEJR! " + dragon.name + " er besejret!";
-    document.getElementById("bossMsg").textContent = "Snur lykkehjulet og se hvad dragen efterlader! 🎰";
-    document.getElementById("bossHint").textContent = "25% Mytisk · 25% Legendarisk · 50% Magisk";
+    if (secretDrop) {
+      document.getElementById("bossMsg").innerHTML = "🔮 <b>HEMMELIGT!</b> Dragen efterlader <span class='rarity-secret'>" + secretDrop.name + "</span>! Snur hjulet for mere!";
+      const secItem = makeItem(secretDrop.slot, "secret");
+      state.bag.push(secItem);
+      save();
+      setTimeout(() => { toast("🔮 SECRET! " + secretDrop.name + " (Kraft +15)!"); sfxWin(); }, 500);
+    } else {
+      document.getElementById("bossMsg").textContent = "Snur lykkehjulet og se hvad dragen efterlader! 🎰";
+    }
+    document.getElementById("bossHint").textContent = inAcademy ? "Akademi-drager kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!" : "25% Mytisk · 25% Legendarisk · 50% Magisk";
     renderAttacks();
     showLootWheel(); // lykkehjul med loot-chancer
   }, 400);
 }
 
 /* ============ LYKKEHJUL (drage-sejr) ============ */
-// Segmenter: Mytisk 25% · Legendarisk 25% · Magisk (blå) 50%
-const WHEEL_SEGS = [
-  { key: "mythic",    label: "Mytisk",       icon: "👑", color: "#ffd700", pct: .25 },
-  { key: "legendary", label: "Legendarisk",  icon: "🟠", color: "#fb923c", pct: .25 },
-  { key: "magic",     label: "Magisk",       icon: "🔵", color: "#60a5fa", pct: .50 }
-];
+// Verden 1-segmenter: Mytisk 25% · Legendarisk 25% · Magisk (blå) 50%
+// Verden 2-segmenter (akademiet): HEMMELIG 10% · Mytisk 20% · Legendarisk 20% · Magisk 50%
+function wheelSegs() {
+  if (cur.world >= 12) return [
+    { key: "secret",    label: "HEMMELIG",    icon: "🔮", color: "#ff4ecd", pct: .10 },
+    { key: "mythic",    label: "Mytisk",      icon: "👑", color: "#ffd700", pct: .20 },
+    { key: "legendary", label: "Legendarisk", icon: "🟠", color: "#fb923c", pct: .20 },
+    { key: "magic",     label: "Magisk",      icon: "🔵", color: "#60a5fa", pct: .50 }
+  ];
+  return [
+    { key: "mythic",    label: "Mytisk",       icon: "👑", color: "#ffd700", pct: .25 },
+    { key: "legendary", label: "Legendarisk",  icon: "🟠", color: "#fb923c", pct: .25 },
+    { key: "magic",     label: "Magisk",       icon: "🔵", color: "#60a5fa", pct: .50 }
+  ];
+}
 let wheelPending = null; // { rk, item } der blev rullet
 function wheelSvgMarkup() {
   const cx = 100, cy = 100, r = 92;
   let acc = 0, parts = "";
-  WHEEL_SEGS.forEach((s, i) => {
+  wheelSegs().forEach((s, i) => {
     const a0 = acc * 360 - 90, a1 = (acc + s.pct) * 360 - 90; // start øverst
     acc += s.pct;
     const x0 = cx + r * Math.cos(a0 * Math.PI / 180), y0 = cy + r * Math.sin(a0 * Math.PI / 180);
@@ -2095,12 +2238,11 @@ function wheelSvgMarkup() {
   return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${parts}<circle cx="${cx}" cy="${cy}" r="22" fill="#1a1035" stroke="#ffd76a" stroke-width="3"/></svg>`;
 }
 function showLootWheel() {
-  // Rul resultatet NU (25/25/50), loot uddeles når hjulet lander
+  // Rul resultatet NU (akademi: 10/20/20/50 · ellers 25/25/50), loot uddeles når hjulet lander
+  const segs = wheelSegs();
   const roll = Math.random();
-  let rk;
-  if (roll < .25) rk = "mythic";
-  else if (roll < .50) rk = "legendary";
-  else rk = "magic";
+  let acc = 0, rk = segs[segs.length - 1].key;
+  for (const s of segs) { acc += s.pct; if (roll < acc) { rk = s.key; break; } }
   let item;
   if (rk === "mythic") {
     // Vælg altid en mythic man mangler
@@ -2108,6 +2250,12 @@ function showLootWheel() {
     const pool = missing.length ? missing : MYTHIC_ITEMS;
     const m = pool[Math.floor(Math.random() * pool.length)];
     item = makeItem(m.slot, "mythic");
+  } else if (rk === "secret") {
+    // Vælg altid en secret man mangler
+    const missing = SECRET_ITEMS.filter(m => state.gear[m.slot] !== "secret" && !state.bag.some(b => b.slot === m.slot && b.rarity === "secret"));
+    const pool = missing.length ? missing : SECRET_ITEMS;
+    const m = pool[Math.floor(Math.random() * pool.length)];
+    item = makeItem(m.slot, "secret");
   } else {
     item = makeItem(randomSlot(), rk);
   }
@@ -2137,7 +2285,7 @@ function spinLootWheel() {
   save();
   // Find segmentets midtervinkel → roter så nålen (top) lander på det
   let acc = 0, target = 0;
-  WHEEL_SEGS.forEach(s => {
+  wheelSegs().forEach(s => {
     if (s.key === wheelPending.rk) target = (acc + s.pct / 2) * 360;
     acc += s.pct;
   });
@@ -2161,11 +2309,16 @@ function spinLootWheel() {
       const slot = GEAR_SLOTS.find(s => s.key === wheelPending.item.slot);
       const res = document.getElementById("wheelResult");
       res.classList.remove("hidden");
-      res.className = "wheel-result" + (wheelPending.rk === "mythic" ? " mythic" : "");
+      res.className = "wheel-result" + (wheelPending.rk === "mythic" ? " mythic" : "") + (wheelPending.rk === "secret" ? " secret" : "");
       res.innerHTML = `<span class="wr-icon">${slot ? slot.icon : "🎒"}</span><div class="wr-rarity rarity-${wheelPending.rk}">${r ? r.label : ""}</div><div>${wheelPending.item.name}</div>`;
       if (wheelPending.rk === "mythic") {
         const m = mythicForSlot(wheelPending.item.slot);
         res.innerHTML += `<div style="font-size:13px;color:#9fb0e8;margin-top:4px">⚡ Unikt angreb: ${m ? m.attack.name + " ×" + m.attack.mult : "?"} · Kraft +${r ? r.power : "?"}</div>`;
+        fxConfetti();
+        sfxWin();
+      } else if (wheelPending.rk === "secret") {
+        const m = secretForSlot(wheelPending.item.slot);
+        res.innerHTML += `<div style="font-size:13px;color:#ff9ad8;margin-top:4px">🔮 MEGA-angreb: ${m ? m.attack.name + " ×" + m.attack.mult : "?"} · Kraft +${r ? r.power : "?"}</div>`;
         fxConfetti();
         sfxWin();
       } else {
@@ -2197,7 +2350,7 @@ function updateStartMeta() {
   const ap = activeProfile();
   document.getElementById("startMeta").textContent =
     (ap ? "👤 " + ap.icon + " " + ap.name + "  ·  " : "") +
-    "⭐ " + totalStars() + " stjerner · 🎁 " + collectedCount() + "/12 kort samlet";
+    "⭐ " + totalStars() + " stjerner · 🎁 " + collectedCount() + "/" + WORLDS.length + " kort samlet";
   // Gratis spins-knap
   const fsBtn = document.getElementById("freeSpinBtn");
   const fsCount = document.getElementById("freeSpinCount");
@@ -2214,6 +2367,17 @@ function useFreeSpin() {
   save();
   updateStartMeta();
   showLootWheel();
+}
+
+function blankInSentence(word, sentence, fill) {
+  // Unicode-sikker ordgrænse: \b er ikke bevidst om æøå i JS, så brug lookaround med \p{L}
+  const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const exact = new RegExp("(?<![\\p{L}\\p{N}_])" + esc + "(?![\\p{L}\\p{N}_])", "iu");
+  if (exact.test(sentence)) return sentence.replace(exact, fill);
+  // Bøjede former (dansk): -en, -et, -n, -t, -er, -r, -ne, -de, + konsonantfordobling (katten, væggen)
+  const inflected = new RegExp("(?<![\\p{L}\\p{N}_])" + esc + "(?:en|et|ne|n|t|e|r|s|er|de|ende|gen|ten|ret|set)?(?![\\p{L}\\p{N}_])", "iu");
+  if (inflected.test(sentence)) return sentence.replace(inflected, fill);
+  return sentence;
 }
 
 /* ============ GAME CORE ============ */
@@ -2454,7 +2618,7 @@ function renderType() {
   const word = cur.words[cur.idx];
   const sentence = WORDS[word];
   // Sætning med tydeligt hul i stedet for ordet — så man ved præcis HVAD man leder efter
-  const withHole = sentence.replace(new RegExp("(?<![\\p{L}\\p{N}_])" + word + "(?![\\p{L}\\p{N}_])", "iu"), "___");
+  const withHole = blankInSentence(word, sentence, "___");
   document.getElementById("typeHint").innerHTML =
     "Sætningen: <b>" + withHole + "</b><br><span class='type-dots'>" + "•".repeat(word.length) + "</span> (" + word.length + " bogstaver)";
   document.getElementById("typeHint").className = "sentence type-hint";
@@ -2496,7 +2660,7 @@ function renderFill() {
   const word = cur.words[cur.idx];
   const sentence = WORDS[word];
   // Unicode-sikker ordgrænse: \b er ikke bevidst om æøå i JS, så brug lookaround med \p{L}
-  const shown = sentence.replace(new RegExp("(?<![\\p{L}\\p{N}_])" + word + "(?![\\p{L}\\p{N}_])", "iu"), "____");
+  const shown = blankInSentence(word, sentence, "____");
   document.getElementById("fillSentence").innerHTML = shown.replace("____", '<span class="blank">____</span>');
   document.getElementById("fillStatus").textContent = "Tryk på højttaleren og hør sætningen 🧩";
   const box = document.getElementById("fillChoices");
@@ -2541,10 +2705,15 @@ function nextFill() {
 const MAP_POS = [
   { x: 10, y: 80 }, { x: 24, y: 60 }, { x: 18, y: 30 }, { x: 38, y: 16 },
   { x: 58, y: 26 }, { x: 74, y: 16 }, { x: 88, y: 32 }, { x: 80, y: 58 },
-  { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 }
+  { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 },
+  // ============ VERDEN 2: Ord-akademiet (øverst til højre — sværere land) ============
+  { x: 12, y: 8 }, { x: 30, y: 4 }, { x: 48, y: 8 }, { x: 66, y: 4 },
+  { x: 84, y: 8 }, { x: 96, y: 22 }, { x: 84, y: 44 }, { x: 96, y: 64 },
+  { x: 78, y: 88 }, { x: 56, y: 92 }, { x: 36, y: 96 }, { x: 14, y: 92 }
 ];
 // Terræn/biom pr. verden (dekorative SVG-elementer i baggrunden)
-const MAP_BIOMES = ["skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne"];
+const MAP_BIOMES = ["skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne",
+  "skole","borg","slot","park","stadion","mark","hule","bjerg","skov","by","tårn","kerne"];
 const MAP_COLORS = {
   skov: "#2d5a3d", bjerg: "#5a4a3a", dal: "#3d5a2a", ø: "#2a4a5a",
   flod: "#1f5f8f", hule: "#3a2a3a", tårn: "#4a3a5a", mark: "#5a4a1a",
