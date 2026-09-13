@@ -84,6 +84,21 @@
     border: 1px solid rgba(255,255,255,.15); box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 0 80px rgba(0,0,0,.35);
     background: #1a1035;
   }
+  /* ===== KORT-CAROUSEL: 2 separate verdener (Galaksen + Ord-akademiet) ===== */
+  .map-carousel {
+    display: flex; width: 100%; max-width: 1100px; margin-top: 8px;
+    overflow: hidden; border-radius: 22px;
+    scroll-snap-type: x mandatory; touch-action: pan-x;
+    transition: transform .45s cubic-bezier(.2,.8,.2,1);
+    transform: translateX(0%);
+  }
+  .map-carousel .worldmap { flex: 0 0 100%; max-width: 100%; margin-top: 0; scroll-snap-align: start; pointer-events: auto; }
+  .map-nav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 14px; }
+  .small-map-btn { padding: 8px 18px; font-size: 18px; margin-top: 0; }
+  .map-dots { display: flex; gap: 8px; align-items: center; }
+  .map-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.22); transition: all .2s; }
+  .map-dot.on { background: var(--accent); box-shadow: 0 0 10px rgba(255,210,63,.7); transform: scale(1.25); }
+  .map-swipe-hint { margin-top: 8px; font-size: 12px; }
   .map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .world-card {
     position: absolute; transform: translate(-50%, -50%);
@@ -675,8 +690,17 @@
 
 <!-- WORLD MAP -->
 <div class="screen" id="screen-map">
-  <div class="title" style="font-size:clamp(28px,7vw,44px)">Vælg verden</div>
-  <div class="worldmap" id="worldMap"></div>
+  <div class="title" style="font-size:clamp(28px,7vw,44px)" id="mapTitle">🌌 Galaksen</div>
+  <div class="map-carousel" id="mapCarousel">
+    <div class="worldmap" id="worldMapA"></div>
+    <div class="worldmap" id="worldMapB"></div>
+  </div>
+  <div class="map-nav">
+    <button class="btn ghost small-map-btn" onclick="swipeMap(-1)">◀</button>
+    <div class="map-dots" id="mapDots"></div>
+    <button class="btn ghost small-map-btn" onclick="swipeMap(1)">▶</button>
+  </div>
+  <div class="ta map-swipe-hint">Swipe til venstre for Ord-akademiet 🎓</div>
   <div class="flex-row" style="margin-top:10px">
     <button class="btn ghost" onclick="showCollectibles()">🎁 Samlekort</button>
     <button class="btn blue" onclick="showHero()">⚔️ Min helt</button>
@@ -2938,13 +2962,22 @@ function terrainMarkup(biome, x, y) {
   return parts.join("");
 }
 function renderWorldMap() {
-  const map = document.getElementById("worldMap");
+  // To separate kort: A = Galaksen (verden 1, index 0-11), B = Ord-akademiet (verden 2, index 12-23)
+  renderMapPanel("worldMapA", 0, 12, "🌌 Galaksen");
+  renderMapPanel("worldMapB", 12, 24, "🎓 Ord-akademiet");
+  // Vis det kort hvor helten er
+  const mapPage = (state.mapAt || 0) >= 12 ? 1 : 0;
+  setMapPage(mapPage, false);
+}
+let curMapPage = 0;
+function renderMapPanel(elId, start, end, title) {
+  const map = document.getElementById(elId);
   map.innerHTML = "";
   // 1) Baggrunds-SVG med himmel, terræn og stier
   let terr = "";
-  WORLDS.forEach((w, i) => { const p = MAP_POS[i]; terr += `<g>${terrainMarkup(MAP_BIOMES[i], p.x, p.y)}</g>`; });
+  for (let i = start; i < end; i++) { const p = MAP_POS[i]; terr += `<g>${terrainMarkup(MAP_BIOMES[i], p.x, p.y)}</g>`; }
   let paths = "";
-  for (let i = 0; i < WORLDS.length - 1; i++) {
+  for (let i = start; i < end - 1; i++) {
     const a = MAP_POS[i], b = MAP_POS[i + 1];
     const open = worldUnlocked(i + 1);
     const x1 = (a.x / 100) * 1200, y1 = (a.y / 100) * 760, x2 = (b.x / 100) * 1200, y2 = (b.y / 100) * 760;
@@ -2952,10 +2985,15 @@ function renderWorldMap() {
     paths += `<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${open ? "#ffd76a" : "#4a5578"}" stroke-width="${open ? 5 : 3}" stroke-dasharray="${open ? "" : "7 7"}" opacity="${open ? ".85" : ".5"}"/>`;
     if (open) paths += `<circle cx="${(x1+x2)/2}" cy="${my}" r="4" fill="#ffd76a" opacity=".9"/>`;
   }
-  map.innerHTML = `<svg class="map-svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient></defs><rect width="1200" height="760" fill="url(#sky)"/>${terr}${paths}</svg>`;
+  // Hvert kort får sin egen himmel-gradient (akademiet er varmere)
+  const sky = start === 0
+    ? '<linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient>'
+    : '<linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="55%" stop-color="#3a2040"/><stop offset="100%" stop-color="#4a2a35"/></linearGradient>';
+  map.innerHTML = `<svg class="map-svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice"><defs>${sky}</defs><rect width="1200" height="760" fill="${start === 0 ? "url(#skyA)" : "url(#skyB)"}"/>${terr}${paths}</svg>`;
   // 2) Verdener — absolut positionerede kort oven på landskabet
-  WORLDS.forEach((w, i) => {
+  for (let i = start; i < end; i++) {
     const d = document.createElement("div");
+    const w = WORLDS[i];
     const p = MAP_POS[i];
     const unlocked = worldUnlocked(i);
     const ws = state.worlds[i];
@@ -2977,26 +3015,62 @@ function renderWorldMap() {
     d.innerHTML = `<div class="emoji">${unlocked ? w.emoji : "🔒"}</div><div class="wname">${w.name}</div>${badge}<div class="w-progress">${segs}</div>`;
     d.onclick = () => travelToWorld(i);
     map.appendChild(d);
-  });
-  // 3) Helten — rejser langs stien til valgte verden
+  }
+  // 3) Helten — kun på det kort hvor han er
   const hero = document.createElement("div");
-  hero.id = "mapHero";
+  hero.id = "mapHero" + (start === 0 ? "A" : "B");
   hero.className = "map-hero";
   const at = MAP_POS[state.mapAt || 0] || MAP_POS[0];
+  const heroHere = (state.mapAt || 0) >= start && (state.mapAt || 0) < end;
   hero.style.left = at.x + "%";
   hero.style.top = at.y + "%";
   hero.textContent = classOf().icon;
-  map.appendChild(hero);
+  if (heroHere) map.appendChild(hero);
 }
+function setMapPage(page, animate) {
+  curMapPage = page ? 1 : 0;
+  const car = document.getElementById("mapCarousel");
+  if (car) {
+    car.style.transform = "translateX(-" + (curMapPage * 100) + "%)";
+    if (!animate) { car.style.transition = "none"; requestAnimationFrame(() => { car.style.transition = ""; }); }
+  }
+  const t = document.getElementById("mapTitle");
+  if (t) t.textContent = curMapPage === 0 ? "🌌 Galaksen" : "🎓 Ord-akademiet";
+  const hint = document.querySelector(".map-swipe-hint");
+  if (hint) hint.textContent = curMapPage === 0 ? "Swipe til venstre for Ord-akademiet 🎓" : "Swipe til højre for Galaksen 🌌";
+  // Prikker
+  const dots = document.getElementById("mapDots");
+  if (dots) dots.innerHTML = [0, 1].map(i => `<span class="map-dot${i === curMapPage ? " on" : ""}" onclick="setMapPage(${i}, true)"></span>`).join("");
+}
+function swipeMap(dir) {
+  const next = Math.max(0, Math.min(1, curMapPage + dir));
+  if (next !== curMapPage) { sfxClick(); setMapPage(next, true); }
+}
+// Touch-swipe på kortet (iPad)
+let swipeStartX = null, swipeStartY = null;
+function bindMapSwipe() {
+  const car = document.getElementById("mapCarousel");
+  if (!car) return;
+  car.addEventListener("touchstart", e => { swipeStartX = e.touches[0].clientX; swipeStartY = e.touches[0].clientY; }, { passive: true });
+  car.addEventListener("touchend", e => {
+    if (swipeStartX === null) return;
+    const dx = e.changedTouches[0].clientX - swipeStartX;
+    const dy = e.changedTouches[0].clientY - swipeStartY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) swipeMap(dx < 0 ? 1 : -1);
+    swipeStartX = null; swipeStartY = null;
+  }, { passive: true });
+}
+bindMapSwipe();
 function travelToWorld(i) {
   if (!worldUnlocked(i)) {
     const prev = WORLDS[i - 1];
     toast("🔒 Besejr dragen i " + prev.name + " først!", 2500);
-    const el = document.querySelectorAll(".world-card")[i];
+    const cards = document.querySelectorAll("#worldMapA .world-card, #worldMapB .world-card");
+    const el = cards[i];
     if (el) { el.classList.add("shake"); setTimeout(() => el.classList.remove("shake"), 500); }
     return;
   }
-  const hero = document.getElementById("mapHero");
+  const hero = document.getElementById(i >= 12 ? "mapHeroB" : "mapHeroA");
   if (hero) {
     const p = MAP_POS[i];
     hero.style.left = p.x + "%";
