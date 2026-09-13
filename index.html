@@ -1005,7 +1005,7 @@
 /* ============ DATA ============ */
 const WORDS = {
   jeg:"Jeg kan godt lide at spille fodbold.", det:"Det er sjovt at lege.", er:"Min hund er sød.",
-  du:"Du er min bedste ven.", ikke:"Jeg vil ikke have broccoli.", at:"Det er sjovt at lege.",
+  du:"Du er min bedste ven.", ikke:"Jeg vil ikke have broccoli.", at:"Jeg elsker at spise is.",
   i:"Vi bor i Danmark.", en:"Jeg har en cykel.", og:"Jeg kan lide pizza og is.", har:"Jeg har to brødre.",
   vi:"Vi skal i skole i morgen.", til:"Jeg går til boldtræning.", på:"Bogen ligger på bordet.",
   hvad:"Hvad skal vi lege i dag?", med:"Jeg leger med min ven.", så:"Så lad os starte!",
@@ -2848,6 +2848,22 @@ const SPELL_PATTERNS = [
     rule: "Mange ord slutter med -er — både navneord og udsagnsord.",
     tip: "læ-rer, sø-ster, suk-ker, van-ter — hør endelsen.",
     look: ["lærer", "søster", "sukker", "vanter", "fætter"]
+  },
+  {
+    key: "kort", icon: "📏", name: "Korte ord",
+    test: w => w.length <= 4,
+    title: "Korte ord — sig dem langsomt",
+    rule: "Korte ord lyder som ét hug. Sig det langsomt og skriv hver lyd, du hører.",
+    tip: "h-u-s, s-o-l, m-a-d — ingen bogstaver at gemme sig bag!",
+    look: ["hus", "sol", "mad", "bog", "dag"]
+  },
+  {
+    key: "stavelser", icon: "🔤", name: "Ord med flere stavelser",
+    test: w => syllabify(w).length >= 2,
+    title: "Del ordet op i stavelser",
+    rule: "Når et ord er svært, deler du det op i stavelser — så bliver det meget lettere.",
+    tip: "ka-nin, cy-kel, mor-gen, af-ten — klap ordet mens du siger det!",
+    look: ["kanin", "cykel", "morgen", "aften", "banan"]
   }
 ];
 // Find de mønstre barnet fejler på (ud fra ord-statistik + aktive svage ord)
