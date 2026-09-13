@@ -30,7 +30,10 @@
     box-shadow: 0 20px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
     backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
     position: relative; overflow: hidden;
+    flex-shrink: 0; /* KRITISK: må ikke krympes af flex — så klippes indholdet og man kan ikke scrolle */
   }
+  /* Alle direkte børn af en skærm må vokse frit (ellers kan højt indhold ikke scrolles) */
+  .screen > * { flex-shrink: 0; }
   .panel::before {
     content: ""; position: absolute; inset: 0; border-radius: 24px; padding: 1px;
     background: linear-gradient(160deg, rgba(255,210,63,.35), rgba(96,165,250,.15) 40%, transparent 70%);
@@ -46,6 +49,11 @@
   /* Centrér indholdet lodret KUN når der er plads — ellers kan man scrolle hele vejen.
      (Pseudo-elementer med margin:auto giver centrering uden at klippe toppen af højt indhold.) */
   .screen::before, .screen::after { content: ""; display: block; flex: 0 0 auto; margin: auto; }
+  /* HØJE SKÆRME (statistik, helt): almindeligt blok-layout — så kan ALT altid scrolles,
+     uanset flexbox-quirks. Panelet centreres vandret med margin:auto. */
+  .screen.tall { display: none; }
+  .screen.tall.active { display: block; padding: 18px 16px 40px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .screen.tall > .panel { margin: 0 auto; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
   .title { font-size: clamp(40px, 10vw, 72px); font-weight: 900; letter-spacing: 2px;
@@ -861,7 +869,7 @@
 </div>
 
 <!-- HERO (gear-udstyr) -->
-<div class="screen" id="screen-hero">
+<div class="screen tall" id="screen-hero">
   <div class="panel" style="max-width:660px">
     <h2>⚔️ Din ordjæger-helt</h2>
     <div class="hero-wrap">
@@ -912,7 +920,7 @@
 </div>
 
 <!-- ACHIEVEMENTS (bedrifter) -->
-<div class="screen" id="screen-achieve">
+<div class="screen tall" id="screen-achieve">
   <div class="panel" style="max-width:620px">
     <h2>🏆 Bedrifter</h2>
     <div class="ta" id="achieveMeta" style="font-size:14px;color:#fbbf24;margin-bottom:6px"></div>
@@ -922,7 +930,7 @@
 </div>
 
 <!-- LEKTION (adaptiv læring: målrettet hjælp til fejl-mønstre) -->
-<div class="screen" id="screen-lesson">
+<div class="screen tall" id="screen-lesson">
   <div class="panel" style="max-width:560px">
     <span class="lesson-big-icon" id="lessonIcon">💡</span>
     <h2 id="lessonTitle"></h2>
@@ -936,7 +944,7 @@
 </div>
 
 <!-- STATISTIK (forældre) -->
-<div class="screen" id="screen-stats">
+<div class="screen tall" id="screen-stats">
   <div class="panel" style="max-width:640px">
     <h2>📊 Statistik</h2>
     <div class="stats-grid" id="statsGrid"></div>
