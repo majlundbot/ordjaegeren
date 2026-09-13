@@ -168,6 +168,33 @@
     border-color: #ff4ecd; color: #fff; box-shadow: 0 0 16px rgba(255,78,205,.7), 0 0 30px rgba(64,224,255,.4);
     animation: secretGlow 1.4s ease-in-out infinite;
   }
+  /* RPG: TALENT-TRÆ */
+  .talent-row { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .talent-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%;
+    padding: 10px 12px; border-radius: 12px; border: 2px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.05); color: #fff; text-align: left; cursor: pointer;
+    transition: all .15s;
+  }
+  .talent-btn.available { border-color: #fbbf24; box-shadow: 0 0 12px rgba(251,191,36,.35); animation: mythicGlow 1.6s ease-in-out infinite; }
+  .talent-btn.available:hover { transform: scale(1.02); background: rgba(251,191,36,.12); }
+  .talent-btn.maxed { border-color: #4ade80; background: rgba(74,222,128,.1); }
+  .talent-btn:disabled { opacity: .55; cursor: default; }
+  .talent-btn small { font-size: 11px; color: #9fb0e8; }
+  .talent-btn .tb-icon { font-size: 18px; }
+  /* RPG: ACHIEVEMENTS */
+  .achieve-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .achieve-card {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px;
+    border: 2px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: #fff;
+  }
+  .achieve-card .ac-icon { font-size: 26px; }
+  .achieve-card .ac-name { font-weight: 800; font-size: 13px; }
+  .achieve-card .ac-desc { font-size: 11px; color: #9fb0e8; }
+  .achieve-card.got { border-color: #fbbf24; background: linear-gradient(160deg, rgba(251,191,36,.18), rgba(251,191,36,.05)); box-shadow: 0 0 12px rgba(251,191,36,.3); }
+  /* RPG: POTION-knap i bosskamp */
+  .potion-btn { background: linear-gradient(180deg, #ff7ad9, #d946ef) !important; box-shadow: 0 4px 0 #86198f, 0 8px 18px rgba(217,70,239,.35) !important; color: #fff !important; }
+  .potion-btn:disabled { filter: grayscale(.8); opacity: .6; }
   /* KLASSE-VALG (Diablo-stil) — skal ligne store klikbare helt-kort */
   .class-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
   .class-card {
@@ -706,6 +733,9 @@
     </div>
     <div class="boss-status" id="bossStatus"></div>
     <div class="boss-msg" id="bossMsg"></div>
+    <div class="flex-row" style="justify-content:center;gap:8px;margin-bottom:8px">
+      <button class="btn small potion-btn" id="potionBtn" onclick="usePotion()">🧪 Drik potion (<span id="potionCount">0</span>)</button>
+    </div>
     <div class="attack-bar" id="attackBar"></div>
     <div class="flex-row">
       <button class="btn ghost" onclick="showWorld(cur.world)">← Tilbage</button>
@@ -814,6 +844,11 @@
         <div class="ta" id="heroHint">Tryk på et slot for at skifte gear. Gear giver kraft!</div>
         <h3>👑 Mytiske skatte <span id="mythicCount" style="color:#ffd700"></span></h3>
         <div class="mythic-track" id="mythicTrack"></div>
+        <h3>⭐ Talent-træ <span id="talentPoints" style="color:#fbbf24"></span></h3>
+        <div class="talent-row" id="talentRow"></div>
+        <h3>🏆 Bedrifter <span id="achieveCount" style="color:#fbbf24"></span></h3>
+        <div class="ta" style="font-size:12px;color:#9fb0e8">Besejr drager, saml stjerner og find mytiske items for at låse bedrifter op!</div>
+        <button class="btn small" style="margin-top:6px" onclick="showAchievements()">Se alle bedrifter</button>
       </div>
     </div>
     <button class="btn ghost" style="margin-top:14px" onclick="showWorldMap()">← Tilbage til kortet</button>
@@ -826,6 +861,16 @@
     <h2>🎁 Samlekort</h2>
     <div class="worldmap" id="collectGrid" style="margin-top:14px"></div>
     <button class="btn ghost" style="margin-top:14px" onclick="showWorldMap()">← Tilbage</button>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS (bedrifter) -->
+<div class="screen" id="screen-achieve">
+  <div class="panel" style="max-width:620px">
+    <h2>🏆 Bedrifter</h2>
+    <div class="ta" id="achieveMeta" style="font-size:14px;color:#fbbf24;margin-bottom:6px"></div>
+    <div class="achieve-grid" id="achieveGrid" style="margin-top:10px"></div>
+    <button class="btn ghost" style="margin-top:14px" onclick="showHero()">← Tilbage</button>
   </div>
 </div>
 
@@ -1034,7 +1079,7 @@ const CLASSES = [
   { key: "kriger",   name: "Kriger",     icon: "⚔️", color: "#f87171", desc: "Mere liv i dragekampe", bonus: "hp" },
   { key: "troldmand",name: "Troldmand",  icon: "🧙", color: "#60a5fa", desc: "Starter med Ildkugle", bonus: "fire" },
   { key: "jæger",    name: "Jæger",      icon: "🏹", color: "#4ade80", desc: "Gear giver ekstra kraft", bonus: "power" },
-  { key: "paladin",  name: "Paladin",    icon: "🛡️", color: "#fbbf24", desc: "Kraft fra stjerner", bonus: "stars" }
+  { key: "paladin",  name: "Paladin",    icon: "🛡️", color: "#fbbf24", desc: "Kraft fra stjerner + dobbelt kritisk", bonus: "stars" }
 ];
 
 /* ============ XP & LEVELS ============ */
@@ -1048,7 +1093,116 @@ function heroPower() {
   for (const rk of Object.values(state.gear)) { const r = rarityOf(rk); if (r) p += r.power; }
   if (cls.bonus === "power") p += Object.keys(state.gear).length; // jæger: +1 kraft pr. gear-stykke
   if (cls.bonus === "stars") p += Math.floor(totalStars() / 6);   // paladin: kraft fra stjerner
+  p += (state.talents && state.talents.power || 0) * 2;           // talent: ⚔️ Kraft +2 pr. niveau
+  p += Math.floor(collectedCount() / 4);                          // kæledyr: hver 4. besejrede drage giver +1 kraft
   return p;
+}
+
+/* ============ RPG: TALENTER (level-up-system) ============ */
+// Hvert level giver 1 talent-point. Tre grene: ❤️ Liv · ⚔️ Kraft · 💥 Kritisk
+const TALENTS = [
+  { key: "hp",    icon: "❤️", name: "Liv",     desc: "+20 liv i dragekampe", max: 5 },
+  { key: "power", icon: "⚔️", name: "Kraft",   desc: "+2 kraft (mere skade)", max: 5 },
+  { key: "crit",  icon: "💥", name: "Kritisk", desc: "+5% chance for kritisk hit (×2 skade)", max: 5 }
+];
+function talentLevel(key) { return (state.talents && state.talents[key]) || 0; }
+function talentHpBonus() { return talentLevel("hp") * 20; }
+function critChance() {
+  let c = 0.10; // basis 10%
+  c += talentLevel("crit") * 0.05;
+  if (classOf().bonus === "crit" || classOf().bonus === "stars") c += 0.10; // paladin: +10% kritisk
+  return Math.min(0.50, c);
+}
+function spendTalent(key) {
+  const t = TALENTS.find(t => t.key === key);
+  if (!t || state.talentPoints <= 0 || talentLevel(key) >= t.max) return;
+  state.talents[key]++;
+  state.talentPoints--;
+  save();
+  renderHero();
+  sfxRight();
+  toast(t.icon + " Talent: " + t.name + " niveau " + talentLevel(key) + "!");
+}
+
+/* ============ RPG: POTIONS (healing i kamp) ============ */
+function usePotion() {
+  if (!bossState || bossState.over) return;
+  if ((state.potions || 0) <= 0) { toast("🧪 Ingen potions tilbage — vind missioner for at få flere!", 2500); return; }
+  if (bossState.playerHp >= bossState.playerMax) { toast("❤️ Du har allerede fuldt liv!", 2000); return; }
+  state.potions--;
+  save();
+  const heal = Math.round(bossState.playerMax * 0.5);
+  bossState.playerHp = Math.min(bossState.playerMax, bossState.playerHp + heal);
+  document.getElementById("bossStatus").textContent = "🧪 Du drikker en potion og får +" + heal + " liv!";
+  document.getElementById("potionBtn").disabled = state.potions <= 0;
+  document.getElementById("potionCount").textContent = state.potions;
+  fxDmg(centerOf("bossHeroSvg").x + 30, centerOf("bossHeroSvg").y - 30, "+" + heal, "#4ade80");
+  sfxRight();
+  renderBossHp();
+}
+
+/* ============ RPG: ACHIEVEMENTS (bedrifter) ============ */
+const ACHIEVEMENTS = [
+  { key: "first_dragon",  icon: "🐉", name: "Drage-dræber",     desc: "Besejr din første drage" },
+  { key: "five_dragons",  icon: "⚔️", name: "Drage-mester",     desc: "Besejr 5 drager" },
+  { key: "ten_dragons",   icon: "🛡️", name: "Drage-helt",       desc: "Besejr 10 drager" },
+  { key: "all_v1",        icon: "🚀", name: "Galakse-vinder",   desc: "Besejr alle 12 drager i Verden 1" },
+  { key: "all_v2",        icon: "🎓", name: "Akademi-mester",   desc: "Besejr alle 12 drager i Ord-akademiet" },
+  { key: "perfect_game",  icon: "🏆", name: "Fejlfri",          desc: "Gennemfør en mission uden fejl" },
+  { key: "level5",        icon: "🌟", name: "Stjerne-kriger",   desc: "Nå level 5" },
+  { key: "level10",       icon: "💫", name: "Ord-kejser",       desc: "Nå level 10" },
+  { key: "first_mythic",  icon: "👑", name: "Mytisk fund",      desc: "Få dit første mytiske item" },
+  { key: "first_secret",  icon: "🔮", name: "Hemmelig vogter",  desc: "Få dit første HEMMELIGE item" },
+  { key: "full_mythic",   icon: "👑", name: "Mytisk samler",    desc: "Saml alle 6 mytiske items" },
+  { key: "full_secret",   icon: "🔮", name: "Legende",          desc: "Saml alle 6 HEMMELIGE items" },
+  { key: "ten_stars",     icon: "⭐", name: "Stjerne-jæger",    desc: "Saml 10 stjerner" },
+  { key: "thirty_stars",  icon: "🌠", name: "Stjerne-helt",     desc: "Saml 30 stjerner" }
+];
+function unlockAchievement(key) {
+  if (!state.achievements) state.achievements = [];
+  if (state.achievements.includes(key)) return;
+  state.achievements.push(key);
+  save();
+  const a = ACHIEVEMENTS.find(x => x.key === key);
+  if (a) {
+    fxConfetti();
+    sfxWin();
+    setTimeout(() => toast("🏆 BEDRIFT LÅST OP: " + a.icon + " " + a.name + "!", 4000), 300);
+  }
+}
+function checkAchievements() {
+  const c = collectedCount();
+  const stars = totalStars();
+  if (c >= 1) unlockAchievement("first_dragon");
+  if (c >= 5) unlockAchievement("five_dragons");
+  if (c >= 10) unlockAchievement("ten_dragons");
+  if (c >= 12) unlockAchievement("all_v1");
+  if (c >= 24) unlockAchievement("all_v2");
+  if (stars >= 10) unlockAchievement("ten_stars");
+  if (stars >= 30) unlockAchievement("thirty_stars");
+  if (heroLevel() >= 5) unlockAchievement("level5");
+  if (heroLevel() >= 10) unlockAchievement("level10");
+  if (countMythicEquipped() >= 1 || state.bag.some(b => b.rarity === "mythic")) unlockAchievement("first_mythic");
+  if (countSecretEquipped() >= 1 || state.bag.some(b => b.rarity === "secret")) unlockAchievement("first_secret");
+  if (countMythicEquipped() >= 6 || state.bag.filter(b => b.rarity === "mythic").length >= 6) unlockAchievement("full_mythic");
+  if (countSecretEquipped() >= 6 || state.bag.filter(b => b.rarity === "secret").length >= 6) unlockAchievement("full_secret");
+}
+function achievementCount() { return (state.achievements || []).length; }
+function showAchievements() {
+  sfxClick();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-achieve").classList.add("active");
+  document.getElementById("hud").classList.remove("hidden");
+  const grid = document.getElementById("achieveGrid");
+  grid.innerHTML = "";
+  ACHIEVEMENTS.forEach(a => {
+    const got = (state.achievements || []).includes(a.key);
+    const d = document.createElement("div");
+    d.className = "achieve-card" + (got ? " got" : "");
+    d.innerHTML = `<div class="ac-icon">${got ? a.icon : "🔒"}</div><div class="ac-name">${a.name}</div><div class="ac-desc">${a.desc}</div>`;
+    grid.appendChild(d);
+  });
+  document.getElementById("achieveMeta").textContent = "🏆 " + achievementCount() + "/" + ACHIEVEMENTS.length + " bedrifter låst op";
 }
 
 /* ============ DRAGE-BOSSER (giver manden et formål) ============ */
@@ -1116,7 +1270,7 @@ function saveProfiles(p) { try { localStorage.setItem(PROFILES_KEY, JSON.stringi
 function activeProfile() { return profileStore().find(p => p.id === activeId()) || null; }
 function activeId() { return localStorage.getItem(ACTIVE_KEY) || ""; }
 function profileKey(id) { return "ordjaegeren_v1_" + id; }
-function defaultState() { return { worlds: {}, wrong: {}, gear: {}, bag: [], skin: 0, lootCount: 0, heroClass: "kriger", xp: 0, freeSpins: 3, stats: { words: {}, games: {}, days: {}, history: [] } }; } // worlds[i] = { hear:0-3, type:0-3, fill:0-3, done:[bool,bool,bool] }
+function defaultState() { return { worlds: {}, wrong: {}, gear: {}, bag: [], skin: 0, lootCount: 0, heroClass: "kriger", xp: 0, freeSpins: 3, potions: 2, talentPoints: 0, talents: { hp: 0, power: 0, crit: 0 }, achievements: [], stats: { words: {}, games: {}, days: {}, history: [] } }; } // worlds[i] = { hear:0-3, type:0-3, fill:0-3, done:[bool,bool,bool] }
 function loadState() {
   // Første kørsel: migrer eksisterende data (Robins) til en profil
   if (!profileStore().length) {
@@ -1153,6 +1307,14 @@ function loadState() {
   if (!state.stats.games) state.stats.games = {};
   if (!state.stats.days) state.stats.days = {};
   if (!state.stats.history) state.stats.history = [];
+  // RPG: potions, talenter, achievements (gamle saves)
+  if (state.potions === undefined) state.potions = 2;
+  if (state.talentPoints === undefined) state.talentPoints = 0;
+  if (!state.talents) state.talents = { hp: 0, power: 0, crit: 0 };
+  if (state.talents.hp === undefined) state.talents.hp = 0;
+  if (state.talents.power === undefined) state.talents.power = 0;
+  if (state.talents.crit === undefined) state.talents.crit = 0;
+  if (!state.achievements) state.achievements = [];
 }
 let state = defaultState();
 loadState();
@@ -1252,6 +1414,22 @@ function renderHero() {
     d.innerHTML = has ? m.attack.icon : "🔮";
     track.appendChild(d);
   });
+  // Talent-træ: vis point + 3 knapper
+  document.getElementById("talentPoints").textContent = "(" + (state.talentPoints || 0) + " point)";
+  const tRow = document.getElementById("talentRow");
+  tRow.innerHTML = "";
+  TALENTS.forEach(t => {
+    const lvl = talentLevel(t.key);
+    const maxed = lvl >= t.max;
+    const b = document.createElement("button");
+    b.className = "talent-btn" + (maxed ? " maxed" : "") + (state.talentPoints > 0 && !maxed ? " available" : "");
+    b.innerHTML = `<span class="tb-icon">${t.icon}</span><span class="tb-name">${t.name} <b>${lvl}/${t.max}</b></span><small>${t.desc}</small>`;
+    b.disabled = state.talentPoints <= 0 || maxed;
+    b.onclick = () => spendTalent(t.key);
+    tRow.appendChild(b);
+  });
+  // Bedrifter-tæller
+  document.getElementById("achieveCount").textContent = "(" + achievementCount() + "/" + ACHIEVEMENTS.length + ")";
   // Gear-slots (kompakt grid)
   const slotsEl = document.getElementById("gearSlots");
   slotsEl.innerHTML = "";
@@ -1813,13 +1991,16 @@ function startBoss(worldIdx) {
   const power = heroPower();
   const cls = classOf();
   const hpBonus = cls.bonus === "hp" ? 30 : 0; // kriger: ekstra liv
+  const tHp = talentHpBonus(); // talent: ❤️ Liv
   bossState = {
-    playerMax: 50 + power * 6 + hpBonus,
-    playerHp: 50 + power * 6 + hpBonus,
+    playerMax: 50 + power * 6 + hpBonus + tHp,
+    playerHp: 50 + power * 6 + hpBonus + tHp,
     dragonMax: dragon.power * 6,
     dragonHp: dragon.power * 6,
     over: false
   };
+  document.getElementById("potionCount").textContent = state.potions || 0;
+  document.getElementById("potionBtn").disabled = (state.potions || 0) <= 0;
   document.getElementById("bossHeroSvg").innerHTML = heroSvgMarkup();
   document.getElementById("bossHeroName").textContent = HERO_SKIN[Math.min(state.skin, HERO_SKIN.length - 1)];
   document.getElementById("bossHeroPower").textContent = "Kraft: " + power;
@@ -2130,16 +2311,20 @@ function bossAttack(attack) {
     statusEl.textContent = "🎲 Du rullede " + pRoll + " · Dragen rullede " + dRoll + (pWins ? " → Du vinder runden!" : " → Dragen vinder runden!");
     if (pWins) {
       // Spiller vinder: skade = angrebets styrke + terningeforskel
-      const dmg = att.mult * 2 + Math.max(0, Math.floor((pRoll - dRoll) / 2));
+      let dmg = att.mult * 2 + Math.max(0, Math.floor((pRoll - dRoll) / 2));
+      // KRITISK HIT: chance-baseret ×2 skade med flash!
+      const isCrit = Math.random() < critChance();
+      if (isCrit) dmg *= 2;
       bossState.dragonHp = Math.max(0, bossState.dragonHp - dmg);
       fxProjectile(from.x, from.y, to.x, to.y, att.icon);
       setTimeout(() => {
         fxBoom(to.x, to.y);
-        fxDmg(to.x + 30, to.y - 30, dmg, att.color);
+        fxDmg(to.x + 30, to.y - 30, (isCrit ? "💥 " : "") + dmg, isCrit ? "#ff4ecd" : att.color);
         shakeEl("bossDragonEmoji");
         sfxRight();
         renderBossHp();
-        statusEl.textContent = att.name + " rammer! -" + dmg;
+        statusEl.textContent = att.name + " rammer!" + (isCrit ? " 💥 KRITISK HIT! ×2!" : "") + " -" + dmg;
+        if (isCrit) fxConfetti();
         if (bossState.dragonHp <= 0) { bossWin(); return; }
       }, 520);
     } else {
@@ -2198,6 +2383,7 @@ function bossWin() {
     }
     document.getElementById("bossHint").textContent = inAcademy ? "Akademi-drager kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!" : "25% Mytisk · 25% Legendarisk · 50% Magisk";
     renderAttacks();
+    checkAchievements();
     showLootWheel(); // lykkehjul med loot-chancer
   }, 400);
 }
@@ -2518,14 +2704,26 @@ function finishGame() {
   const lvlNow = heroLevel();
   const xpLine = document.getElementById("resultXp");
   if (lvlNow > lvlBefore) {
-    xpLine.innerHTML = "🎉 <b>LEVEL UP!</b> Du er nu level " + lvlNow + " (+" + levelPower() + " kraft)!";
+    // Talent-point: hvert level giver 1 point til talent-træet
+    const ptsBefore = state.talentPoints || 0;
+    state.talentPoints = ptsBefore + (lvlNow - lvlBefore);
+    save();
+    xpLine.innerHTML = "🎉 <b>LEVEL UP!</b> Du er nu level " + lvlNow + " (+" + levelPower() + " kraft)! +" + (lvlNow - lvlBefore) + " talent-point ⭐";
     xpLine.style.color = "#fbbf24";
     fxConfetti();
   } else {
     const inLvl = (state.xp || 0) % XP_PER_LEVEL;
-    xpLine.innerHTML = "⭐ +" + xpGain + " XP · Level " + lvlNow + " (" + inLvl + "/" + XP_PER_LEVEL + ")";
+    xpLine.innerHTML = "⭐ +" + xpGain + " XP · Level " + lvlNow + " (" + inLvl + "/" + XP_PER_LEVEL + ")" + (state.talentPoints > 0 ? " · ⭐ " + state.talentPoints + " talent-point" : "");
     xpLine.style.color = "#9fb0e8";
   }
+  // Missioner kan give potions (30% chance)
+  if (Math.random() < 0.30) {
+    state.potions = (state.potions || 0) + 1;
+    save();
+    setTimeout(() => toast("🧪 Du fandt en potion! (" + state.potions + " i alt)"), 600);
+  }
+  if (cur.errors === 0) unlockAchievement("perfect_game"); // fejlfri mission
+  checkAchievements();
 
   const reward = document.getElementById("rewardCard");
   if (worldComplete) {
