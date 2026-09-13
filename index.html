@@ -271,6 +271,7 @@
   .mastery.weak { background: rgba(248,113,113,.2); color: #fca5a5; border: 1px solid rgba(248,113,113,.5); }
   .mastery.learning { background: rgba(251,191,36,.18); color: #fcd34d; border: 1px solid rgba(251,191,36,.45); }
   .mastery.strong { background: rgba(74,222,128,.2); color: #86efac; border: 1px solid rgba(74,222,128,.5); }
+  .improve { display: block; font-size: 11px; font-weight: 800; color: #86efac; margin-top: 3px; letter-spacing: .2px; }
   /* Adaptiv note (fx "flere ord fordi du er blevet god") */
   .adapt-note {
     font-size: 12.5px; font-weight: 800; color: #86efac; margin-top: 8px;
@@ -1413,6 +1414,7 @@ function loadState() {
   if (state.achievements === undefined) state.achievements = [];
   if (!state.seenPatterns) state.seenPatterns = [];
   if (!state.mastered) state.mastered = [];
+  if (!state.patternSnapshots) state.patternSnapshots = {};
 }
 let state = defaultState();
 loadState();
@@ -1658,13 +1660,18 @@ function renderStats() {
   const pats = patternStats();
   patEl.innerHTML = pats.length ? pats.map(p => {
     const m = patternMastery(p.key);
+    const imp = patternImprovement(p.key);
     const badge = `<span class="mastery ${m.level}">${MASTERY_LABEL[m.level]}</span>`;
+    const trend = (imp && imp.delta > 0.05)
+      ? `<span class="improve">📈 ${Math.round(imp.first*100)}% → ${Math.round(imp.last*100)}% fejl (${imp.pct > 0 ? "-" : ""}${Math.abs(imp.pct)}%)</span>`
+      : "";
     return `
     <button class="pattern-card" onclick="showLesson('${p.key}')">
       <span class="pc-emoji">${p.icon}</span>
       <span class="pc-body">
         <b>${p.name} ${badge}</b>
         <small>${p.wrong} fejl · ${p.practice.length} ord at øve på${m.tries >= 4 ? " · " + Math.round(m.rate * 100) + "% fejl" : ""}</small>
+        ${trend}
       </span>
       <span class="pc-go">Se lektion →</span>
     </button>`;
@@ -2706,6 +2713,7 @@ function startGame(worldIdx, game) {
   // ADAPTIV: antal ord tilpasses hvor godt det går (flere når det flyver, færre når det er tungt)
   const base = game === "hear" ? 8 : 6;
   cur.words = buildWordList(worldIdx, adaptiveWordCount(base));
+  cur.patternMisses = {}; // nulstil mønster-tæller for denne mission
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("hud").classList.remove("hidden");
   if (game === "hear") { document.getElementById("screen-hear").classList.add("active"); renderHear(); }
@@ -2738,6 +2746,15 @@ function markWrong(word) {
   const sw = statWord(word); sw.tries++; sw.wrong++;
   const sg = statGame(cur.game); sg.tries++; sg.wrong++;
   const sd = statDay(); sd.tries++; sd.wrong++;
+  // 🎓 MIDT-I-MISSION-NUDGE: fejler han 3 ord af SAMME mønster, tilbyder spillet lektionen straks
+  const pat = SPELL_PATTERNS.find(p => p.test(word));
+  if (pat) {
+    if (!cur.patternMisses) cur.patternMisses = {};
+    cur.patternMisses[pat.key] = (cur.patternMisses[pat.key] || 0) + 1;
+    if (cur.patternMisses[pat.key] === 3) {
+      setTimeout(() => toast("🎓 3 ord med " + pat.icon + " " + pat.name + "! Tryk på gul boks for at lære reglen", 5200), 1400);
+    }
+  }
   save();
 }
 function markRight(word) {
@@ -2937,6 +2954,30 @@ function patternMastery(key) {
   return { level, rate, tries, wrong };
 }
 const MASTERY_LABEL = { weak: "🟥 Svag", learning: "🟨 Øver", strong: "🟩 Stærk" };
+/* ============ FREMGANGS-TRACKING: spillet husker hvor dårlig han VAR ============
+   Så vi kan vise "du er gået fra 70% fejl til 12%" — det er beviset på selvforbedring. */
+function updatePatternSnapshots() {
+  if (!state.patternSnapshots) state.patternSnapshots = {};
+  SPELL_PATTERNS.forEach(p => {
+    const m = patternMastery(p.key);
+    if (m.tries < 4) return; // ikke nok data
+    const snap = state.patternSnapshots[p.key];
+    if (!snap) {
+      state.patternSnapshots[p.key] = { first: m.rate, best: m.rate, last: m.rate, at: Date.now() };
+    } else {
+      snap.last = m.rate;
+      if (m.rate < snap.best) snap.best = m.rate;
+    }
+  });
+}
+// Hvor meget bedre er han blevet? (positiv = fremgang i procentpoint)
+function patternImprovement(key) {
+  const snap = (state.patternSnapshots || {})[key];
+  if (!snap) return null;
+  const delta = snap.first - snap.last;
+  return { delta, first: snap.first, last: snap.last, best: snap.best,
+           pct: snap.first > 0 ? Math.round((delta / snap.first) * 100) : 0 };
+}
 // Fejr når et mønster går fra svag/øver → stærk (det er spillets "jeg har lært det!")
 function checkPatternMastery() {
   if (!state.mastered) state.mastered = [];
@@ -3003,10 +3044,20 @@ function showLesson(key) {
 }
 // Trænings-mission: Fang ordet med netop dette mønsters ord
 function startPatternDrill(key) {
-  const words = patternWords(key).slice(0, 6);
+  // ADAPTIV DRILL: jo svagere mønsteret er, jo flere ord får han at øve på (6 → 8 → 10)
+  const m = patternMastery(key);
+  const n = m.rate >= 0.5 ? 10 : (m.rate >= 0.25 ? 8 : 6);
+  let words = patternWords(key).slice(0, n);
+  // Har mønstret færre ord end den adaptive længde, fyld op med andre svage ord
+  // (så træningen bliver lang nok uden at barnet når at glemme mønstret)
+  if (words.length < n) {
+    const extra = weakestWords(n * 3).filter(w => !words.includes(w));
+    words = words.concat(extra.slice(0, n - words.length));
+  }
+  // Er der ikke nok ord i alt, brug hvad der findes (min. 2)
   if (words.length < 2) { toast("Ikke nok ord at øve på endnu", 2000); return; }
   sfxClick();
-  cur = { world: cur.world, game: "type", words: shuffle(words), idx: 0, errors: 0, answered: false, wrongWords: [], drill: key };
+  cur = { world: cur.world, game: "type", words: shuffle(words), idx: 0, errors: 0, answered: false, wrongWords: [], drill: key, patternMisses: {} };
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("screen-type").classList.add("active");
   document.getElementById("hud").classList.remove("hidden");
@@ -3083,6 +3134,7 @@ function finishGame() {
   if (cur.errors === 0) unlockAchievement("perfect_game"); // fejlfri mission
   checkAchievements();
   checkPatternMastery(); // 🌟 fejr hvis et mønster er blevet mestret
+  updatePatternSnapshots(); // 📈 husk niveauet så vi kan vise fremgang senere
 
   // 📚 LÆRINGS-OPSUMMERING: hvad gik galt i denne mission — og hvad kan han lære af det?
   const learnEl = document.getElementById("resultLearn");
