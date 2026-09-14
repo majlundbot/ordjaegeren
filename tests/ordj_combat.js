@@ -178,14 +178,33 @@ step('forsvar halverer det opladede angreb (40%)', async () => {
   check('advarslen skjules straks', els['chargeWarn'].classList.contains('hidden'));
   await wait(750);
 });
-step('at angribe i stedet for at forsvare koster fuld skade', async () => {
+step('at angribe i stedet for at forsvare koster mere end at blokere', async () => {
+  // DETERMINISTISK: vi sammenligner de to valg direkte i stedet for at gætte på terningen.
+  // (En tidligere version antog at dragen også ramte i runden — men vinder spilleren runden,
+  //  lander KUN det opladede angreb, og testen fejlede tilfældigt.)
+  const cd = chargedDamage();
+
+  // 1) Blokeret
   reset(); cur.world = 0; startBoss(0);
   bossState.charge = { name: 'Isstorm', color: '#38bdf8' };
-  const hp0 = bossState.playerHp;
+  const hpB = bossState.playerHp;
+  bossDefend();
+  const blocked = hpB - bossState.playerHp;
+  check('blokering tager 40 % af det opladede angreb', blocked === Math.max(1, Math.round(cd * 0.4)),
+    blocked + ' vs ' + Math.max(1, Math.round(cd * 0.4)));
+  await wait(800);
+
+  // 2) Ubeskyttet — uanset udfaldet skal MINDST det fulde opladede angreb ramme
+  reset(); cur.world = 0; startBoss(0);
+  bossState.charge = { name: 'Isstorm', color: '#38bdf8' };
+  const hpU = bossState.playerHp;
   bossAttack(ATTACKS[0]);
-  await wait(2200);
-  const taken = hp0 - bossState.playerHp;
-  check('ubeskyttet opladning gør mere skade end forsvar', taken > 8, 'tabt liv i alt=' + taken);
+  await wait(2400);
+  const unblocked = hpU - bossState.playerHp;
+  check('ubeskyttet rammes af MINDST det fulde opladede angreb', unblocked >= cd,
+    unblocked + ' vs ' + cd);
+  check('ubeskyttet koster mere end at blokere', unblocked > blocked,
+    unblocked + ' vs ' + blocked);
   // (opladningen er brugt — der KAN være rullet en ny, så vi tjekker ikke null her)
   check('runden er afsluttet efter angrebet', bossState.round >= 2, bossState.round);
 });
