@@ -2,7 +2,7 @@
 const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 const makeEl = (id) => {
-  const el = { id, style: { setProperty(){}, display:'' }, classList: { add(){}, remove(){}, contains(){return false} }, textContent:'', innerHTML:'', value:'', children: [], appendChild(c){ this.children.push(c); return c; } };
+  const el = { id, style: { setProperty(){}, display:'' }, classList: { add(){}, remove(){}, toggle(){}, contains(){return false} }, textContent:'', innerHTML:'', value:'', children: [], appendChild(c){ this.children.push(c); return c; } };
   el.setAttribute = () => {};
   el.animate = () => ({});
   el.addEventListener = () => {};

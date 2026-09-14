@@ -23,7 +23,7 @@ const makeEl = (id) => {
   return el;
 };
 function makeBtn() {
-  const b = { textContent:'', style: { setProperty(){} }, classList: { add(){}, remove(){} } };
+  const b = { textContent:'', style: { setProperty(){} }, classList: { add(){}, remove(){}, toggle(){}, contains(){return false} } };
   return b;
 }
 const els = {};

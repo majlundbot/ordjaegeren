@@ -6,7 +6,7 @@ const makeEl = (id) => {
   el._classes = new Set();
   Object.defineProperty(el, 'className', { get(){ return [...el._classes].join(' '); }, set(v){ el._classes = new Set(String(v).split(' ').filter(Boolean)); } });
   Object.defineProperty(el, 'innerHTML', { get(){ return el._html || ''; }, set(v){ el._html = String(v); el.children = []; } });
-  el.classList = { add(...cs){ cs.forEach(c => el._classes.add(c)); }, remove(...cs){ cs.forEach(c => el._classes.delete(c)); }, contains(c){ return el._classes.has(c); } };
+  el.classList = { add(...cs){ cs.forEach(c => el._classes.add(c)); }, remove(...cs){ cs.forEach(c => el._classes.delete(c)); }, toggle(c, f){ const has = el._classes.has(c); const on = (f === undefined) ? !has : !!f; if (on) el._classes.add(c); else el._classes.delete(c); return on; }, contains(c){ return el._classes.has(c); } };
   el.setAttribute = () => {};
   el.animate = () => ({});
   el.addEventListener = () => {};
@@ -17,7 +17,7 @@ const makeEl = (id) => {
   el._btn = makeBtn();
   return el;
 };
-function makeBtn() { const b = { textContent:'', style: { setProperty(){} }, classList: { add(){}, remove(){} }, disabled: false }; return b; }
+function makeBtn() { const b = { textContent:'', style: { setProperty(){} }, classList: { add(){}, remove(){}, toggle(){}, contains(){return false} }, disabled: false }; return b; }
 const els = {};
 const screens = ['screen-start','screen-map','screen-world','screen-hear','screen-type','screen-fill','screen-result','screen-collect','screen-hero','screen-boss','screen-stats','screen-class','screen-profiles'];
 screens.forEach(id => els[id] = makeEl(id));

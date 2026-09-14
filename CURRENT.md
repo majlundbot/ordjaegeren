@@ -10,8 +10,15 @@
 
 ## Kør tests (altid før deploy)
 ```bash
-bash tests/run-all.sh      # 296 tests i 18 pakker — alle skal være grønne
+bash tests/run-all.sh      # alle pakker — alle skal være grønne
 ```
+Nye pakker for kampen:
+- `ordj_combat.js` — 70 tests: elementer, energimåler, combo, opladning, forsvar, signaturangreb, busy-lås, hel integrationskamp
+- `ordj_stress.js` — hostile timing (udskudte timere efter tilstand er ryddet) + alle 24 drager spillet til ende + alle 5 elementer
+
+**Lærepenge:** test altid med timere der kan fyre efter tilstanden er ændret. En udskudt
+banner læste `b.charge.name` efter opladningen var ryddet → crash. Fæng værdier NU,
+brug dem i callbacken.
 
 ## Spillets indhold
 - **24 verdener × 10 ord = 240 ord**, med lyd (edge-tts `da-DK-JeppeNeural`)
@@ -36,6 +43,33 @@ bash tests/run-all.sh      # 296 tests i 18 pakker — alle skal være grønne
 7. **Midt-i-mission-nudge** — 3 fejl af samme mønster → tilbyd lektionen straks
 8. **Adaptiv træningslængde** — drill giver 6/8/10 ord efter svaghed
 9. **Lærings-opsummering** på resultat-skærmen
+
+## Dragekampen (belønningen børnene glæder sig til)
+Fire systemer der gør kampen til et payoff i stedet for en formalitet:
+
+1. **Energimåler + signaturangreb.** Energi fyldes op hver runde (sejr +34, tab +20,
+   forsvar +50). Ved 100 % låses klassens **ultimative** op — knappen gløder gult:
+   - ⚔️ Kriger: **RASERI** — 3 slag i træk
+   - ☄️ Troldmand: **METEORSTORM** — ét kæmpe slag (52 % af dragens liv)
+   - 🏹 Jæger: **PRÆCISIONSSKUD** — ét hårdt slag
+   - ✨ Paladin: **HELLIGT SLAG** — skade + heler 45 % af eget liv
+2. **Drage-opladning + forsvar.** Dragen lader op til et navngivet angreb
+   ("⚠️ Ildpust — forsvare dig!"). Angriber du alligevel, rammer det ubeskyttet;
+   forsvarer du dig, tager du kun 40 % skade og får +50 energi.
+   Dragen lader oftere op når den er presset (46 % mod 30 %).
+3. **Combo-multiplikator.** Vundne runder i træk giver op til ×1,9 skade.
+4. **Effekter.** Rystelser (lille/stor), hit-stop ved kritisk hit, farve-flash,
+   store banner-tekster, ekspanderende ringe, slash-striber, gnister i element-farve,
+   dragen blinker hvid når den rammes, flyvende skadetal, nye lyde.
+
+**Elementer:** hver drage har et element (🔥 ild, ❄️ is, ⚡ lyn, 🧪 gift, 🌑 skygge)
+med egne angrebsnavne og farver — cykler over de 24 verdener.
+
+**Balance-regel (vigtigt):** `chargedDamage()` capper det opladede angreb til **30 %
+af spillerens max-liv**, så et barn aldrig slås ud fra fuld liv uden at kunne gøre
+noget. Testen tjekker dette for alle 24 drager.
+
+**Kampen varer nu ~5-7 runder** (før ~30) — hurtigere og mere intens.
 
 ## Kode-struktur (index.html — én selvstændig fil)
 - `WORDS` (240 ord→sætninger), `WORLDS` (24×10), `BOSSES` (24 drager), `MAP_POS` (24)

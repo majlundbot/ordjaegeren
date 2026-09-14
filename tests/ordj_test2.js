@@ -3,7 +3,7 @@ const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 
 global.fakeCanvas = { getContext: () => ({ clearRect(){}, beginPath(){}, arc(){}, fill(){}, fillRect(){}, fillStyle:'', createRadialGradient(){ return { addColorStop(){} }; }, ellipse(){}, stroke(){}, strokeStyle:'', lineWidth:0 }), width:0, height:0 };
-const stubEl = () => ({ classList:{add(){},remove(){}}, textContent:'', innerHTML:'', appendChild(){}, addEventListener(){}, focus(){}, style:{}, value:'' });
+const stubEl = () => ({ classList:{add(){},remove(){},toggle(){},contains:()=>false}, textContent:'', innerHTML:'', appendChild(){}, addEventListener(){}, focus(){}, style:{}, value:'' });
 global.document = { getElementById: () => stubEl(), querySelectorAll: () => [], querySelector: () => stubEl() };
 global.window = { AudioContext: null, webkitAudioContext: null };
 global.localStorage = { getItem: () => null, setItem: () => {} };

@@ -4,7 +4,7 @@ const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 
 global.fakeCanvas = { getContext: () => ({ clearRect(){}, beginPath(){}, arc(){}, fill(){}, fillRect(){}, fillStyle:'', createRadialGradient(){ return { addColorStop(){} }; }, ellipse(){}, stroke(){}, strokeStyle:'', lineWidth:0, save(){}, restore(){}, translate(){}, rotate(){}, drawImage(){}, measureText: () => ({width: 10}) }), width:0, height:0 };
 const els = {};
-const stubEl = id => els[id] || (els[id] = { classList:{add(){},remove(){},contains:()=>false}, textContent:'', innerHTML:'', appendChild(){}, addEventListener(){}, focus(){}, style:{}, value:'', disabled:false, getAnimations: () => [], animate(){}, querySelectorAll: () => [], offsetWidth:0, setProperty(){}, remove(){}, title:'' });
+const stubEl = id => els[id] || (els[id] = { classList:{add(){},remove(){},toggle(){},contains:()=>false}, textContent:'', innerHTML:'', appendChild(){}, addEventListener(){}, focus(){}, style:{}, value:'', disabled:false, getAnimations: () => [], animate(){}, querySelectorAll: () => [], offsetWidth:0, setProperty(){}, remove(){}, title:'' });
 global.document = { getElementById: id => stubEl(id), querySelectorAll: () => [], querySelector: () => stubEl(), createElement: () => stubEl(), body: { appendChild(){} } };
 global.window = { AudioContext: null, webkitAudioContext: null };
 global.localStorage = { getItem: () => null, setItem: () => {} };

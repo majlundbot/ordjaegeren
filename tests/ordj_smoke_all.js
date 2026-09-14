@@ -2,7 +2,7 @@
 const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 global.fakeCanvas = { getContext: () => ({ clearRect(){}, fillRect(){}, beginPath(){}, arc(){}, ellipse(){}, fill(){}, stroke(){}, save(){}, restore(){}, translate(){}, rotate(){}, drawImage(){}, createRadialGradient(){ return { addColorStop(){} }; }, measureText: () => ({width:10}) }), width:0, height:0 };
-const mk = () => ({ classList:{add(){},remove(){},contains:()=>false}, children:[], appendChild(c){this.children.push(c);return c;}, addEventListener(){}, style:{ setProperty(){}, removeProperty(){}, getPropertyValue(){ return ''; } }, value:'', textContent:'', remove(){}, focus(){}, blur(){}, setSelectionRange(){}, querySelectorAll:()=>[], scrollTo(){}, getAnimations:()=>[], animate(){}, offsetWidth:0, set innerHTML(v){this._h=v;}, get innerHTML(){return this._h||'';} });
+const mk = () => ({ classList:{add(){},remove(){},toggle(){},contains:()=>false}, children:[], appendChild(c){this.children.push(c);return c;}, addEventListener(){}, style:{ setProperty(){}, removeProperty(){}, getPropertyValue(){ return ''; } }, value:'', textContent:'', remove(){}, focus(){}, blur(){}, setSelectionRange(){}, querySelectorAll:()=>[], scrollTo(){}, getAnimations:()=>[], animate(){}, offsetWidth:0, set innerHTML(v){this._h=v;}, get innerHTML(){return this._h||'';} });
 const els = {};
 global.document = { createElement: mk, getElementById: (id) => els[id] || (els[id] = mk()), querySelectorAll: () => [], querySelector: () => null };
 global.window = {}; const st = {};

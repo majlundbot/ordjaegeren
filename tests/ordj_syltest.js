@@ -18,7 +18,7 @@ const makeEl = (id) => {
   return el;
 };
 function makeBtn() {
-  const b = { textContent:'', style: { setProperty(){} }, classList: { add(){}, remove(){} }, disabled: false };
+  const b = { textContent:'', style: { setProperty(){} }, classList: { add(){}, remove(){}, toggle(){}, contains(){return false} }, disabled: false };
   return b;
 }
 const els = {};

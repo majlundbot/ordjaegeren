@@ -6,7 +6,7 @@ function makeEl(id) {
   const el = {
     id, _text: '', _html: '', _class: [], children: [], _value: '',
     style: { setProperty() {} },
-    classList: { add(c){ if(!el._class.includes(c)) el._class.push(c); }, remove(c){ el._class = el._class.filter(x=>x!==c); }, contains(c){ return el._class.includes(c); } },
+    classList: { add(c){ if(!el._class.includes(c)) el._class.push(c); }, remove(c){ el._class = el._class.filter(x=>x!==c); }, toggle(c,f){ const has=el._class.includes(c); const on = (f===undefined)? !has : !!f; if(on && !has) el._class.push(c); if(!on && has) el._class = el._class.filter(x=>x!==c); return on; }, contains(c){ return el._class.includes(c); } },
     get className() { return el._class.join(' '); }, set className(v) { el._class = v.split(' ').filter(Boolean); },
     get textContent() { return el._text; }, set textContent(v) { el._text = String(v); },
     get innerHTML() { return el._html; }, set innerHTML(v) { el._html = String(v); el.children = []; },
