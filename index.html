@@ -1872,27 +1872,59 @@ function refreshVoiceFlag() { hasDanishVoice = !!pickVoice(); }
 speechSynthesis.onvoiceschanged = refreshVoiceFlag;
 refreshVoiceFlag();
 
-/* ============ MP3-STEMME (edge-tts, Jeppe) med Web Speech som fallback ============ */
-function playWordAudio(word, onend) {
-  const src = "audio/words/" + encodeURIComponent(word) + ".mp3";
+/* ============ MP3-STEMME (edge-tts, Jeppe) med Web Speech som fallback ============
+   LYD: én afspilning ad gangen ============
+   VIGTIGT: uden oprydning kan lyden fra det FORRIGE spørgsmål blande sig med det nye.
+   Kæden "ord → sætning" forsætter nemlig fra det gamle ord, når dens lyd slutter — så
+   barnet kan høre ordet fra spørgsmål N og sætningen fra spørgsmål N-1.
+   audioGen ugyldiggør alle ventende kæder, så snart noget nyt afspilles. */
+let currentAudio = null;
+let audioGen = 0;
+
+// Fælles oprydning: stands lyden, ugyldiggør ventende kæder, fjern "spiller nu"-animationen
+function _clearPlayback() {
+  audioGen++;
+  if (currentAudio) {
+    try { currentAudio.pause(); currentAudio.currentTime = 0; } catch (e) {}
+    currentAudio = null;
+  }
+  try { if (window.speechSynthesis && speechSynthesis.cancel) speechSynthesis.cancel(); } catch (e) {}
+  // En afbrudt kæde fjerner ikke selv klassen, så knappen ville pulse for evigt
+  try { document.querySelectorAll(".speaking").forEach(el => el.classList.remove("speaking")); } catch (e) {}
+}
+
+function stopAudio() { _clearPlayback(); }
+
+// Afspiller én fil. stopFirst=false bruges når vi selv lige har ryddet op (kæden)
+function _playClip(src, fallbackText, onend, stopFirst) {
+  if (stopFirst) stopAudio();
+  const myGen = audioGen;
   const a = new Audio(src);
-  a.onerror = () => { // MP3 mangler (f.eks. åbnet fra Drive uden lydmappen) → brug tale-syntese
+  currentAudio = a;
+  const finish = (useFallback) => {
+    if (currentAudio === a) currentAudio = null;
     if (onend) onend();
-    speak(word);
+    if (useFallback && fallbackText) speak(fallbackText);
   };
-  a.onended = () => { if (onend) onend(); };
-  a.play().catch(() => { if (onend) onend(); speak(word); });
+  a.onerror = () => finish(true);
+  a.onended = () => { if (myGen === audioGen) finish(false); };
+  a.play().catch(() => finish(true));
+}
+
+function playWordAudio(word, onend) {
+  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3", word, onend, true);
 }
 function playSentenceAudio(word, onend) {
-  const src = "audio/sentences/" + encodeURIComponent(word) + ".mp3";
-  const a = new Audio(src);
-  a.onerror = () => { if (onend) onend(); speak(WORDS[word]); };
-  a.onended = () => { if (onend) onend(); };
-  a.play().catch(() => { if (onend) onend(); speak(WORDS[word]); });
+  _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, true);
 }
-// "Fang ordet": sig ordet alene, derefter i en sætning — lettere at høre
+// "Fang ordet" / "Hør & Slå": ordet alene, derefter sætningen — men kun hvis intet nyt er startet
 function playWordAndSentence(word, onend) {
-  playWordAudio(word, () => playSentenceAudio(word, onend));
+  _clearPlayback();                      // stands alt der kører — og ugyldiggør den forrige kæde
+  const myGen = audioGen;                // denne kæde ejer lyden nu
+  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3", word, () => {
+    if (myGen !== audioGen) return;      // et nyt spørgsmål har overtaget — afbryd kæden
+    _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, false);
+  }, false);
 }
 
 /* ============ AUDIO FX ============ */
@@ -2006,6 +2038,7 @@ function flashHit(id, color) {
 
 /* ============ NAVIGATION ============ */
 function goHome() {
+  stopAudio();
   sfxClick();
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("screen-start").classList.add("active");
@@ -3205,6 +3238,7 @@ function distractors(word, n) {
 }
 
 function startGame(worldIdx, game) {
+  stopAudio();
   sfxClick();
   cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.wrongWords = []; cur.drill = null;
   // ADAPTIV: antal ord tilpasses hvor godt det går (flere når det flyver, færre når det er tungt)
