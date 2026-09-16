@@ -2193,18 +2193,18 @@ function _playClip(src, fallbackText, onend, stopFirst) {
 }
 
 function playWordAudio(word, onend) {
-  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, word, onend, true);
+  _playClip("audio/v2/words/" + encodeURIComponent(word) + ".mp3", word, onend, true);
 }
 function playSentenceAudio(word, onend) {
-  _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, WORDS[word], onend, true);
+  _playClip("audio/v2/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, true);
 }
 // "Fang ordet" / "Hør & Slå": ordet alene, derefter sætningen — men kun hvis intet nyt er startet
 function playWordAndSentence(word, onend) {
   _clearPlayback();                      // stands alt der kører — og ugyldiggør den forrige kæde
   const myGen = audioGen;                // denne kæde ejer lyden nu
-  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, word, () => {
+  _playClip("audio/v2/words/" + encodeURIComponent(word) + ".mp3", word, () => {
     if (myGen !== audioGen) return;      // et nyt spørgsmål har overtaget — afbryd kæden
-    _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, WORDS[word], onend, false);
+    _playClip("audio/v2/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, false);
   }, false);
 }
 
