@@ -329,18 +329,39 @@
   .game-btn.done .g-meta { color: var(--green); }
 
   .speak-btn {
-    width: 96px; height: 96px; border-radius: 50%; border: none; cursor: pointer; margin: 16px auto;
+    width: 116px; height: 116px; border-radius: 50%; border: none; cursor: pointer; margin: 18px auto 0;
     background: radial-gradient(circle at 35% 30%, #8fd0ff, var(--blue));
-    box-shadow: 0 8px 0 #1e6ab3, 0 16px 32px rgba(0,0,0,.4); font-size: 40px;
+    box-shadow: 0 8px 0 #1e6ab3, 0 16px 32px rgba(0,0,0,.4); font-size: 48px;
     display: flex; align-items: center; justify-content: center;
     transition: transform .08s, box-shadow .08s;
   }
   .speak-btn:active { transform: translateY(5px); box-shadow: 0 3px 0 #1e6ab3; }
+  .speak-hint { font-size: 13px; font-weight: 900; letter-spacing: 1.8px; color: #9ab;
+    margin: 10px auto 14px; line-height: 1; }   /* luft under kuglen — den maa ikke klemme */
+  /* Sikkerhedsnet: alt der er en blok med bredde inde i et panel skal vaere centreret.
+     (text-align:center paa .panel rammer ikke blok-elementer med egen bredde.) */
+  .panel > input, .panel > .choices, .panel > .round-progress, .panel > .fail-hint,
+  .panel > .hero-wrap, .panel > .flex-row { margin-left: auto; margin-right: auto; }
+  /* Fremgang i runden: barnet skal kunne SE hvor langt det er — og at der er en ende */
+  .round-progress { width: 100%; max-width: 460px; margin: 6px auto 16px; }
+  .round-progress .rp-txt { margin-bottom: 7px; }
+  .round-progress .rp-txt { font-size: 13px; font-weight: 900; letter-spacing: .8px; color: #9ab; }
+  .ta { margin-top: 18px; }
+  .round-bar { height: 11px; border-radius: 99px; background: rgba(255,255,255,.13);
+    overflow: hidden; margin-top: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,.4); }
+  .round-fill { height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, #34d399, #22d3ee); transition: width .35s ease; }
+  .hud-btn.muted { opacity: .45; }
+  /* HUD: lige luft mellem de tre ting, og ingen der klistrer til kanten */
+  #hud { justify-content: space-between; align-items: center; gap: 10px; }
+  #hud .progress { flex: 1 1 auto; text-align: center; }
   .speak-btn.speaking { animation: pulse .5s infinite alternate; }
   @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.08); } }
 
-  .big-word { font-size: clamp(30px, 8vw, 48px); font-weight: 900; letter-spacing: 2px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
-  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 460px; margin-top: 18px; }
+  .big-word { font-size: clamp(30px, 8vw, 48px); font-weight: 900; letter-spacing: 2px; min-height: 56px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 0; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 460px;
+    margin: 18px auto 0; }   /* margin auto: text-align centrerer IKKE et blok-element */
   .choice {
     font-family: inherit; font-weight: 800; font-size: clamp(18px, 4.5vw, 24px); color: #fff;
     background: rgba(255,255,255,.09); border: 2px solid rgba(255,255,255,.2);
@@ -359,6 +380,7 @@
     font-family: inherit; font-weight: 800; font-size: clamp(26px, 7vw, 40px); text-align: center; color: #fff;
     background: rgba(255,255,255,.08); border: 3px solid rgba(255,255,255,.25); border-radius: 14px;
     padding: 12px; width: 100%; max-width: 300px; outline: none; letter-spacing: 2px;
+    margin-left: auto; margin-right: auto;   /* ellers staar skrivefeltet til venstre */
   }
   .input-word:focus { border-color: var(--blue); }
   .input-word.correct { border-color: var(--green); }
@@ -397,7 +419,8 @@
   .flex-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
   /* ===== HELTE-SKÆRM (Diablo-inspireret gear) ===== */
-  .hero-wrap { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: flex-start; margin-top: 12px; width: 100%; max-width: 680px; }
+  .hero-wrap { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: flex-start;
+    margin: 12px auto 0; width: 100%; max-width: 680px; }
   .hero-fig { flex: 0 0 auto; text-align: center; }
   .hero-fig svg { width: 120px; height: 165px; filter: drop-shadow(0 0 18px rgba(255,210,63,.25)); }
   .hero-fig .hero-name { font-weight: 900; font-size: 17px; margin-top: 4px; color: var(--accent); }
@@ -892,6 +915,7 @@
 <div class="hud hidden" id="hud">
   <button class="hud-btn" onclick="goHome()">🏠 Hjem</button>
   <div class="progress" id="hudProgress"></div>
+  <button class="hud-btn" id="muteBtn" onclick="toggleMute()" title="Slå lyd til/fra">🔊</button>
   <button class="hud-btn" onclick="showHero()">⚔️ Helt</button>
 </div>
 
@@ -1036,8 +1060,10 @@
 <div class="screen" id="screen-hear">
   <div class="panel" style="max-width:620px">
     <h2>👂 Hør & Slå</h2>
+    <div class="round-progress" id="rp-hear"></div>
     <div class="big-word" id="hearWord"></div>
     <button class="speak-btn" id="hearSpeak" onclick="speakNow()">🔊</button>
+    <div class="speak-hint">HØR IGEN</div>
     <div class="choices" id="hearChoices"></div>
     <div class="ta" id="hearStatus"></div>
   </div>
@@ -1046,6 +1072,7 @@
 <!-- GAME: TYPE IT -->
 <div class="screen" id="screen-type">
   <div class="panel" style="max-width:620px">
+    <div class="round-progress" id="rp-type"></div>
     <h2>⌨️ Fang ordet</h2>
     <div class="sentence" id="typeHint">Tryk på højttaleren og skriv ordet</div>
     <button class="speak-btn" onclick="speakNow()">🔊</button>
@@ -1058,6 +1085,7 @@
 <!-- GAME: SENTENCE -->
 <div class="screen" id="screen-fill">
   <div class="panel" style="max-width:620px">
+    <div class="round-progress" id="rp-fill"></div>
     <h2>🧩 Sætnings-gåden</h2>
     <div class="sentence" id="fillSentence"></div>
     <button class="speak-btn" id="fillSpeak" onclick="speakSentence()">🔊</button>
@@ -2018,6 +2046,7 @@ function pickVoice() {
   return vs[0] || null;
 }
 function speak(text, onend) {
+  if (muted) { if (onend) setTimeout(onend, 300); return; }
   try {
     const v = pickVoice();
     if (!v) { if (onend) setTimeout(onend, 700); return; }
@@ -2043,6 +2072,24 @@ refreshVoiceFlag();
 let currentAudio = null;
 let audioGen = 0;
 
+/* ============ MUTE ============
+   Barnet (eller en foraelder) skal kunne slaa lyden fra uden at gaa ud af spillet.
+   Valget huskes, saa det ikke skal gores igen hver gang. */
+let muted = (function () {
+  try { return localStorage.getItem("ordj_muted") === "1"; } catch (e) { return false; }
+})();
+function toggleMute() {
+  muted = !muted;
+  try { localStorage.setItem("ordj_muted", muted ? "1" : "0"); } catch (e) {}
+  if (muted) _clearPlayback();          // stop det der spiller lige nu
+  const mb = document.getElementById("muteBtn");
+  if (mb) {
+    mb.textContent = muted ? "🔇" : "🔊";
+    // Defensivt: ældre browsere OG test-harnesses har ikke altid classList.toggle
+    if (mb.classList && typeof mb.classList.toggle === "function") mb.classList.toggle("muted", muted);
+  }
+}
+
 /* LYDFILERNES VERSION.
    iPad'en (og Safari) cacher MP3-filer haardt. Uden et versions-stempel paa
    filstien kan man rette lyden, laegge den ud — og stadig hoere den GAMLE fil,
@@ -2066,6 +2113,8 @@ function stopAudio() { _clearPlayback(); }
 // Afspiller én fil. stopFirst=false bruges når vi selv lige har ryddet op (kæden)
 function _playClip(src, fallbackText, onend, stopFirst) {
   if (stopFirst) stopAudio();
+  // Slaaet fra: spring lyden over, men lad SPILLET koere videre — ellers gik spillet i staa
+  if (muted) { if (onend) onend(); return; }
   const myGen = audioGen;
   const a = new Audio(src);
   currentAudio = a;
@@ -2113,6 +2162,7 @@ function playWordAndSentence(word, onend) {
 /* ============ AUDIO FX ============ */
 let actx = null;
 function beep(freq, dur, type, vol) {
+  if (muted) return;                    // alle effekt-lyde gaar gennem beep
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
     const o = actx.createOscillator(), g = actx.createGain();
@@ -3548,8 +3598,26 @@ function startGame(worldIdx, game) {
 }
 
 function updateHud() {
+  if (!cur || !cur.words) return;
+  const ix = cur.idx, tot = cur.words.length;
   document.getElementById("hudProgress").innerHTML =
-    `<b>${cur.idx + 1}</b> / ${cur.words.length} · Verden ${cur.world + 1}`;
+    `<b>${ix + 1}</b> / ${tot} · Verden ${cur.world + 1}`;
+  // Fremgangsbaren i selve spil-panelet: "Ord 3 af 10" + hvor langt man er.
+  // Barnet skal kunne se at der er en ende — ellers føles runden uden slutning.
+  const pct = tot ? Math.round((ix / tot) * 100) : 0;
+  ["rp-hear", "rp-type", "rp-fill"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = `<div class="rp-txt">Ord ${Math.min(ix + 1, tot)} af ${tot}</div>` +
+      `<div class="round-bar"><div class="round-fill" style="width:${pct}%"></div></div>`;
+  });
+  // Tale-knappen skal vise om lyden er slaaet fra
+  const mb = document.getElementById("muteBtn");
+  if (mb) {
+    mb.textContent = muted ? "🔇" : "🔊";
+    // Defensivt: ældre browsere OG test-harnesses har ikke altid classList.toggle
+    if (mb.classList && typeof mb.classList.toggle === "function") mb.classList.toggle("muted", muted);
+  }
 }
 
 function todayKey() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
@@ -4069,6 +4137,7 @@ function renderHear() {
     b.onclick = () => answerHear(w, word, b);
     box.appendChild(b);
   });
+  updateHud();
   setTimeout(() => speakNow(), 350);
 }
 function speakNow() {
@@ -4469,6 +4538,10 @@ updateStartMeta();
   const s = m[1];
   try {
     if (s === "boss")     { cur.world = 0; startBoss(0); }
+    // De tre spil + resultatet: saa skaermene kan tages skaermbillede af og tjekkes
+    else if (s === "hear")   { startGame(0, "hear"); }
+    else if (s === "type")   { startGame(0, "type"); }
+    else if (s === "fill")   { startGame(0, "fill"); }
     else if (s === "stats")    showStats();
     else if (s === "hero")     showHero();
     else if (s === "map")      showWorldMap();
