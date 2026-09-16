@@ -149,7 +149,18 @@ state.stats.words['hvad'] = { tries: 5, wrong: 4 }; state.stats.words['hvor'] = 
 state.wrong['hvad'] = 2;
 const wl = buildWordList(0, 8);
 check('wordlist har 8 ord', wl.length === 8, wl.length);
-check('wordlist unikke', new Set(wl).size === 8, new Set(wl).size);
+// NY KONTRAKT (trappestigen): et svagt ord MAA gentages i samme runde —
+// men hoejst ét ord, hoejst 2 pladser, og kun hvis det er fejlet mindst 2 gange.
+const dup = wl.filter((w, i) => wl.indexOf(w) !== i);
+const dupSet = [...new Set(dup)];
+check('hoejst ét ord gentages i runden', dupSet.length <= 1, JSON.stringify(dupSet));
+check('det gentagne ord er reelt svagt (fejlet >= 2)',
+  dupSet.length === 0 || (state.stats.words[dupSet[0]] || {}).wrong >= 2,
+  dupSet.length ? JSON.stringify(state.stats.words[dupSet[0]]) : 'ingen gentagelse');
+check('hoejst 2 pladser til samme ord', dupSet.length === 0 || dup.filter(w => w === dupSet[0]).length <= 1,
+  JSON.stringify(dup));
+check('de svage ord er kommet med', wl.includes('hvad') && wl.includes('hvor'), JSON.stringify(wl));
+check('genoevning fylder hoejst halvdelen af runden', dup.length <= Math.floor(wl.length / 2), dup.length);
 check('wordlist inkluderer svagt mønster-ord', wl.some(w => pat('hv').test(w)), JSON.stringify(wl));
 
 // ===== 8) DRILL & LEKTION =====
