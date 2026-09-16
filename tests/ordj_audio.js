@@ -66,7 +66,7 @@ check('den nye kæde fortsætter til SIN sætning (at)',
   made.length === before + 1 && made[made.length-1].src.includes('/sentences/at.mp3'),
   made.map(m=>m.src).join(','));
 // Rækkefølgen må ikke give "der"-sætningen til "at"-spørgsmålet
-const sentences = made.filter(m => m.src.includes('/sentences/')).map(m => m.src.split('/').pop());
+const sentences = made.filter(m => m.src.includes('/sentences/')).map(m => m.src.split('/').pop().split('?')[0]);
 check('kun ÉN sætning blev spillet, og det er den rigtige', JSON.stringify(sentences) === JSON.stringify(['at.mp3']),
   JSON.stringify(sentences));
 
@@ -76,7 +76,7 @@ playWordAndSentence('der', () => {});
 playWordAndSentence('jeg', () => {});
 playWordAndSentence('at', () => {});
 made.forEach(a => a.end());
-const sents = made.filter(m => m.src.includes('/sentences/')).map(m => m.src.split('/').pop());
+const sents = made.filter(m => m.src.includes('/sentences/')).map(m => m.src.split('/').pop().split('?')[0]);
 check('3 hurtige spørgsmål giver kun ÉN sætning (den sidste)', sents.length === 1 && sents[0] === 'at.mp3', JSON.stringify(sents));
 
 // 4) Enkelt-afspilning (sætningsknappen) stopper også det der kører
@@ -102,10 +102,17 @@ let done = 0;
 playWordAndSentence('at', () => { done++; });
 check('ord-filen blev oprettet', made.length === 1, made.length);
 made[0].onerror();                       // simuler at MP3 ikke kan afspilles
-check('MP3-fejl kalder videre til næste led i kæden', made.length === 2 && made[1].src.includes('/sentences/at.mp3'),
-  made.map(m=>m.src).join(','));
-made[1].onerror();                       // også sætningen fejler
-check('sætnings-fejl afslutter kæden (onend kaldes)', done === 1, 'done=' + done);
+/* RETTET KONTRAKT (Kenneth: "den siger AT men saetningen er DER"):
+   Foer kaldte en MP3-fejl videre til naeste led i kaeden OG talte reservestemmen
+   oveni — to stemmer samtidigt, saa barnet kunne hoere det forkerte ord.
+   Nu: fejler filen, taler reservestemmen ordet ALENE, og kaeden stopper der. */
+check('MP3-fejl starter IKKE naeste led i kaeden (ingen to stemmer samtidigt)',
+  !made.some(m => m.src.includes('/sentences/at.mp3')), made.map(m=>m.src).join(','));
+
+/* Der oprettes IKKE noget made[1] mere: fejler ord-filen, fortsætter kæden ikke.
+   Det er hele pointen med rettelsen — derfor testes der ikke på en sætning her. */
+check('der blev ikke oprettet en saetnings-fil efter ord-fejlen',
+  made.length === 1, made.map(m=>m.src).join(','));
 check('tale-syntese blev brugt som fallback da MP3 fejlede', spoken.includes('SPEAK'), JSON.stringify(spoken));
 
 // 7) "Spiller nu"-animationen må ikke hænge fast når en kæde afbrydes

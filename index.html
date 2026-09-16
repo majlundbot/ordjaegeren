@@ -2021,6 +2021,8 @@ function speak(text, onend) {
   try {
     const v = pickVoice();
     if (!v) { if (onend) setTimeout(onend, 700); return; }
+    // Ryd altid op foerst: ellers kan en gammel tale fortsaette oveni den nye
+    try { if (window.speechSynthesis && speechSynthesis.cancel) speechSynthesis.cancel(); } catch (e) {}
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "da-DK"; u.voice = v; u.rate = 0.92;
     u.onend = () => { if (onend) onend(); };
@@ -2040,6 +2042,12 @@ refreshVoiceFlag();
    audioGen ugyldiggør alle ventende kæder, så snart noget nyt afspilles. */
 let currentAudio = null;
 let audioGen = 0;
+
+/* LYDFILERNES VERSION.
+   iPad'en (og Safari) cacher MP3-filer haardt. Uden et versions-stempel paa
+   filstien kan man rette lyden, laegge den ud — og stadig hoere den GAMLE fil,
+   fordi browseren ikke henter den igen. Haev dette tal naar lyden regenereres. */
+const AUDIO_V = "2";
 
 // Fælles oprydning: stands lyden, ugyldiggør ventende kæder, fjern "spiller nu"-animationen
 function _clearPlayback() {
@@ -2061,10 +2069,25 @@ function _playClip(src, fallbackText, onend, stopFirst) {
   const myGen = audioGen;
   const a = new Audio(src);
   currentAudio = a;
+  let ferdig = false;                       // vigtigt: kun ÉN afslutning pr. klip
+  /* TO FEJL DER BLEV RETTET HER (Kenneth: "lydfilen siger AT men svaret er DER"):
+     1) finish() kaldte onend() — som starter den NÆSTE lyd i kæden — og talte
+        derefter fallback'en. Fejlede MP3'en, hørte barnet sætningen OG ordet
+        oveni hinanden, talt af to forskellige stemmer.
+     2) a.onerror OG a.play().catch() kunne begge fyre for samme fejl, så kæden
+        blev startet to gange.
+     Nu: fejler filen, tager fallback'en over — kæden fortsætter IKKE oveni. */
   const finish = (useFallback) => {
+    if (ferdig) return;
+    ferdig = true;
     if (currentAudio === a) currentAudio = null;
+    if (useFallback && fallbackText) {
+      // Filen kunne ikke afspilles: tal ordet i stedet. Så stopper kæden her,
+      // så vi ikke oveni starter sætningen og får to stemmer samtidigt.
+      speak(fallbackText, onend);
+      return;
+    }
     if (onend) onend();
-    if (useFallback && fallbackText) speak(fallbackText);
   };
   a.onerror = () => finish(true);
   a.onended = () => { if (myGen === audioGen) finish(false); };
@@ -2072,18 +2095,18 @@ function _playClip(src, fallbackText, onend, stopFirst) {
 }
 
 function playWordAudio(word, onend) {
-  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3", word, onend, true);
+  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, word, onend, true);
 }
 function playSentenceAudio(word, onend) {
-  _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, true);
+  _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, WORDS[word], onend, true);
 }
 // "Fang ordet" / "Hør & Slå": ordet alene, derefter sætningen — men kun hvis intet nyt er startet
 function playWordAndSentence(word, onend) {
   _clearPlayback();                      // stands alt der kører — og ugyldiggør den forrige kæde
   const myGen = audioGen;                // denne kæde ejer lyden nu
-  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3", word, () => {
+  _playClip("audio/words/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, word, () => {
     if (myGen !== audioGen) return;      // et nyt spørgsmål har overtaget — afbryd kæden
-    _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, false);
+    _playClip("audio/sentences/" + encodeURIComponent(word) + ".mp3?v=" + AUDIO_V, WORDS[word], onend, false);
   }, false);
 }
 
