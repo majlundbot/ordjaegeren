@@ -2138,9 +2138,16 @@ function _playClip(src, fallbackText, onend, stopFirst) {
     }
     if (onend) onend();
   };
-  a.onerror = () => finish(true);
+  /* VIGTIGT — AFBRUDT ER IKKE EN FEJL.
+     Bliver lyden stoppet fordi et NYT spørgsmål overtager, afviser browseren
+     play()-kaldet med en AbortError. Tog vi den for en rigtig fejl, faldt vi i
+     fallback'en og TALTE DET FORRIGE ORD med tale-syntesen — mens kæden
+     fortsatte med det NYE ords sætning.
+     Netop dét hørte Kenneth: "den siger 'af', men sætningen er 'der's sætning".
+     Er generationen skiftet, har VI selv stoppet lyden: så tier vi stille. */
+  a.onerror = () => { if (myGen !== audioGen) return; finish(true); };
   a.onended = () => { if (myGen === audioGen) finish(false); };
-  a.play().catch(() => finish(true));
+  a.play().catch(() => { if (myGen !== audioGen) return; finish(true); });
 }
 
 function playWordAudio(word, onend) {

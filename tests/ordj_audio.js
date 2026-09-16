@@ -123,6 +123,23 @@ playWordAndSentence('at', () => {});       // afbryder den første
 check('"spiller nu"-animationen blev ryddet da kaeden blev afbrudt', !sp._s.has('speaking'), JSON.stringify([...sp._s]));
 document.querySelectorAll = () => [];
 
+console.log('--- 8. Afbrudt lyd maa IKKE tale det FORRIGE ord ---');
+/* Kenneth: "den siger 'af', men saetningen er 'der's saetning".
+   Bliver en fil stoppet fordi et nyt spoergsmaal overtager, afviser browseren
+   play()-kaldet. Tog vi det for en fejl, talte reservestemmen det FORRIGE ord. */
+spoken.length = 0;
+made.length = 0;
+playWordAndSentence('der', () => {});
+const afbrudt = made[0];
+playWordAndSentence('at', () => {});        // overtager — den foerste stoppes
+const antalEfter = made.length;
+if (afbrudt && afbrudt.onerror) afbrudt.onerror();     // simuler afbrydelsen
+if (afbrudt && afbrudt.play) afbrudt.play = () => Promise.reject(new Error('AbortError'));
+check('afbrudt fil taler IKKE med reservestemmen (ville sige det forrige ord)',
+  !spoken.includes('SPEAK'), JSON.stringify(spoken));
+check('afbrudt fil fortsaetter IKKE til sin egen saetning',
+  !made.some(m => m.src.includes('/sentences/der.mp3')), made.map(m=>m.src).join(','));
+
 console.log(F === 0 ? '\\nALLE LYD-TESTS GRØNNE' : '\\n' + F + ' FEJL');
 process.exit(F ? 1 : 0);
 `;
