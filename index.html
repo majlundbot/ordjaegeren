@@ -150,7 +150,7 @@
   .b-dragon { background: rgba(248,113,113,.2); color: #fca5a5; border: 1px solid rgba(248,113,113,.5); animation: badgePulse 1.6s ease-in-out infinite; }
   .b-done { background: rgba(74,222,128,.18); color: #86efac; border: 1px solid rgba(74,222,128,.45); }
   @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 rgba(248,113,113,0); } 50% { box-shadow: 0 0 12px rgba(248,113,113,.5); } }
-  /* Progress-bar pr. verden: 3 missioner + drage */
+  /* Progress-bar pr. verden: 3 missioner + monster */
   .w-progress { display: flex; gap: 4px; justify-content: center; margin-top: 8px; padding: 0 10px; }
   .w-seg { flex: 1; height: 8px; border-radius: 4px; transition: background .3s; }
   .w-seg.on { background: linear-gradient(90deg, #4ade80, #22c55e); box-shadow: 0 0 6px rgba(74,222,128,.5); }
@@ -827,7 +827,7 @@
   <div class="co-beam"></div>
   <button class="wheel-x" onclick="closeLootWheel()">✕</button>
   <div class="co-content">
-    <div class="co-title">🐉 Drage besejret! Snur lykkehjulet!</div>
+    <div class="co-title">👾 Monster besejret! Snur lykkehjulet!</div>
     <div class="wheel-box">
       <div class="wheel-needle">▼</div>
       <div class="wheel" id="wheelSpin"></div>
@@ -907,7 +907,7 @@
     <div class="collect" id="worldWords"></div>
     <div class="world-status" id="worldStatus"></div>
     <div class="game-grid" id="gameGrid"></div>
-    <button class="btn red" id="bossBtn" style="margin-top:14px;display:none" onclick="startBoss(cur.world)">🐉 Kæmp mod dragen</button>
+    <button class="btn red" id="bossBtn" style="margin-top:14px;display:none" onclick="startBoss(cur.world)">👾 Kæmp mod monsteret</button>
     <button class="btn ghost" style="margin-top:10px" onclick="showWorldMap()">← Tilbage</button>
   </div>
 </div>
@@ -915,16 +915,16 @@
 <!-- BOSS FIGHT -->
 <div class="screen" id="screen-boss">
   <div class="panel" style="max-width:640px">
-    <h2>🐉 Dragekamp!</h2>
+    <h2>👾 Monsterkamp!</h2>
     <!-- Kamp-statuslinje: runde, element, combo -->
     <div class="cmbar">
       <span class="cm-item">Runde <b id="cmRound">1</b></span>
       <span class="cm-item cm-elem" id="cmElement">🔥 Ild</span>
       <span class="cm-item cm-combo hidden" id="cmCombo">🔥 COMBO ×2</span>
     </div>
-    <!-- Drage-opladning: advarsel om et stort angreb næste runde -->
+    <!-- Monster-opladning: advarsel om et stort angreb næste runde -->
     <div class="charge-warn hidden" id="chargeWarn">
-      ⚠️ <b id="chargeName">Ildpust</b> — dragen lader op! Forsvar dig!
+      ⚠️ <b id="chargeName">Ildpust</b> — monsteret lader op! Forsvar dig!
     </div>
     <div class="boss-arena">
       <div class="boss-side">
@@ -936,7 +936,7 @@
       <div class="boss-vs">VS</div>
       <div class="boss-side">
         <div class="boss-dragon" id="bossDragonEmoji">🐉</div>
-        <div class="boss-label" id="bossDragonName">Ild-dragen</div>
+        <div class="boss-label" id="bossDragonName">Monsteret</div>
         <div class="hp-bar"><div class="hp-fill hp-dragon" id="dragonHpFill"></div></div>
         <div class="boss-power" id="bossDragonPower">Kraft: 0</div>
       </div>
@@ -950,7 +950,7 @@
       </div>
       <div class="dice-vs">vs</div>
       <div class="dice-side">
-        <div class="dice-label">🐉 Dragens terning</div>
+        <div class="dice-label">👾 Monsterets terning</div>
         <div class="dice" id="dragonDice">?</div>
         <div class="dice-total" id="dragonDiceTotal"></div>
       </div>
@@ -1069,7 +1069,7 @@
         <h3>⭐ Talent-træ <span id="talentPoints" style="color:#fbbf24"></span></h3>
         <div class="talent-row" id="talentRow"></div>
         <h3>🏆 Bedrifter <span id="achieveCount" style="color:#fbbf24"></span></h3>
-        <div class="ta" style="font-size:12px;color:#9fb0e8">Besejr drager, saml stjerner og find mytiske items for at låse bedrifter op!</div>
+        <div class="ta" style="font-size:12px;color:#9fb0e8">Besejr monstre, saml stjerner og find mytiske items for at låse bedrifter op!</div>
         <button class="btn small" style="margin-top:6px" onclick="showAchievements()">Se alle bedrifter</button>
       </div>
     </div>
@@ -1264,7 +1264,7 @@ const MYTHIC_ITEMS = [
   { slot: "amulet", name: "Galaksens Amulet",     attack: { key: "galaxy", icon: "🌌", name: "Galakse-nova", mult: 15, color: "#c084fc" }, color: "#c084fc" }
 ];
 // ============ VERDEN 2: SECRET ITEMS (end-game på akademiet — mega specielle) ============
-// Kun fra Verden 2-drager og lykkehjulet der. 6 unikke items, hver med et MEGA-angreb.
+// Kun fra Verden 2-monstre og lykkehjulet der. 6 unikke items, hver med et MEGA-angreb.
 const SECRET_ITEMS = [
   { slot: "helm",   name: "Akademi-kronen",          attack: { key: "secretcrown",   icon: "🎓", name: "Videns-blitz",   mult: 22, color: "#ff4ecd" }, color: "#ff4ecd" },
   { slot: "weapon", name: "Ordets Forbandede Sværd", attack: { key: "secretblade",   icon: "🗡️", name: "Ord-kaos",       mult: 25, color: "#40e0ff" }, color: "#40e0ff" },
@@ -1292,7 +1292,7 @@ function rollMythicDrop() {
   const pool = missing.length ? missing : MYTHIC_ITEMS;
   return pool[Math.floor(Math.random() * pool.length)];
 }
-// SECRET drop: 7% fra Verden 2-drager (12+) — meget specielle, altid en man mangler
+// SECRET drop: 7% fra Verden 2-monstre (12+) — meget specielle, altid en man mangler
 function rollSecretDrop() {
   if (Math.random() >= 0.07) return null;
   const missing = SECRET_ITEMS.filter(m => state.gear[m.slot] !== "secret" && !state.bag.some(b => b.slot === m.slot && b.rarity === "secret"));
@@ -1311,7 +1311,7 @@ const HERO_SKIN = ["Ordjægeren", "Ordkrigeren", "Mesterjægeren", "Ordhelten"];
 
 /* ============ KLASSER (Diablo-stil) ============ */
 const CLASSES = [
-  { key: "kriger",   name: "Kriger",     icon: "⚔️", color: "#f87171", desc: "Mere liv i dragekampe", bonus: "hp" },
+  { key: "kriger",   name: "Kriger",     icon: "⚔️", color: "#f87171", desc: "Mere liv i monsterkampe", bonus: "hp" },
   { key: "troldmand",name: "Troldmand",  icon: "🧙", color: "#60a5fa", desc: "Starter med Ildkugle", bonus: "fire" },
   { key: "jæger",    name: "Jæger",      icon: "🏹", color: "#4ade80", desc: "Gear giver ekstra kraft", bonus: "power" },
   { key: "paladin",  name: "Paladin",    icon: "🛡️", color: "#fbbf24", desc: "Kraft fra stjerner + dobbelt kritisk", bonus: "stars" }
@@ -1329,14 +1329,14 @@ function heroPower() {
   if (cls.bonus === "power") p += Object.keys(state.gear).length; // jæger: +1 kraft pr. gear-stykke
   if (cls.bonus === "stars") p += Math.floor(totalStars() / 6);   // paladin: kraft fra stjerner
   p += (state.talents && state.talents.power || 0) * 2;           // talent: ⚔️ Kraft +2 pr. niveau
-  p += Math.floor(collectedCount() / 4);                          // kæledyr: hver 4. besejrede drage giver +1 kraft
+  p += Math.floor(collectedCount() / 4);                          // kæledyr: hver 4. besejrede monster giver +1 kraft
   return p;
 }
 
 /* ============ RPG: TALENTER (level-up-system) ============ */
 // Hvert level giver 1 talent-point. Tre grene: ❤️ Liv · ⚔️ Kraft · 💥 Kritisk
 const TALENTS = [
-  { key: "hp",    icon: "❤️", name: "Liv",     desc: "+20 liv i dragekampe", max: 5 },
+  { key: "hp",    icon: "❤️", name: "Liv",     desc: "+20 liv i monsterkampe", max: 5 },
   { key: "power", icon: "⚔️", name: "Kraft",   desc: "+2 kraft (mere skade)", max: 5 },
   { key: "crit",  icon: "💥", name: "Kritisk", desc: "+5% chance for kritisk hit (×2 skade)", max: 5 }
 ];
@@ -1378,11 +1378,11 @@ function usePotion() {
 
 /* ============ RPG: ACHIEVEMENTS (bedrifter) ============ */
 const ACHIEVEMENTS = [
-  { key: "first_dragon",  icon: "🐉", name: "Drage-dræber",     desc: "Besejr din første drage" },
-  { key: "five_dragons",  icon: "⚔️", name: "Drage-mester",     desc: "Besejr 5 drager" },
-  { key: "ten_dragons",   icon: "🛡️", name: "Drage-helt",       desc: "Besejr 10 drager" },
-  { key: "all_v1",        icon: "🚀", name: "Galakse-vinder",   desc: "Besejr alle 12 drager i Verden 1" },
-  { key: "all_v2",        icon: "🎓", name: "Akademi-mester",   desc: "Besejr alle 12 drager i Ord-akademiet" },
+  { key: "first_dragon",  icon: "👾", name: "Monster-jæger",   desc: "Besejr dit første monster" },
+  { key: "five_dragons",  icon: "👾", name: "Monster-mester",     desc: "Besejr 5 monstre" },
+  { key: "ten_dragons",   icon: "🛡️", name: "Monster-helt",     desc: "Besejr 10 monstre" },
+  { key: "all_v1",        icon: "🚀", name: "Galakse-vinder",   desc: "Besejr alle 12 monstre i Verden 1" },
+  { key: "all_v2",        icon: "🎓", name: "Akademi-mester",   desc: "Besejr alle 12 monstre i Ord-akademiet" },
   { key: "perfect_game",  icon: "🏆", name: "Fejlfri",          desc: "Gennemfør en mission uden fejl" },
   { key: "level5",        icon: "🌟", name: "Stjerne-kriger",   desc: "Nå level 5" },
   { key: "level10",       icon: "💫", name: "Ord-kejser",       desc: "Nå level 10" },
@@ -1442,31 +1442,31 @@ function showAchievements() {
 
 /* ============ DRAGE-BOSSER (giver manden et formål) ============ */
 const BOSSES = [
-  { name: "Slim-dragen",         emoji: "🦎", power: 5,  c1: "#6ee7b7", c2: "#059669" },
-  { name: "Skov-dragen",         emoji: "🐉", power: 8,  c1: "#86efac", c2: "#16a34a" },
-  { name: "Ild-dragen",          emoji: "🔥", power: 11, c1: "#fca5a5", c2: "#dc2626" },
-  { name: "Is-dragen",           emoji: "❄️", power: 14, c1: "#bae6fd", c2: "#0284c7" },
-  { name: "Torden-dragen",       emoji: "⚡", power: 17, c1: "#fde047", c2: "#a16207" },
-  { name: "Hav-dragen",          emoji: "🌊", power: 20, c1: "#7dd3fc", c2: "#0369a1" },
-  { name: "Sand-dragen",         emoji: "🏜️", power: 23, c1: "#fcd34d", c2: "#b45309" },
-  { name: "Stjerne-dragen",      emoji: "⭐", power: 26, c1: "#f0abfc", c2: "#a21caf" },
-  { name: "Måne-dragen",         emoji: "🌙", power: 29, c1: "#e9d5ff", c2: "#7e22ce" },
-  { name: "Skygge-dragen",       emoji: "🌑", power: 32, c1: "#a78bfa", c2: "#4c1d95" },
-  { name:"Guld-dragen",         emoji:"💰", power: 35, c1: "#fef08a", c2: "#ca8a04" },
-  { name:"Ord-kejser-dragen",   emoji:"👑", power: 40, c1: "#fdba74", c2: "#c2410c" },
-  /* ============ VERDEN 2-drager (Ord-akademiet — sværere) ============ */
-  { name:"Bog-dragen",          emoji:"📖", power: 44, c1: "#fcd34d", c2: "#92400e" },
-  { name:"Pennalhus-dragen",    emoji:"✒️", power: 48, c1: "#f9a8d4", c2: "#9d174d" },
-  { name:"Familie-dragen",      emoji:"🏡", power: 52, c1: "#86efac", c2: "#166534" },
-  { name:"Dyre-dragen",         emoji:"🐾", power: 56, c1: "#fdba74", c2: "#9a3412" },
-  { name:"Lege-dragen",         emoji:"🤸", power: 60, c1: "#fde047", c2: "#a16207" },
-  { name:"Mad-dragen",          emoji:"🍲", power: 64, c1: "#fca5a5", c2: "#b91c1c" },
-  { name:"Tøj-dragen",          emoji:"🧥", power: 68, c1: "#c4b5fd", c2: "#6d28d9" },
-  { name:"Krop-dragen",         emoji:"💪", power: 72, c1: "#f9a8d4", c2: "#be185d" },
-  { name:"Natur-dragen",        emoji:"🌿", power: 76, c1: "#a7f3d0", c2: "#047857" },
-  { name:"Handling-dragen",     emoji:"🏃", power: 80, c1: "#93c5fd", c2: "#1d4ed8" },
-  { name:"Tid-dragen",          emoji:"⏳", power: 85, c1: "#e9d5ff", c2: "#7e22ce" },
-  { name:"Akademi-kejser-dragen", emoji:"🎓", power: 90, c1: "#fde68a", c2: "#b45309" }
+  { name: "Slimklumpen",           emoji: "🫧", power:  5, c1: "#6ee7b7", c2: "#059669" },
+  { name: "Bjergtrolden",          emoji: "🪨", power:  8, c1: "#d6d3d1", c2: "#57534e" },
+  { name: "Ekko-uglen",            emoji: "🦉", power: 11, c1: "#fde68a", c2: "#b45309" },
+  { name: "Skovtrolden",           emoji: "🌳", power: 14, c1: "#86efac", c2: "#15803d" },
+  { name: "Gåde-kraken",           emoji: "🐙", power: 17, c1: "#c4b5fd", c2: "#6d28d9" },
+  { name: "Strømhesten",           emoji: "🐎", power: 20, c1: "#7dd3fc", c2: "#0369a1" },
+  { name: "Huleflagermusen",       emoji: "🦇", power: 23, c1: "#a78bfa", c2: "#4c1d95" },
+  { name: "Klokketrolden",         emoji: "🕰️", power: 26, c1: "#e9d5ff", c2: "#7e22ce" },
+  { name: "Stjernevogteren",       emoji: "⭐", power: 29, c1: "#fef08a", c2: "#ca8a04" },
+  { name: "Månemanden",            emoji: "🌜", power: 32, c1: "#e9d5ff", c2: "#6b21a8" },
+  { name: "Raketkraken",           emoji: "🚀", power: 35, c1: "#fca5a5", c2: "#b91c1c" },
+  { name: "Galakse-kejseren",      emoji: "🌀", power: 40, c1: "#a5b4fc", c2: "#3730a3" },
+/* ============ VERDEN 2 (Ord-akademiet) — tema-monstre ============ */
+  { name: "Bogsnapperen",          emoji: "📚", power: 44, c1: "#fcd34d", c2: "#92400e" },
+  { name: "Hustrolden",            emoji: "🏠", power: 48, c1: "#86efac", c2: "#166534" },
+  { name: "Troldefamilien",        emoji: "👪", power: 52, c1: "#f9a8d4", c2: "#9d174d" },
+  { name: "Ræven",                 emoji: "🦊", power: 56, c1: "#fdba74", c2: "#9a3412" },
+  { name: "Ballonmonstret",        emoji: "🎈", power: 60, c1: "#fde047", c2: "#a16207" },
+  { name: "Madmonstret",           emoji: "🍎", power: 64, c1: "#fca5a5", c2: "#b91c1c" },
+  { name: "Sokkemonstret",         emoji: "🧦", power: 68, c1: "#c4b5fd", c2: "#6d28d9" },
+  { name: "Muskelmonstret",        emoji: "💪", power: 72, c1: "#f9a8d4", c2: "#be185d" },
+  { name: "Frøen",                 emoji: "🐸", power: 76, c1: "#a7f3d0", c2: "#047857" },
+  { name: "Hurtigløberen",         emoji: "🏃", power: 80, c1: "#93c5fd", c2: "#1d4ed8" },
+  { name: "Urmonstret",            emoji: "⏰", power: 85, c1: "#e9d5ff", c2: "#7e22ce" },
+  { name: "Følelsernes Kejser",    emoji: "😊", power: 90, c1: "#fde68a", c2: "#b45309" },
 ];
 
 const WORLDS = [
@@ -1633,7 +1633,7 @@ function renderHero() {
     const d = document.createElement("div");
     const has = owned[m.slot];
     d.className = "mythic-slot" + (has ? " owned" : "");
-    d.title = m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (10% chance fra drage-sejr)");
+    d.title = m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (10% chance fra monstere-sejr)");
     d.innerHTML = has ? m.attack.icon : "❓";
     track.appendChild(d);
   });
@@ -1641,7 +1641,7 @@ function renderHero() {
     const d = document.createElement("div");
     const has = owned["s_" + m.slot];
     d.className = "mythic-slot secret" + (has ? " owned" : "");
-    d.title = "🔮 " + m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (7% chance fra akademi-drager!)");
+    d.title = "🔮 " + m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (7% chance fra akademi-monstre!)");
     d.innerHTML = has ? m.attack.icon : "🔮";
     track.appendChild(d);
   });
@@ -1755,7 +1755,7 @@ function renderStats() {
   const grid = document.getElementById("statsGrid");
   grid.innerHTML = `
     <div class="stat-card"><div class="sc-num">${totalStars()}</div><div class="sc-label">Stjerner</div></div>
-    <div class="stat-card"><div class="sc-num">${collectedCount()}/${WORLDS.length}</div><div class="sc-label">Drager besejret</div></div>
+    <div class="stat-card"><div class="sc-num">${collectedCount()}/${WORLDS.length}</div><div class="sc-label">Monstre besejret</div></div>
     <div class="stat-card"><div class="sc-num">${state.lootCount || 0}</div><div class="sc-label">Missioner</div></div>
     <div class="stat-card"><div class="sc-num">${totalTries}</div><div class="sc-label">Ord besvaret</div></div>
     <div class="stat-card"><div class="sc-num">${totalWrong}</div><div class="sc-label">Fejl i alt</div></div>
@@ -2316,12 +2316,12 @@ function showWorld(i) {
   const statusLine = document.getElementById("worldStatus");
   const missionsDone = ws.done[0] && ws.done[1] && ws.done[2];
   if (ws.boss) statusLine.innerHTML = "✅ Verdenen er færdig!";
-  else if (missionsDone) statusLine.innerHTML = "🐉 Alle missioner klaret — kæmp mod dragen!";
+  else if (missionsDone) statusLine.innerHTML = "👾 Alle missioner klaret — kæmp mod monsteret!";
   else {
     const n = ws.done.filter(Boolean).length;
-    statusLine.innerHTML = `🚧 ${n}/3 missioner gennemført — gennemfør alle 3 for at møde dragen`;
+    statusLine.innerHTML = `🚧 ${n}/3 missioner gennemført — gennemfør alle 3 for at møde monsteret`;
   }
-  // Drage-knap: vises når alle 3 missioner er gennemført OG dragen ikke er besejret endnu
+  // Monster-knap: vises når alle 3 missioner er gennemført OG monsteret ikke er besejret endnu
   const bossBtn = document.getElementById("bossBtn");
   const dragon = BOSSES[i];
   const defeated = ws.boss;
@@ -2374,7 +2374,7 @@ function startBoss(worldIdx) {
     energy: 0,            // 0-100 → signaturangreb når 100
     combo: 0,             // vundne runder i træk
     round: 1,             // runde-nummer
-    charge: null,         // { name, color } når dragen lader op
+    charge: null,         // { name, color } når monsteret lader op
     busy: false,          // låser knapper under animation
     el: elementOf(cur.world),
   };
@@ -2384,16 +2384,16 @@ function startBoss(worldIdx) {
   document.getElementById("bossHeroSvg").innerHTML = heroSvgMarkup();
   document.getElementById("bossHeroName").textContent = HERO_SKIN[Math.min(state.skin, HERO_SKIN.length - 1)];
   document.getElementById("bossHeroPower").textContent = "Kraft: " + power;
-  // Rigtig SVG-drage med dragens farver
+  // Rigtig SVG-skabning med monsterets farver
   const dragonEl = document.getElementById("bossDragonEmoji");
   dragonEl.innerHTML = dragonSvgMarkup(dragon.c1, dragon.c2);
   dragonEl.className = "boss-dragon breathe";
   dragonEl.style.filter = "drop-shadow(0 0 24px " + dragon.c1 + "88)";
   document.getElementById("bossDragonName").textContent = dragon.name;
   document.getElementById("bossDragonPower").textContent = "Kraft: " + dragon.power;
-  document.getElementById("bossStatus").textContent = "Dragen blokerer vejen videre!";
-  document.getElementById("bossMsg").textContent = "Vælg et angreb og besejr dragen! Nye angreb låses op, når du besejrer drager.";
-  document.getElementById("bossHint").textContent = "💡 Fyld energimåleren op → brug dit signaturangreb. Og pas på: dragen lader op til store angreb — forsvare dig!";
+  document.getElementById("bossStatus").textContent = "Monsteret blokerer vejen videre!";
+  document.getElementById("bossMsg").textContent = "Vælg et angreb og besejr monsteret! Nye angreb låses op, når du besejrer monstre.";
+  document.getElementById("bossHint").textContent = "💡 Fyld energimåleren op → brug dit signaturangreb. Og pas på: monsteret lader op til store angreb — forsvare dig!";
   renderBossHp();
   renderCombatMeta();
   renderEnergy();
@@ -2461,7 +2461,7 @@ function renderAttacks() {
     b.className = "attack-btn" + (unlocked ? "" : " locked");
     b.innerHTML = `<span class="ab-icon">${a.icon}</span><span>${a.name} ×${a.mult}</span>`;
     if (unlocked) b.onclick = () => bossAttack(a);
-    else b.title = "Besejr " + a.unlock + (a.unlock === 1 ? " drage" : " drager") + " for at låse op";
+    else b.title = "Besejr " + a.unlock + (a.unlock === 1 ? " monster" : " monstre") + " for at låse op";
     bar.appendChild(b);
   });
   // SECRET MYTHIC-angreb: hvert UDSTYRET mytisk item låser sit unikke angreb op
@@ -2709,7 +2709,7 @@ const ELEMENT_ORDER = ["ild", "is", "lyn", "gift", "skygge"];
 function elementOf(worldIdx) { return ELEMENTS[ELEMENT_ORDER[worldIdx % ELEMENT_ORDER.length]]; }
 
 /* ============ SIGNATURANGREB: hvert klasse har sit eget ultimative ============ */
-// Del af dragens max-liv det gør, hvor mange hits, og om det healer spilleren
+// Del af monsterets max-liv det gør, hvor mange hits, og om det healer spilleren
 const SIGNATURES = {
   kriger:    { name:"RASERI",           icon:"⚔️", hits:3, dmgFrac:0.16, heal:0,    flash:"#f87171",
                text:"Tre slag i træk!" },
@@ -2751,7 +2751,7 @@ function bossRoundEnd(won) {
     sfxCharge();
     // VIGTIGT: fang navn/farve NU — opladningen kan være ryddet inden banneret vises
     const cn = b.charge.name, cc = b.el.color;
-    setTimeout(() => fxBanner("⚠️ " + String(cn).toUpperCase(), "Dragen lader op — forsvare dig næste runde!", cc, 1500), 700);
+    setTimeout(() => fxBanner("⚠️ " + String(cn).toUpperCase(), "Monsteret lader op — forsvare dig næste runde!", cc, 1500), 700);
   }
   b.busy = false;
   renderEnergy();
@@ -2767,7 +2767,7 @@ function chargedDamage() {
   return Math.max(6, Math.min(raw, Math.round(b.playerMax * 0.30)));
 }
 
-/* ---------- FORSVAR: halverer dragens næste angreb og giver meget energi ---------- */
+/* ---------- FORSVAR: halverer monsterets næste angreb og giver meget energi ---------- */
 function bossDefend() {
   const b = bossState;
   if (!b || b.over || b.busy) return;
@@ -2928,7 +2928,7 @@ function bossAttack(attack) {
   }
 
   function resolveRound(att, pRoll, dRoll, pWins) {
-    statusEl.textContent = "🎲 Du rullede " + pRoll + " · Dragen rullede " + dRoll + (pWins ? " → Du vinder runden!" : " → Dragen vinder runden!");
+    statusEl.textContent = "🎲 Du rullede " + pRoll + " · Monsteret rullede " + dRoll + (pWins ? " → Du vinder runden!" : " → Dragen vinder runden!");
     if (pWins) {
       // Spiller vinder: skade = angrebets styrke + terningeforskel
       let dmg = att.mult * 2 + Math.max(0, Math.floor((pRoll - dRoll) / 2));
@@ -2980,7 +2980,7 @@ function bossAttack(attack) {
             flashHit("bossHeroSvg", bossState.el.color);
             sfxWrong();
             renderBossHp();
-            statusEl.textContent = bossState.el.icon + " Dragen rammer dig! -" + ddmg;
+            statusEl.textContent = bossState.el.icon + " Monsteret rammer dig! -" + ddmg;
             if (bossState.playerHp <= 0) { bossLose(); return; }
             bossRoundEnd(false);
           });
@@ -3002,7 +3002,7 @@ function bossWin() {
   save();
   const completed = collectedCount();
   state.skin = Math.min(Math.floor(completed / 3), HERO_SKIN.length - 1);
-  // SECRET drop? Kun fra akademi-drager (verden 2) — 7% chance, mega speciel
+  // SECRET drop? Kun fra akademi-monstre (verden 2) — 7% chance, mega speciel
   let secretDrop = null;
   if (inAcademy) secretDrop = rollSecretDrop();
   // UI opdateres med kort animations-delay
@@ -3013,19 +3013,19 @@ function bossWin() {
     const reward = document.getElementById("rewardCard");
     reward.classList.remove("hidden");
     document.getElementById("rewardEmoji").textContent = WORLDS[cur.world].emoji;
-    document.getElementById("rewardText").textContent = "Drage besejret! " + WORLDS[cur.world].name + " er fri!";
+    document.getElementById("rewardText").textContent = "Monster besejret! " + WORLDS[cur.world].name + " er fri!";
     sfxCard();
     document.getElementById("bossStatus").textContent = "🏆 SEJR! " + dragon.name + " er besejret!";
     if (secretDrop) {
-      document.getElementById("bossMsg").innerHTML = "🔮 <b>HEMMELIGT!</b> Dragen efterlader <span class='rarity-secret'>" + secretDrop.name + "</span>! Snur hjulet for mere!";
+      document.getElementById("bossMsg").innerHTML = "🔮 <b>HEMMELIGT!</b> Monsteret efterlader <span class='rarity-secret'>" + secretDrop.name + "</span>! Snur hjulet for mere!";
       const secItem = makeItem(secretDrop.slot, "secret");
       state.bag.push(secItem);
       save();
       setTimeout(() => { toast("🔮 SECRET! " + secretDrop.name + " (Kraft +15)!"); sfxWin(); }, 500);
     } else {
-      document.getElementById("bossMsg").textContent = "Snur lykkehjulet og se hvad dragen efterlader! 🎰";
+      document.getElementById("bossMsg").textContent = "Snur lykkehjulet og se hvad monsteret efterlader! 🎰";
     }
-    document.getElementById("bossHint").textContent = inAcademy ? "Akademi-drager kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!" : "25% Mytisk · 25% Legendarisk · 50% Magisk";
+    document.getElementById("bossHint").textContent = inAcademy ? "Akademi-monstre kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!" : "25% Mytisk · 25% Legendarisk · 50% Magisk";
     renderAttacks();
     checkAchievements();
     showLootWheel(); // lykkehjul med loot-chancer
@@ -3173,7 +3173,7 @@ function bossLose() {
   setTimeout(() => {
     sfxWrong();
     document.getElementById("bossStatus").textContent = "Du er slået ud...";
-    document.getElementById("bossMsg").textContent = "Dragen " + dragon.name + " er for stærk. Spil flere missioner, find bedre gear og prøv igen!";
+    document.getElementById("bossMsg").textContent = "Monsteret " + dragon.name + " er for stærk. Spil flere missioner, find bedre gear og prøv igen!";
     document.getElementById("bossHint").textContent = "Tip: udstyr dit bedste gear i helteskærmen (⚔️-knap) — hvert gear giver kraft.";
     renderAttacks();
   }, 400);
@@ -3990,7 +3990,7 @@ function renderMapPanel(elId, start, end, title) {
     let badge = "";
     if (!unlocked) badge = '<div class="w-badge b-locked">🔒 Låst</div>';
     else if (bossDone) badge = '<div class="w-badge b-done">✅ Færdig</div>';
-    else if (missionsDone) badge = '<div class="w-badge b-dragon">🐉 Slå dragen!</div>';
+    else if (missionsDone) badge = '<div class="w-badge b-dragon">👾 Slå monsteret!</div>';
     else if (ws && (ws.done[0] || ws.done[1] || ws.done[2])) badge = '<div class="w-badge b-progress">🚧 I gang</div>';
     else badge = '<div class="w-badge b-new">🆕 Start her</div>';
     let segs = "";
@@ -4071,7 +4071,7 @@ bindMapSwipe();
 function travelToWorld(i) {
   if (!worldUnlocked(i)) {
     const prev = WORLDS[i - 1];
-    toast("🔒 Besejr dragen i " + prev.name + " først!", 2500);
+    toast("🔒 Besejr monsteret i " + prev.name + " først!", 2500);
     const cards = document.querySelectorAll("#worldMapA .world-card, #worldMapB .world-card");
     const el = cards[i];
     if (el) { el.classList.add("shake"); setTimeout(() => el.classList.remove("shake"), 500); }

@@ -72,14 +72,14 @@ t('verden 3 → knappen er KLIKBAR (bugfix)', () => {
   w3.done = [true,true,true]; w3.hear=3; w3.type=3; w3.fill=3;
   showWorld(3);
   if (els['bossBtn'].disabled !== false) throw new Error('knap skal være enabled — fik disabled=' + els['bossBtn'].disabled);
-  if (!els['bossBtn'].textContent.includes('Is-dragen')) throw new Error('skal vise Is-dragen, fik: ' + els['bossBtn'].textContent);
+  if (!els['bossBtn'].textContent.includes('Skovtrolden')) throw new Error('skal vise Skovtrolden, fik: ' + els['bossBtn'].textContent);
   if (els['bossBtn'].style.display !== 'block') throw new Error('knap skal være synlig');
   startBoss(3);
-  if (BOSSES[cur.world].name !== 'Is-dragen') throw new Error('kamp skal være mod Is-dragen');
+  if (BOSSES[cur.world].name !== 'Skovtrolden') throw new Error('kamp skal være mod Skovtrolden');
   if (!bossState) throw new Error('bossState ikke sat');
 });
 
-t('besejr Is-dragen → verden 4 låses op', () => {
+t('besejr Skovtrolden → verden 4 låses op', () => {
   bossState.playerHp = 999;
   bossWin();
   if (!state.worlds[3] || !state.worlds[3].boss) throw new Error('worlds[3].boss skal være true');
