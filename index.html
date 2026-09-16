@@ -559,6 +559,20 @@
   }
   .loot-card .lc-rarity { font-weight: 900; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; }
   .loot-card .lc-name { font-weight: 900; font-size: clamp(18px, 5vw, 24px); margin: 4px 0; }
+  /* Kvalitets-glow: et PERFEKT item lyser staerkere end et almindeligt */
+  .lc-name.grade-great { text-shadow: 0 0 14px rgba(255,255,255,.75); }
+  .lc-name.grade-perfekt { animation: perfektGlow 1.1s ease-in-out infinite; }
+  @keyframes perfektGlow { 0%,100% { text-shadow: 0 0 12px rgba(255,255,255,.6); transform: scale(1); }
+    50% { text-shadow: 0 0 26px rgba(255,255,255,1), 0 0 44px rgba(255,215,0,.9); transform: scale(1.045); } }
+  .lc-grade { font-size: 12.5px; font-weight: 900; letter-spacing: 1.4px; margin-top: 2px; }
+  .lc-grade.perfekt { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,.95); }
+  .lc-grade.great { color: #a5f3fc; }
+  .lc-grade.good { color: #bbf7d0; }
+  .lc-grade.plain { color: #a3a3a3; }
+  .bi-grade { font-size: 11px; font-weight: 800; margin-left: 5px; }
+  .bi-grade.perfekt { color: #ffd700; }
+  .bi-grade.great { color: #a5f3fc; }
+  .bi-grade.good { color: #bbf7d0; }
   .loot-card .lc-sub { font-size: 13px; color: #9fb0e8; }
   .loot-card .lc-icon { font-size: 44px; display: block; margin: 4px 0; }
   .btn.small { padding: 10px 20px; font-size: 15px; margin-top: 10px; }
@@ -1067,6 +1081,7 @@
       <span class="lc-icon" id="lootIcon"></span>
       <div class="lc-rarity rarity-legendary" id="lootRarity"></div>
       <div class="lc-name" id="lootName"></div>
+      <div class="lc-grade plain" id="lootGrade"></div>
       <div class="lc-sub" id="lootSub"></div>
     </div>
     <div class="flex-row">
@@ -1684,6 +1699,32 @@ function rollItemStrength(rarityKey) {
   return Math.floor(Math.random() * (span + 1));               // 0..span %
 }
 
+/* ============ KOSMETIK: hvordan et item SER ud ============
+   Styrken alene er et tal. Graderingen goer den laesbar: man skal kunne se på
+   et item om det er et daarligt eller et PERFEKT eksemplar af sin sjaeldenhed.
+   Det er dét der goer loot sjovt — at man leder efter det perfekte. */
+const GRADES = [
+  { key: "plain",  label: "Almindelig",  stars: "",    emoji: "" },
+  { key: "good",   label: "God",         stars: "⭐",   emoji: "" },
+  { key: "great",  label: "Fremragende", stars: "⭐⭐", emoji: "✨" },
+  { key: "perfekt",label: "PERFEKT",     stars: "⭐⭐⭐", emoji: "💫" }
+];
+function itemGrade(item) {
+  if (!item) return GRADES[0];
+  const span = STRENGTH_SPAN[item.rarity] != null ? STRENGTH_SPAN[item.rarity] : 30;
+  const ratio = span ? (item.roll || 0) / span : 0;
+  if (ratio >= 0.90) return GRADES[3];
+  if (ratio >= 0.66) return GRADES[2];
+  if (ratio >= 0.34) return GRADES[1];
+  return GRADES[0];
+}
+/* Kort etiket til item-lister: navn + styrke + stjerner */
+function itemLabel(item) {
+  const g = itemGrade(item);
+  const stj = g.stars ? " " + g.stars : "";
+  return item.name + " +" + (item.roll || 0) + " %" + stj;
+}
+
 /* Et items samlede kraft = sjaeldenhedens kraft + den rullede styrke */
 function itemPower(item) {
   if (!item) return 0;
@@ -1797,9 +1838,11 @@ function renderHero() {
       const slot = GEAR_SLOTS.find(s => s.key === item.slot);
       const div = document.createElement("div");
       div.className = "bag-item";
+      const g = itemGrade(item);
       div.innerHTML = `<span class="bi-icon">${slot.icon}</span>
         <span class="bi-name ${'rarity-' + r.key}">${item.name}</span>
-        <span class="bi-bonus">+${r.power} kraft</span>`;
+        <span class="bi-grade ${g.key}">+${item.roll || 0} %${g.stars ? " " + g.stars : ""}</span>
+        <span class="bi-bonus">${itemPower(item)} kraft</span>`;
       div.onclick = () => { // læg i kuben (altid synlig) — ellers udstyr
         if (bagToCube(item)) return; // flyttet til kuben
         if (state.gear[item.slot]) {
@@ -1808,7 +1851,7 @@ function renderHero() {
           const oldName = oldRk === "mythic" && mythicForSlot(item.slot) ? mythicForSlot(item.slot).name
             : oldRk === "secret" && secretForSlot(item.slot) ? secretForSlot(item.slot).name
             : GEAR_NAMES[item.slot][Math.floor(Math.random()*GEAR_NAMES[item.slot].length)];
-          state.bag.push({ slot: item.slot, rarity: oldRk, name: oldName, mythic: oldRk === "mythic", secret: oldRk === "secret", id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
+          state.bag.push({ slot: item.slot, rarity: oldRk, name: oldName, roll: rollItemStrength(oldRk), mythic: oldRk === "mythic", secret: oldRk === "secret", id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
         }
         state.gear[item.slot] = item.rarity;
         state.bag = state.bag.filter(b => b.id !== item.id);
@@ -3956,9 +3999,17 @@ function finishGame() {
   const lootRarity = document.getElementById("lootRarity");
   lootRarity.textContent = r.label;
   lootRarity.className = "lc-rarity rarity-" + rk;
+  const grade = itemGrade(item);
   document.getElementById("lootName").textContent = item.name;
-  document.getElementById("lootName").className = "lc-name rarity-" + rk;
-  document.getElementById("lootSub").textContent = "Kraft +" + r.power + " — tryk på slot i helteskærmen for at udstyre";
+  document.getElementById("lootName").className = "lc-name rarity-" + rk + " grade-" + grade.key;
+  // Styrken skal VÆRE SYNLIG — ellers kan man ikke se at man har fundet noget godt
+  const gradeEl = document.getElementById("lootGrade");
+  if (gradeEl) {
+    gradeEl.textContent = (grade.emoji ? grade.emoji + " " : "") + grade.label +
+      " — styrke +" + (item.roll || 0) + " %" + (grade.stars ? "  " + grade.stars : "");
+    gradeEl.className = "lc-grade " + grade.key;
+  }
+  document.getElementById("lootSub").textContent = "Kraft " + itemPower(item) + " (grundkraft " + r.power + " +" + (item.roll || 0) + " %) — tryk på slot i helteskærmen for at udstyre";
   loot.style.borderColor = r.color;
   loot.style.boxShadow = "0 0 34px " + r.color + "66";
   if (rk === "epic" || rk === "legendary") sfxCard();

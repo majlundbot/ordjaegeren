@@ -106,6 +106,45 @@ check('kuben ruller secret ved 0.07 <= r < 0.10', kub.includes('else if (r < 0.1
 check('kuben bruger ét rul (const r = Math.random())', /const r = Math\\.random\\(\\);[\\s\\S]{0,200}if \\(r < 0\\.10\\)/.test(html));
 
 console.log(F === 0 ? '\\nITEMS OK' : '\\n' + F + ' FEJL');
+console.log('--- 6. Kosmetik: man kan SE hvor godt et item er ---');
+check('itemGrade findes', typeof itemGrade === 'function');
+check('itemLabel findes', typeof itemLabel === 'function');
+// rare har span 30. Graenserne er 34 % / 66 % / 90 % af span.
+const g0 = itemGrade({ rarity: 'rare', roll: 0 });
+const g1 = itemGrade({ rarity: 'rare', roll: 12 });
+const g2 = itemGrade({ rarity: 'rare', roll: 22 });
+const g3 = itemGrade({ rarity: 'rare', roll: 30 });
+check('0 % er Almindelig', g0.label === 'Almindelig' && g0.stars === '', JSON.stringify(g0));
+check('12 % er God med 1 stjerne', g1.label === 'God' && g1.stars === '⭐', JSON.stringify(g1));
+check('22 % er Fremragende med 2 stjerner', g2.label === 'Fremragende' && g2.stars === '⭐⭐', JSON.stringify(g2));
+check('max er PERFEKT med 3 stjerner', g3.label === 'PERFEKT' && g3.stars === '⭐⭐⭐', JSON.stringify(g3));
+check('to items af samme sjaeldenhed kan have FORSKELLIG grad', g0.key !== g3.key);
+
+console.log('--- 7. Etiketten viser styrke og stjerner ---');
+const lab = itemLabel({ name: 'Krystalhjelm', rarity: 'rare', roll: 28 });
+check('etiketten har navnet', lab.includes('Krystalhjelm'), lab);
+check('etiketten har styrken i %', lab.includes('+28 %'), lab);
+check('etiketten har stjerner for et godt item', lab.includes('⭐'), lab);
+check('et et daarligt item viser ingen stjerner',
+  !itemLabel({ name: 'Jernhjelm', rarity: 'rare', roll: 1 }).includes('⭐'),
+  itemLabel({ name: 'Jernhjelm', rarity: 'rare', roll: 1 }));
+
+console.log('--- 8. Graderingen foelger sjaeldenhedens spaend ---');
+// secret har span 8: selv max er "PERFEKT" fordi det er 90 % af 8
+check('secret: roll 8 af 8 er PERFEKT', itemGrade({ rarity: 'secret', roll: 8 }).key === 'perfekt');
+check('secret: roll 4 af 8 er God', itemGrade({ rarity: 'secret', roll: 4 }).label === 'God',
+  JSON.stringify(itemGrade({ rarity: 'secret', roll: 4 })));
+check('common: roll 35 er PERFEKT', itemGrade({ rarity: 'common', roll: 35 }).key === 'perfekt');
+
+console.log('--- 9. Kosmetikken er bygget ind i skaermen ---');
+check('loot-kortet har et grad-element', html.includes('id="lootGrade"'));
+const lcIdx = html.indexOf('"lootName"').valueOf();
+const lcBit = html.slice(html.indexOf('document.getElementById("lootName")'), html.indexOf('document.getElementById("lootName")') + 200);
+check('loot-navnet faar en grad-klasse', lcBit.includes('grade-'), lcBit.slice(0, 90));
+check('CSS har glow for perfekt', html.includes('@keyframes perfektGlow'));
+check('tasken viser % og stjerner', html.includes('bi-grade'));
+
+
 process.exit(F ? 1 : 0);
 `;
 new Function(src.replace('const cv = document.getElementById("bg")', 'var cv = fakeCanvas') + '\n' + t)();
