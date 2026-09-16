@@ -87,6 +87,29 @@ check('tale-knappen er mindst 110px (stoerre at ramme paa iPad)',
   m && Number(m[1]) >= 110 && Number(m[2]) >= 110, m ? m[1] + 'x' + m[2] : 'fandt ikke CSS');
 check('der staar HØR IGEN under knappen', html.includes('HØR IGEN'));
 
+console.log('--- 5. Svarmuligheder maa ikke kunne forveksles (Kenneths fejl) ---');
+check('lydKlasse findes', typeof lydKlasse === 'function');
+check('at og er er i SAMME lydklasse (de forveksles)',
+  lydKlasse('at') === lydKlasse('er'), lydKlasse('at') + ' / ' + lydKlasse('er'));
+check('der og er er i samme klasse', lydKlasse('der') === lydKlasse('er'));
+check('af og er er i samme klasse', lydKlasse('af') === lydKlasse('er'));
+check('af og at er i samme klasse', lydKlasse('af') === lydKlasse('at'));
+let daarlige = 0, forFaa = 0;
+for (const svar of ['at', 'er', 'af', 'der', 'det', 'de', 'du', 'i', 'og']) {
+  const min = lydKlasse(svar);
+  for (let i = 0; i < 200; i++) {
+    const valg = distractors(svar, 3);
+    if (valg.length !== 4) forFaa++;
+    // Det RIGTIGE ord er selvfoelgelig blandt valgene - kun DISTRAKTORERNE tjekkes
+    if (valg.some(w => w !== svar && lydKlasse(w) === min)) daarlige++;
+  }
+}
+console.log('     1800 tilfaeldige sporgsmaal testet');
+check('INGEN sporgsmaal tilbyder et forveksleligt ord som svar', daarlige === 0, daarlige + ' darlige');
+check('der er altid praecis 4 svarmuligheder', forFaa === 0, forFaa);
+check('det rigtige ord er altid med blandt valgene',
+  distractors('at', 3).includes('at') && distractors('er', 3).includes('er'));
+
 console.log(F === 0 ? '\\nALLE QOL-TESTS GRØNNE' : '\\n' + F + ' FEJL');
 process.exit(F ? 1 : 0);
 `;

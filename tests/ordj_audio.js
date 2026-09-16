@@ -140,6 +140,31 @@ check('afbrudt fil taler IKKE med reservestemmen (ville sige det forrige ord)',
 check('afbrudt fil fortsaetter IKKE til sin egen saetning',
   !made.some(m => m.src.includes('/sentences/der.mp3')), made.map(m=>m.src).join(','));
 
+console.log('--- 9. Tavshed maa ikke vaere muligt ---');
+/* Kenneth: "lyden til af spiller slet ikke". Den vaerste fejl i et lytte-spil er
+   at der INTET sker: barnet ved ikke om det hoerte forkert eller spillet er i
+   stykker. Nu skal der altid komme en synlig besked. */
+check('lydFejl findes', typeof lydFejl === 'function');
+const fejlEl = document.getElementById('lydFejl');
+fejlEl.textContent = '';
+const rigtigPick = pickVoice;
+pickVoice = () => null;                       // browseren har INGEN dansk stemme
+spoken.length = 0;
+made.length = 0;
+lydFejl('Lyden kunne ikke hentes');
+check('lydFejl skriver en synlig besked', fejlEl.textContent.includes('Lyden kunne ikke hentes'),
+  fejlEl.textContent);
+check('lydFejl-beskeden bliver gjort synlig (klassen vis)', fejlEl.classList.contains('vis'),
+  JSON.stringify([...fejlEl.classList._s || []]));
+spoken.length = 0;
+lydFejl('ingen dansk stemme');
+speak('der');                                  // maa IKKE give tavshed
+check('speak uden dansk stemme giver en besked i stedet for tavshed',
+  fejlEl.textContent.includes('dansk stemme'), fejlEl.textContent);
+check('og den taler ikke med en stemme den ikke har', !spoken.includes('SPEAK'),
+  JSON.stringify(spoken));
+pickVoice = rigtigPick;
+
 console.log(F === 0 ? '\\nALLE LYD-TESTS GRØNNE' : '\\n' + F + ' FEJL');
 process.exit(F ? 1 : 0);
 `;

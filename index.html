@@ -352,6 +352,17 @@
   .round-fill { height: 100%; width: 0; border-radius: 99px;
     background: linear-gradient(90deg, #34d399, #22d3ee); transition: width .35s ease; }
   .hud-btn.muted { opacity: .45; }
+  /* Lyd-fejl: skal kunne ses uden at daekke spillet, og forsvinde af sig selv */
+  .lyd-fejl {
+    position: fixed; left: 50%; transform: translateX(-50%) translateY(-14px);
+    top: 64px; z-index: 60; max-width: 92vw;
+    background: linear-gradient(160deg, rgba(251,191,36,.96), rgba(217,119,6,.96));
+    color: #1a1206; font-weight: 900; font-size: 13.5px; letter-spacing: .3px;
+    padding: 11px 16px; border-radius: 14px; text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+  }
+  .lyd-fejl.vis { opacity: 1; transform: translateX(-50%) translateY(0); }
   /* HUD: lige luft mellem de tre ting, og ingen der klistrer til kanten */
   #hud { justify-content: space-between; align-items: center; gap: 10px; }
   #hud .progress { flex: 1 1 auto; text-align: center; }
@@ -912,6 +923,7 @@
   </div>
 </div>
 
+<div class="lyd-fejl" id="lydFejl"></div>
 <div class="hud hidden" id="hud">
   <button class="hud-btn" onclick="goHome()">🏠 Hjem</button>
   <div class="progress" id="hudProgress"></div>
@@ -1223,7 +1235,7 @@ const WORDS = {
   hvad:"Hvad skal vi lege i dag?", med:"Jeg leger med min ven.", så:"Så lad os starte!",
   for:"Tak for hjælpen.", mig:"Giv mig bolden.", der:"Drengen der bor i huset.", han:"Han er min storebror.",
   dig:"Jeg kan godt lide dig.", de:"De spiller fodbold.", den:"Den hund er sød.", kan:"Jeg kan svømme.",
-  af:"Glasset er af glas.", var:"I går var det sjovt.", vil:"Jeg vil gerne have is.",
+  over:"Vi går over gaden.", igennem:"Vi går igennem skoven.", var:"I går var det sjovt.", vil:"Jeg vil gerne have is.",
   her:"Kom her og leg!", et:"Jeg har et æble.", skal:"Vi skal i skole.", men:"Jeg vil gerne, men jeg må ikke.",
   ved:"Jeg ved ikke svaret.", om:"Vi snakker om vejret.", nu:"Kom nu!", ja:"Ja, det vil jeg gerne.",
   som:"Han er lige så hurtig som mig.", hun:"Hun er min søster.", nej:"Nej, jeg gider ikke.",
@@ -1586,7 +1598,7 @@ const BOSSES = [
 const WORLDS = [
   { name:"Start-planeten",      emoji:"🦖", words:["jeg","det","er","du","ikke","at","i","en","og","har"] },
   { name:"Ord-bjergene",        emoji:"🦊", words:["vi","til","på","hvad","med","så","for","mig","der","han"] },
-  { name:"Lyd-dalen",           emoji:"🐼", words:["dig","de","den","kan","af","var","vil","her","et","skal"] },
+  { name:"Lyd-dalen",           emoji:"🐼", words:["dig","de","den","kan","igennem","var","vil","her","et","skal"] },
   { name:"Sætnings-skoven",     emoji:"🐸", words:["men","ved","om","nu","ja","som","hun","nej","min","noget"] },
   { name:"Gåde-øen",            emoji:"🦁", words:["ham","være","bare","din","hvor","må","hvis","os","kom","ud"] },
   { name:"Fart-floden",         emoji:"🐯", words:["dem","godt","fra","have","ville","se","gør","okay","hvorfor","alle"] },
@@ -2049,7 +2061,13 @@ function speak(text, onend) {
   if (muted) { if (onend) setTimeout(onend, 300); return; }
   try {
     const v = pickVoice();
-    if (!v) { if (onend) setTimeout(onend, 700); return; }
+    if (!v) {
+      // INGEN dansk stemme i browseren. Foer gav vi STILLE op — barnet hoerte
+      // hverken ordet eller en forklaring. Sig det hoejt i stedet.
+      lydFejl("Browseren har ingen dansk stemme — lyden kan ikke afspilles her");
+      if (onend) setTimeout(onend, 700);
+      return;
+    }
     // Ryd altid op foerst: ellers kan en gammel tale fortsaette oveni den nye
     try { if (window.speechSynthesis && speechSynthesis.cancel) speechSynthesis.cancel(); } catch (e) {}
     const u = new SpeechSynthesisUtterance(text);
@@ -2071,6 +2089,21 @@ refreshVoiceFlag();
    audioGen ugyldiggør alle ventende kæder, så snart noget nyt afspilles. */
 let currentAudio = null;
 let audioGen = 0;
+
+/* ============ SYNLIG LYD-FEJL ============
+   Den værste fejl i et lytte-spil er TAVSHED: barnet ved ikke om det hørte
+   forkert, eller om spillet er i stykker — og sidder og venter.
+   Nu faar det en besked, saa det kan trykke igen. */
+function lydFejl(besked) {
+  try {
+    const el = document.getElementById("lydFejl");
+    if (!el) return;
+    el.textContent = "🔇 " + (besked || "Lyden kunne ikke hentes — tryk på højttaleren igen");
+    el.classList.add("vis");
+    clearTimeout(window.__lydFejlT);
+    window.__lydFejlT = setTimeout(() => el.classList.remove("vis"), 4000);
+  } catch (e) {}
+}
 
 /* ============ MUTE ============
    Barnet (eller en foraelder) skal kunne slaa lyden fra uden at gaa ud af spillet.
@@ -2131,9 +2164,18 @@ function _playClip(src, fallbackText, onend, stopFirst) {
     ferdig = true;
     if (currentAudio === a) currentAudio = null;
     if (useFallback && fallbackText) {
-      // Filen kunne ikke afspilles: tal ordet i stedet. Så stopper kæden her,
-      // så vi ikke oveni starter sætningen og får to stemmer samtidigt.
-      speak(fallbackText, onend);
+      /* Filen kunne ikke afspilles.
+         Rækkefølgen betyder alt:
+           1) Har browseren en dansk stemme? Så TAL ordet — det virker.
+           2) Har den ikke? Så ville speak() tie stille, og barnet hørte INTET.
+              Derfor siger vi det højt i stedet: "Lyden kunne ikke hentes."
+         Aldrig tavshed. Aldrig et gammelt ord. */
+      if (pickVoice()) {
+        speak(fallbackText, onend);
+      } else {
+        lydFejl();
+        if (onend) onend();
+      }
       return;
     }
     if (onend) onend();
@@ -3583,8 +3625,50 @@ function buildWordList(worldIdx, count) {
   return shuffle(list.slice(0, count));
 }
 
+/* ============ LYD-KLASSER: ord der ikke maa vaere svarmuligheder samtidigt ============
+   Kenneths fejl: "Hoer og slaa. Den siger ER og det rigtige svar er AT."
+   Aarsagen var ikke lyden — det var VALGENE. distractors() trak tilfaeldigt fra
+   alle 240 ord, saa naar svaret var "at", kunne valgene blive at/er/af/der.
+   Barnet KAN ikke vinde den runde ved at lytte; det er plat eller krone.
+   De korte funktionsord deler vokalklang og slutlyd og ligner hinanden for meget
+   til at staa sammen paa samme skaerm. Ord med SAMME klasse blandes aldrig. */
+const LYD_KLASSE = {
+  /* ÉN klasse for alle de korte funktionsord.
+     Maalt: af/at 0.013, af/er 0.024, at/er 0.028 — naesten samme lyd (kun 140 ms
+     tale hver). De maa ALDRIG staa som svarmuligheder samtidigt, for saa kan
+     barnet ikke vinde runden ved at lytte. Derfor én faelles klasse: det er
+     gruppen af ord hvor det er lytteteknisk uafgoerligt. */
+  at:"kort", af:"kort", er:"kort", der:"kort", her:"kort", de:"kort", det:"kort", et:"kort",
+  du:"kort", nu:"kort", ved:"kort", med:"kort", nej:"kort", var:"kort", har:"kort",
+  kan:"kort", skal:"kort", man:"kort", ja:"kort", da:"kort", ham:"kort", den:"kort",
+  dem:"kort", ud:"kort", op:"kort", hun:"kort", jer:"kort", får:"kort",
+  /* De lidt laengere, men stadig rimende -er-ord */
+  over:"er", efter:"er", eller:"er", siger:"er", bliver:"er", tager:"er", ser:"er", hende:"er",
+  /* t-slut */
+  godt:"t", mit:"t", dit:"t", hvad:"t", ude:"t",
+};
+/* Ord uden klasse faar sin EGEN klasse — de kan frit bruges som distraktor. */
+/* Reglen er ALGORITMISK for de korte, saa den ikke kan komme til at mangle ord:
+   alt paa 3 bogstaver eller mindre er lytteteknisk i risikozonen (i, og, en, de,
+   du, nu, vi, saa, paa, maa, af, at, er, der, det, den, kan, ...). Den håndholdte
+   tabel daekker de laengere ord der rimer (over, efter, eller, siger ...). */
+function lydKlasse(w) {
+  if (LYD_KLASSE[w]) return LYD_KLASSE[w];
+  if (w && w.length <= 3) return "kort";
+  return "alene:" + w;
+}
+
 function distractors(word, n) {
-  const others = shuffle(ALL_WORDS.filter(w => w !== word)).slice(0, n);
+  const min = lydKlasse(word);
+  // Vaelg fra alle ord UNDTAGEN dem der lyder som det rigtige ord.
+  // Falder vi under n, fylder vi op med de naermeste — men aldrig med samme klasse foerst.
+  const sikre = ALL_WORDS.filter(w => w !== word && lydKlasse(w) !== min);
+  const others = shuffle(sikre).slice(0, n);
+  if (others.length < n) {
+    // Nødtilfaelde: der var ikke nok sikre ord (sker ikke med 240 ord).
+    const resten = shuffle(ALL_WORDS.filter(w => w !== word && !others.includes(w)));
+    while (others.length < n && resten.length) others.push(resten.pop());
+  }
   return shuffle([word].concat(others));
 }
 
