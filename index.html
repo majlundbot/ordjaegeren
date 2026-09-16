@@ -641,7 +641,42 @@
   .boss-hero svg { width: 110px; height: 150px; filter: drop-shadow(0 0 14px rgba(255,210,63,.3)); }
   .boss-dragon { width: 150px; height: 130px; margin: 0 auto; transition: transform .2s; filter: drop-shadow(0 0 20px rgba(248,113,113,.5)); }
   .boss-dragon svg { width: 100%; height: 100%; }
-  .boss-dragon.hurt { animation: hurt .4s; }
+  /* HELTEN BEVAEGER SIG NU: springer frem og angriber.
+     Robin: "naar man slaas, saa var der bevaegelse paa sine helte" — foer stod
+     figuren stille og kun modstanderen reagerede. 1/2/3 = antal slag i angrebet. */
+  .boss-hero { transition: transform .18s ease-out; will-change: transform; }
+  .boss-hero.attack-1 { animation: heroLunge1 .5s cubic-bezier(.3,1.4,.4,1); }
+  .boss-hero.attack-2 { animation: heroLunge2 .6s cubic-bezier(.3,1.4,.4,1); }
+  .boss-hero.attack-3 { animation: heroLunge3 .72s cubic-bezier(.3,1.4,.4,1); }
+  @keyframes heroLunge1 { 0% { transform: translate(0,0); }
+    16% { transform: translate(-9px,0) scale(.97); }
+    52% { transform: translate(44px,-7px) scale(1.07); }
+    100% { transform: translate(0,0); } }
+  @keyframes heroLunge2 { 0% { transform: translate(0,0); }
+    14% { transform: translate(-12px,0) scale(.96); }
+    46% { transform: translate(40px,-13px) scale(1.09); }
+    62% { transform: translate(46px,-4px) scale(1.05); }
+    100% { transform: translate(0,0); } }
+  @keyframes heroLunge3 { 0% { transform: translate(0,0); }
+    12% { transform: translate(-14px,0) scale(.95); }
+    36% { transform: translate(50px,-10px) scale(1.10); }
+    52% { transform: translate(34px,-2px) scale(1.04); }
+    70% { transform: translate(54px,-12px) scale(1.09); }
+    100% { transform: translate(0,0); } }
+  .boss-hero.recoil { animation: heroRecoil .42s ease-out; }
+  @keyframes heroRecoil { 0% { transform: translate(0,0); }
+    35% { transform: translate(-26px,4px) rotate(-5deg); }
+    100% { transform: translate(0,0); } }
+  .boss-hero.guard { animation: heroGuard .55s ease-out; }
+  @keyframes heroGuard { 0% { transform: translate(0,0); }
+    30% { transform: translate(-9px,0) scale(.93); }
+    60% { transform: translate(-6px,0) scale(.96); }
+    100% { transform: translate(0,0); } }
+  .boss-dragon.counter { animation: dragonCounter .5s cubic-bezier(.3,1.4,.4,1); }
+  @keyframes dragonCounter { 0% { transform: translate(0,0); }
+    18% { transform: translate(12px,0) scale(.96); }
+    50% { transform: translate(-42px,6px) scale(1.05); }
+    100% { transform: translate(0,0); } }
   @keyframes hurt { 25% { transform: translateX(-10px) rotate(-8deg); } 75% { transform: translateX(10px) rotate(8deg); } }
   .boss-dragon.dead { filter: grayscale(1) brightness(.45) !important; }
   .boss-dragon.breathe { animation: breathe 2.6s ease-in-out infinite; }
@@ -2505,6 +2540,39 @@ function renderAttacks() {
     bar.appendChild(b);
   });
 }
+/* Helten springer frem og angriber. hits = antal slag (1-3) — et tre-slags
+   signaturangreb ser anderledes ud end et enkelt hug. */
+function heroLunge(hits) {
+  const el = document.getElementById("bossHeroSvg");
+  if (!el) return;
+  const k = Math.max(1, Math.min(3, hits || 1));
+  const cls = "attack-" + k;
+  el.classList.remove("attack-1", "attack-2", "attack-3");
+  void el.offsetWidth;              // tving reflow, saa animationen kan koere igen
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 820);
+}
+
+/* Helten reagerer: "recoil" naar den bliver ramt, "guard" naar den forsvarer sig. */
+function heroReact(kind) {
+  const el = document.getElementById("bossHeroSvg");
+  if (!el) return;
+  el.classList.remove("recoil", "guard");
+  void el.offsetWidth;
+  el.classList.add(kind);
+  setTimeout(() => el.classList.remove(kind), 620);
+}
+
+/* Monsteret stikker frem naar DET rammer (modspil til heltens fremstoed). */
+function dragonCounter() {
+  const el = document.getElementById("bossDragonEmoji");
+  if (!el) return;
+  el.classList.remove("counter");
+  void el.offsetWidth;
+  el.classList.add("counter");
+  setTimeout(() => el.classList.remove("counter"), 620);
+}
+
 function heroSvgMarkup() {
   const g = c => c || "#8a8f98";
   const helmC = g(state.gear.helm && rarityOf(state.gear.helm).color);
@@ -2789,6 +2857,7 @@ function chargedDamage() {
 
 /* ---------- FORSVAR: halverer monsterets næste angreb og giver meget energi ---------- */
 function bossDefend() {
+  heroReact("guard");   // helten tager stilling
   const b = bossState;
   if (!b || b.over || b.busy) return;
   b.busy = true;
@@ -2800,6 +2869,7 @@ function bossDefend() {
     // Det opladede angreb lander — men blokeres delvist
     const full = chargedDamage();
     const dmg = Math.max(1, Math.round(full * 0.4));
+    heroReact("recoil"); dragonCounter();
     b.playerHp = Math.max(0, b.playerHp - dmg);
     statusEl.textContent = "🛡️ Du blokerer " + b.charge.name + "! Kun -" + dmg + " liv.";
     fxBanner("🛡️ BLOKERET!", b.charge.name + " blev standset", "#38bdf8", 1300);
@@ -2851,6 +2921,7 @@ function bossSignature() {
       setTimeout(() => {
         const dmg = perHit;
         totalDmg += dmg;
+        heroLunge(3);   // signaturangreb: helten springer frem
         b.dragonHp = Math.max(0, b.dragonHp - dmg);
         fxBoom(to.x, to.y);
         fxRing(to.x, to.y, sig.flash, 190);
@@ -2929,6 +3000,7 @@ function bossAttack(attack) {
   function chargedImpact(then) {
     if (!bossState.charge) { then(); return; }
     const full = chargedDamage();
+    heroReact("recoil"); dragonCounter();
     bossState.playerHp = Math.max(0, bossState.playerHp - full);
     const hTo = centerOf("bossHeroSvg");
     statusEl.textContent = "⚠️ " + bossState.charge.name + " rammer ubeskyttet! -" + full;
@@ -2962,6 +3034,7 @@ function bossAttack(attack) {
       setTimeout(() => {
         chargedImpact(() => {
           if (!bossState || bossState.over) return;
+          heroLunge(((typeof a !== "undefined" && a && a.mult) ? a.mult : 1));
           bossState.dragonHp = Math.max(0, bossState.dragonHp - dmg);
           fxBoom(to.x, to.y);
           fxRing(to.x, to.y, att.color, isCrit ? 200 : 130);
@@ -2993,6 +3066,7 @@ function bossAttack(attack) {
         setTimeout(() => {
           chargedImpact(() => {
             if (!bossState || bossState.over) return;
+            heroReact("recoil"); dragonCounter();
             bossState.playerHp = Math.max(0, bossState.playerHp - ddmg);
             fxDmg(t2.x + 30, t2.y - 30, ddmg, "#f87171");
             fxSparks(t2.x, t2.y, bossState.el.color, 14);
