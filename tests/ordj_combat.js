@@ -158,8 +158,12 @@ step('forsvar uden opladning giver +50 energi og koster intet liv', async () => 
   bossState.energy = 0; bossState.charge = null;
   const hp0 = bossState.playerHp;
   bossDefend();
-  check('ingen skade uden opladning', bossState.playerHp === hp0, bossState.playerHp + ' vs ' + hp0);
-  check('forsvar giver +50 energi', bossState.energy === 50, bossState.energy);
+  // NY KONTRAKT: at daekke af uden advarsel er nu et DAARLIGT valg.
+  // Foer var det gratis (nul skade OG +50 energi), hvilket gjorde "forsvar" til
+  // den bedste strategi hver gang — og kampen ensformig.
+  check('at daekke af uden advarsel koster liv', bossState.playerHp < hp0, bossState.playerHp + ' vs ' + hp0);
+  check('at daekke af uden advarsel giver naesten ingen energi', bossState.energy === 5, bossState.energy);
+  check('forsvar uden advarsel giver MINDRE end at vinde en runde (+34)', bossState.energy < 34, bossState.energy);
   check('busy låses under forsvar', bossState.busy === true);
   await wait(750);
   check('runden afsluttes efter forsvar', bossState.round === 2, bossState.round);
@@ -170,10 +174,10 @@ step('forsvar halverer det opladede angreb (40%)', async () => {
   bossState.charge = { name: 'Ildpust', color: '#f97316' };
   const hp0 = bossState.playerHp;
   const full = chargedDamage();   // samme funktion som spillet bruger
-  const expect = Math.max(1, Math.round(full * 0.4));
+  const expect = Math.max(1, Math.round(full * 0.2));
   bossDefend();
   const taken = hp0 - bossState.playerHp;
-  check('forsvar tager kun 40% af det fulde angreb', taken === expect, taken + ' vs ' + expect + ' (fuld=' + full + ')');
+  check('parade tager kun 20 % af det fulde angreb', taken === expect, taken + ' vs ' + expect + ' (fuld=' + full + ')');
   check('opladningen forbruges straks ved blokering', bossState.charge === null, JSON.stringify(bossState.charge));
   check('advarslen skjules straks', els['chargeWarn'].classList.contains('hidden'));
   await wait(750);
@@ -190,7 +194,7 @@ step('at angribe i stedet for at forsvare koster mere end at blokere', async () 
   const hpB = bossState.playerHp;
   bossDefend();
   const blocked = hpB - bossState.playerHp;
-  check('blokering tager 40 % af det opladede angreb', blocked === Math.max(1, Math.round(cd * 0.4)),
+  check('parade tager 20 % af det opladede angreb', blocked === Math.max(1, Math.round(cd * 0.2)),
     blocked + ' vs ' + Math.max(1, Math.round(cd * 0.4)));
   await wait(800);
 
@@ -289,6 +293,26 @@ step('en hel kamp kan spilles til ende uden crash', async () => {
 
 queue.then(() => {
   console.log(F === 0 ? '\\nALLE KAMP-TESTS GRØNNE' : '\\n' + F + ' FEJL');
+step('paraden sender skade tilbage på monsteret', async () => {
+  reset(); cur.world = 0; startBoss(0);
+  bossState.energy = 0; bossState.charge = { name: 'Isstorm', color: '#38bdf8' };
+  const dragonHp0 = bossState.dragonHp;
+  bossDefend();
+  const refl = dragonHp0 - bossState.dragonHp;
+  const ventet = Math.max(2, Math.round(chargedDamage() * 0.35));
+  check('paraden giver 35 % tilbage på monsteret', refl === ventet, refl + ' vs ' + ventet);
+  check('parade giver +20 energi (mindre end at vinde en runde, +34)', bossState.energy === 20, bossState.energy);
+});
+
+step('man kan ikke forsvare sig til ultimaten', async () => {
+  reset(); cur.world = 0; startBoss(0);
+  bossState.energy = 0;
+  for (let i = 0; i < 4; i++) { bossState.charge = null; bossDefend(); await wait(700); }
+  check('4 forsvar uden advarsel fylder ikke maaleren', bossState.energy < ENERGY_MAX,
+    bossState.energy + ' / ' + ENERGY_MAX);
+});
+
+
   process.exit(F ? 1 : 0);
 });
 `;

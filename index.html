@@ -961,7 +961,7 @@
     </div>
     <!-- Monster-opladning: advarsel om et stort angreb næste runde -->
     <div class="charge-warn hidden" id="chargeWarn">
-      ⚠️ <b id="chargeName">Ildpust</b> — monsteret lader op! Forsvar dig!
+      ⚠️ <b id="chargeName">Ildpust</b> — monsteret lader op! Tryk <b>Parér</b> for at sende det tilbage!
     </div>
     <div class="boss-arena">
       <div class="boss-side">
@@ -1003,7 +1003,7 @@
 
     <!-- Handlinger: forsvare sig, signaturangreb, potion -->
     <div class="action-row">
-      <button class="btn small defend-btn" id="defendBtn" onclick="bossDefend()">🛡️ Forsvar dig</button>
+      <button class="btn small defend-btn" id="defendBtn" onclick="bossDefend()">🛡️ Parér</button>
       <button class="btn small sig-btn" id="sigBtn" onclick="bossSignature()" disabled>⚔️ RASERI</button>
       <button class="btn small potion-btn" id="potionBtn" onclick="usePotion()">🧪 Potion (<span id="potionCount">0</span>)</button>
     </div>
@@ -2865,30 +2865,53 @@ function bossDefend() {
   const statusEl = document.getElementById("bossStatus");
   const hero = centerOf("bossHeroSvg");
 
+  /* ============ FORSVAR = PARADE — ikke en standard  ============
+     Foer gav forsvar +50 energi OG nul skade naar monsteret ikke ladede op.
+     Det gjorde "forsvar" til den bedste strategi hver gang: gratis energi og
+     ingen risiko, saa kampen blev ensformig. Nu er forsvar en REAKTION paa
+     advarslen — og kun dér er den god. */
   if (b.charge) {
-    // Det opladede angreb lander — men blokeres delvist
+    // PARADE: monsteret lader op, helten læser advarslen og parerer.
     const full = chargedDamage();
-    const dmg = Math.max(1, Math.round(full * 0.4));
-    heroReact("recoil"); dragonCounter();
+    const dmg = Math.max(1, Math.round(full * 0.2));        // kun 20 % skade
+    const reflect = Math.max(2, Math.round(full * 0.35));   // 35 % tilbage paa monsteret
+    heroReact("guard"); dragonCounter();
     b.playerHp = Math.max(0, b.playerHp - dmg);
-    statusEl.textContent = "🛡️ Du blokerer " + b.charge.name + "! Kun -" + dmg + " liv.";
-    fxBanner("🛡️ BLOKERET!", b.charge.name + " blev standset", "#38bdf8", 1300);
+    statusEl.textContent = "⚔️ Du parerer " + b.charge.name + "! Kun -" + dmg + " liv — og monsteret tager -" + reflect + ".";
+    fxBanner("⚔️ PARERET!", b.charge.name + " blev sendt tilbage", "#38bdf8", 1400);
     sfxBlock();
-    fxRing(hero.x, hero.y, "#38bdf8", 150);
-    fxSparks(hero.x, hero.y, "#38bdf8", 16);
+    fxRing(hero.x, hero.y, "#38bdf8", 170);
+    fxSparks(hero.x, hero.y, "#38bdf8", 18);
+    const mon = centerOf("bossDragonEmoji");
+    fxSlash(mon.x, mon.y, "#38bdf8");
+    fxDmg(mon.x + 24, mon.y - 24, "-" + reflect, "#38bdf8");
     shakeScreen();
-    flashHit("bossHeroSvg", "#38bdf8");
-    b.energy = Math.min(ENERGY_MAX, b.energy + 50);   // forsvar giver ekstra energi
+    flashHit("bossDragonEmoji", "#38bdf8");
+    b.dragonHp = Math.max(0, b.dragonHp - reflect);   // paraden giver igen
+    b.energy = Math.min(ENERGY_MAX, b.energy + 20);   // mindre end at VINDE en runde (+34)
     fxDmg(hero.x + 30, hero.y - 30, dmg, "#38bdf8");
     b.charge = null;              // opladningen er brugt op — advarslen skal væk med det samme
     renderChargeWarn();
     renderBossHp();
+    if (b.dragonHp <= 0) { setTimeout(() => bossRoundEnd(true), 700); return; }
     if (b.playerHp <= 0) { setTimeout(bossLose, 700); return; }
   } else {
-    statusEl.textContent = "🛡️ Du står fast og samler kræfter… +50 energi!";
-    fxRing(hero.x, hero.y, "#38bdf8", 110);
-    beep(520, .12, "sine", .18);
-    b.energy = Math.min(ENERGY_MAX, b.energy + 50);
+    // DAekke af uden grund: man tager hugget alligevel, og faar naesten ingen energi.
+    // Det goer forsvar til et daarligt valg naar der IKKE er en advarsel — praecis
+    // det barnet skal laere: vent paa advarslen.
+    const normalHit = Math.max(3, Math.min(
+      Math.round(BOSSES[cur.world].power * 0.7),
+      Math.round(b.playerMax * 0.12)
+    ));
+    heroReact("guard");
+    b.playerHp = Math.max(0, b.playerHp - normalHit);
+    statusEl.textContent = "🛡️ Du dækker af — men der er intet at parere. Du tager -" + normalHit + " liv.";
+    fxDmg(hero.x + 30, hero.y - 30, normalHit, "#f87171");
+    fxRing(hero.x, hero.y, "#8b98a5", 90);
+    flashHit("bossHeroSvg", "#f87171");
+    b.energy = Math.min(ENERGY_MAX, b.energy + 5);
+    renderBossHp();
+    if (b.playerHp <= 0) { setTimeout(bossLose, 700); return; }
   }
   setTimeout(() => bossRoundEnd(false), 620);
 }
