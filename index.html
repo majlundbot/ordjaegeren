@@ -1323,6 +1323,19 @@ function countSecretEquipped() {
   return n;
 }
 // 10% drop chance fra drage-sejr — vælger altid en mythic man mangler (ellers tilfældig)
+/* Vaelger et mytisk item man mangler — UDEN at rulle. Saa kubens chance kan
+   styres ét sted i stedet for at ligge gemt inde i funktionen. */
+function pickMythicMissing() {
+  const missing = MYTHIC_ITEMS.filter(m => state.gear[m.slot] !== "mythic" && !state.bag.some(b => b.slot === m.slot && b.rarity === "mythic"));
+  const pool = missing.length ? missing : MYTHIC_ITEMS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function pickSecretMissing() {
+  const missing = SECRET_ITEMS.filter(m => state.gear[m.slot] !== "secret" && !state.bag.some(b => b.slot === m.slot && b.rarity === "secret"));
+  const pool = missing.length ? missing : SECRET_ITEMS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function rollMythicDrop() {
   if (Math.random() >= 0.10) return null;
   const missing = MYTHIC_ITEMS.filter(m => state.gear[m.slot] !== "mythic" && !state.bag.some(b => b.slot === m.slot && b.rarity === "mythic"));
@@ -1336,14 +1349,29 @@ function rollSecretDrop() {
   const pool = missing.length ? missing : SECRET_ITEMS;
   return pool[Math.floor(Math.random() * pool.length)];
 }
-const GEAR_NAMES = {
-  helm:    ["Vikingehjelm", "Dragehjelm", "Stjernehjelm", "Ulvehjelm", "Tordenhjelm", "Ismandshjelm", "Ridderhjelm"],
-  weapon:  ["Ordsværd", "Drageklinge", "Stjerneøkse", "Ulvespyd", "Tordenhammer", "Månestav", "Riddersværd"],
-  armor:   ["Vikingebrynje", "Drageskin", "Stjernerustning", "Ulveskind", "Tordenpanser", "Isplade", "Ridderrustning"],
-  shield:  ["Runeskjold", "Drageskjold", "Stjerneskjold", "Ulveskjold", "Tordenskjold", "Isskjold", "Ridderskjold"],
-  boots:   ["Vikingestøvler", "Dragestøvler", "Stjernestøvler", "Ulvestøvler", "Tordenstøvler", "Isstøvler", "Ridderstøvler"],
-  amulet:  ["Runeramulet", "Drageøje", "Stjerneperle", "Uldetand", "Tordensten", "Is-krystal", "Ridderkors"]
+/* ============ ITEMS: 24 forled x 3 efterled = 72 navne pr. slotte = 432 i alt ============
+   Foer var der 7 navne pr. slotte (42 i alt). Med saa faa navne fik man det samme item
+   igen og igen, og loot foeltes som ingenting. Kenneth: "10 gange flere items".
+   De klassiske navne (Vikingehjelm, Dragehjelm ...) er stadig med — de er nu en delmaengde. */
+const GEAR_PREFIX = [
+  "Vikinge", "Drage", "Stjerne", "Ulve", "Torden", "Is", "Ridder", "Rune",
+  "Guld", "Sølv", "Jern", "Krystal", "Måne", "Sol", "Skygge", "Ild",
+  "Frost", "Storm", "Skov", "Bjerg", "Hav", "Sand", "Ædel", "Kongelig"
+];
+const GEAR_BASE = {
+  helm:   ["hjelm", "maskehjelm", "hornhjelm"],
+  weapon: ["sværd", "klinge", "økse"],
+  armor:  ["brynje", "rustning", "panser"],
+  shield: ["skjold", "rundskjold", "brystværn"],
+  boots:  ["støvler", "stavler", "fodtøj"],
+  amulet: ["amulet", "sten", "perle"]
 };
+const GEAR_NAMES = {};
+Object.keys(GEAR_BASE).forEach(slot => {
+  const out = [];
+  GEAR_PREFIX.forEach(pre => GEAR_BASE[slot].forEach(base => out.push(pre + base)));
+  GEAR_NAMES[slot] = out;
+});
 const HERO_SKIN = ["Ordjægeren", "Ordkrigeren", "Mesterjægeren", "Ordhelten"];
 
 /* ============ KLASSER (Diablo-stil) ============ */
@@ -1362,7 +1390,13 @@ function classOf() { return CLASSES.find(c => c.key === (state.heroClass || "kri
 function heroPower() {
   let p = levelPower();
   const cls = classOf();
-  for (const rk of Object.values(state.gear)) { const r = rarityOf(rk); if (r) p += r.power; }
+  // Styrken pr. item taeller med: en "rare" med +28 % slaar en daarlig "epic".
+  for (const slot of Object.keys(state.gear)) {
+    const r = rarityOf(state.gear[slot]);
+    if (!r) continue;
+    const roll = (state.gearRoll && state.gearRoll[slot]) ? state.gearRoll[slot] : 0;
+    p += Math.round(r.power * (1 + roll / 100));
+  }
   if (cls.bonus === "power") p += Object.keys(state.gear).length; // jæger: +1 kraft pr. gear-stykke
   if (cls.bonus === "stars") p += Math.floor(totalStars() / 6);   // paladin: kraft fra stjerner
   p += (state.talents && state.talents.power || 0) * 2;           // talent: ⚔️ Kraft +2 pr. niveau
@@ -1621,15 +1655,41 @@ function makeItem(slotKey, rarityKey) {
   // Mytiske items har unikke navne + angreb
   if (rarityKey === "mythic") {
     const m = mythicForSlot(slotKey);
-    return { slot: slotKey, rarity: "mythic", name: m ? m.name : "Mytisk Skat", mythic: true, id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
+    return { slot: slotKey, rarity: "mythic", name: m ? m.name : "Mytisk Skat", mythic: true, roll: rollItemStrength("mythic"), id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
   }
   // VERDEN 2: secret items har også unikke navne + mega-angreb
   if (rarityKey === "secret") {
     const m = secretForSlot(slotKey);
-    return { slot: slotKey, rarity: "secret", name: m ? m.name : "Hemmelig Skat", secret: true, id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
+    return { slot: slotKey, rarity: "secret", name: m ? m.name : "Hemmelig Skat", secret: true, roll: rollItemStrength("secret"), id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
   }
   const names = GEAR_NAMES[slotKey];
-  return { slot: slotKey, rarity: rarityKey, name: names[Math.floor(Math.random() * names.length)], id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
+  return {
+    slot: slotKey,
+    rarity: rarityKey,
+    name: names[Math.floor(Math.random() * names.length)],
+    // RANDOM STYRKE: to items af samme sjaeldenhed er ikke lige gode.
+    // Det er dét der goer loot spaendende — man leder efter et GODT eksemplar.
+    // 0-30 % oveni sjaeldenhedens kraft. Mytisk/secret ruller ogsaa (se nedenfor).
+    roll: rollItemStrength(rarityKey),
+    id: Date.now() + "_" + Math.random().toString(36).slice(2,7)
+  };
+}
+
+/* Styrke-tillæg i procent oveni sjaeldenhedens grundkraft. */
+const STRENGTH_SPAN = {
+  common: 35, magic: 32, rare: 30, epic: 25, legendary: 20, mythic: 12, secret: 8
+};
+function rollItemStrength(rarityKey) {
+  const span = STRENGTH_SPAN[rarityKey] != null ? STRENGTH_SPAN[rarityKey] : 30;
+  return Math.floor(Math.random() * (span + 1));               // 0..span %
+}
+
+/* Et items samlede kraft = sjaeldenhedens kraft + den rullede styrke */
+function itemPower(item) {
+  if (!item) return 0;
+  const r = RARITIES.find(x => x.key === item.rarity);
+  if (!r) return 0;
+  return Math.round(r.power * (1 + (item.roll || 0) / 100) * 10) / 10;
 }
 function randomSlot() { return GEAR_SLOTS[Math.floor(Math.random() * GEAR_SLOTS.length)].key; }
 function rarityOf(rk) { return RARITIES.find(r => r.key === rk); }
@@ -1638,6 +1698,8 @@ function equipItem(item) {
   // byt: gammelt gear i slotten ryger i tasken
   if (state.gear[item.slot]) state.bag.push({ ...state.gear[item.slot], id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
   state.gear[item.slot] = item.rarity;
+  if (!state.gearRoll) state.gearRoll = {};
+  state.gearRoll[item.slot] = item.roll || 0;   // styrken foelger med itemet
   state.bag = state.bag.filter(b => b.id !== item.id);
   save();
   renderHero();
@@ -2252,11 +2314,19 @@ function cubeTransmute() {
   if (!CUBE_SLOTS.every(x => x)) return;
   sfxCard();
   const inputs = CUBE_SLOTS.slice();
+  /* ============ KUBENS CHANCER ============
+     Ét rul, tre udfald (Kenneths aftale):
+        0-7 %   -> MYTISK           (7 %)
+        7-10 %  -> SECRET MYTISK    (3 %)
+       10-100 % -> ét trin op i sjaeldenhed (90 %)
+     Foer laa chancen gemt inde i rollMythicDrop(), og secret kunne slet ikke
+     komme ud af kuben. Nu staar hele fordelingen ét sted og kan testes. */
+  const r = Math.random();
   let item;
-  // 10% chance for SECRET MYTHIC fra kuben (vælger en man mangler)
-  const mythicDrop = rollMythicDrop();
-  if (mythicDrop) {
-    item = makeItem(mythicDrop.slot, "mythic");
+  if (r < 0.07) {
+    item = makeItem(pickMythicMissing().slot, "mythic");
+  } else if (r < 0.10) {
+    item = makeItem(pickSecretMissing().slot, "secret");
   } else {
     // Raritet: næste trin op (Legendarisk forbliver)
     const levels = ["common", "magic", "rare", "epic", "legendary"];
@@ -2270,7 +2340,8 @@ function cubeTransmute() {
   renderCube();
   renderHero();
   showCubeResult(inputs, item);
-  if (item.rarity === "mythic") { fxConfetti(); sfxWin(); }
+  if (item.rarity === "secret") { fxConfetti(); sfxWin(); beep(880, .18, "sine", .2); setTimeout(() => beep(1180, .22, "sine", .2), 140); }
+  else if (item.rarity === "mythic") { fxConfetti(); sfxWin(); }
 }
 
 // Vis forvandlings-resultatet: fuldskærms WOW-show med lysstråle, partikler og glød

@@ -93,10 +93,14 @@ gtest('heroPower starter på 0', () => {
 });
 
 gtest('equipItem + heroPower stiger', () => {
-  const it = makeItem('weapon', 'epic'); // power 4
+  const it = makeItem('weapon', 'epic');      // grundkraft 4
   state.bag.push(it);
   equipItem(it);
-  if (heroPower() !== 4) throw new Error('forventet 4, fik ' + heroPower());
+  // NY KONTRAKT: items har nu en RANDOM STYRKE, saa kraften er grundkraften
+  // plus 0-25 % (epic). Den er derfor MINDST 4 og hoejst 5 — ikke praecis 4.
+  const p = heroPower();
+  if (p < 4 || p > 5) throw new Error('forventet 4-5, fik ' + p);
+  if (it.roll === undefined) throw new Error('itemet mangler en styrke (roll)');
 });
 
 gtest('showHero renderer uden fejl', () => {
