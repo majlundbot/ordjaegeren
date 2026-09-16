@@ -51,14 +51,14 @@ function resetState() {
 }
 
 // ===== 1) MØNSTER-BIBLIOTEK =====
-check('12 mønstre defineret', SPELL_PATTERNS.length === 12, SPELL_PATTERNS.length);
+check('13 mønstre defineret', SPELL_PATTERNS.length === 13, SPELL_PATTERNS.length);
 const keys = SPELL_PATTERNS.map(p => p.key);
 check('alle nøgler unikke', new Set(keys).size === SPELL_PATTERNS.length, JSON.stringify(keys));
 check('alle har icon+name+rule+tip+look', SPELL_PATTERNS.every(p => p.icon && p.name && p.rule && p.tip && p.look && p.look.length));
 // Hvert mønster skal have mindst 2 ord i spillet (ellers kan det ikke øves)
 let tooFew = [];
 SPELL_PATTERNS.forEach(p => { const n = ALL_WORDS.filter(w => p.test(w)).length; if (n < 2) tooFew.push(p.key + ':' + n); });
-check('alle 12 mønstre har >= 2 ord i spillet', tooFew.length === 0, JSON.stringify(tooFew));
+check('alle 13 mønstre har >= 2 ord i spillet', tooFew.length === 0, JSON.stringify(tooFew));
 
 // Mønster-matcher korrekthed
 const pat = k => SPELL_PATTERNS.find(p => p.key === k);

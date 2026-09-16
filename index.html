@@ -3316,8 +3316,14 @@ function weakestWords(n) {
 /* ============ ADAPTIV LÆRING: FEJL-MØNSTRE + MINI-LEKTIONER ============ */
 // Spillet opdager HVILKE TYPER ord barnet fejler på, og laver en lektion målrettet det.
 // Det er "self-improvement"-laget: spillet lærer af fejlene og justerer træningen.
+/* Småordene: de ord der betyder noget forskelligt, men lyder næsten ens.
+   De hardførste for et barn — og de bliver IKKE bedre af at få en regel om
+   endelser eller om "korte ord". De skal have deres egen forklaring.
+   'at' og 'der' er ikke samme ord. */
+const SMAAORD = ["jeg", "det", "er", "du", "ikke", "at", "i", "en", "og", "har", "vi", "til", "på", "hvad", "med", "så", "for", "mig", "der", "han", "dig", "de", "den", "kan", "af", "var", "vil", "her", "et", "skal", "men", "ved", "om", "nu", "ja", "som", "hun", "nej", "min", "noget", "ham", "være", "bare", "din", "hvor", "må", "hvis", "os", "kom", "ud", "dem", "godt", "fra", "have", "ville", "se", "gør", "okay", "hvorfor", "alle", "lige", "op", "hende", "sig", "hvordan", "tror", "tak", "gøre", "kunne", "lad", "kommer", "havde", "eller", "meget", "nok", "få", "da", "ingen", "man", "gå", "går", "hvem", "bliver", "efter", "sagde", "tilbage", "når", "alt", "måske", "også", "jo", "mit", "ind", "vores", "hej", "mere", "hans", "skulle", "blev", "nogen", "lidt", "aldrig", "får", "siger", "selv", "far", "over", "to", "kun", "sådan", "ser", "dit", "jer", "igen", "mor", "sammen", "tager", "mand", "hele", "deres"];
+
 const SPELL_PATTERNS = [
-  {
+    {
     key: "hv", icon: "💨", name: "hv-ord",
     test: w => /^hv/.test(w),
     title: "Ord der starter med HV",
@@ -3391,11 +3397,21 @@ const SPELL_PATTERNS = [
   },
   {
     key: "erendelse", icon: "📝", name: "-er-endelser",
-    test: w => /er$/.test(w),
+    // Kun RIGTIGE -er-ord: ikke småord som "der", "her", "over", "efter", "eller".
+    // De ender godt nok på -er, men reglen passer ikke på dem og forvirrer barnet.
+    test: w => /er$/.test(w) && w.length >= 5 && !SMAAORD.includes(w),
     title: "Ord der ender på -er",
     rule: "Mange ord slutter med -er — både navneord og udsagnsord.",
     tip: "læ-rer, sø-ster, suk-ker, van-ter — hør endelsen.",
     look: ["lærer", "søster", "sukker", "vanter", "fætter"]
+  },
+{
+    key: "smaaord", icon: "⚠️", name: "Småord der forveksles",
+    test: w => SMAAORD.includes(w),
+    title: "Småord der lyder næsten ens",
+    rule: "Småord lyder næsten ens, men betyder noget helt forskelligt. 'at' og 'der' er IKKE det samme ord: 'at' står foran et udsagnsord (jeg elsker AT spise), og 'der' peger på noget (drengen DER bor i huset).",
+    tip: "at spise · der bor · det er — læs sætningen højt og mærk hvad der passer.",
+    look: ["at", "der", "det", "som", "man"]
   },
   {
     key: "kort", icon: "📏", name: "Korte ord",
