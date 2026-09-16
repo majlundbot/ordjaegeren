@@ -566,6 +566,59 @@
   .gear-slot .gs-sub { font-size: 10px; color: #9fb0e8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .gear-slot.empty { opacity: .45; }
   .gear-slot.equipped { border-color: var(--accent); box-shadow: 0 0 12px rgba(255,210,63,.15); }
+  /* ============ SLOT-PANEL (Docs/equip-system.md) ============
+     Tryk på en slot-plads → se hvad der er udrustet (navn, grad, styrke) + "Tag af",
+     og hvad der er i tasken til DENNE slot — sorteret efter kraft med op/ned-pil. */
+  .slot-panel {
+    position: fixed; inset: 0; z-index: 60; padding: 14px;
+    background: rgba(6,4,20,.74); display: flex; align-items: center; justify-content: center;
+  }
+  .slot-panel.hidden { display: none; }
+  .sp-card {
+    position: relative; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
+    background: linear-gradient(180deg, #1c1440, #120c2c);
+    border: 2px solid rgba(255,255,255,.16); border-radius: 18px; padding: 14px 14px 16px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.55);
+  }
+  .sp-card h3 { font-size: 12.5px; color: #9fb0e8; text-transform: uppercase; letter-spacing: 1px; margin: 12px 0 6px; }
+  .sp-card > h3:first-of-type { margin-top: 2px; }
+  .sp-close {
+    position: absolute; top: 6px; right: 8px; background: transparent; border: none;
+    color: #9fb0e8; font-size: 20px; line-height: 1; cursor: pointer; padding: 4px 8px;
+  }
+  .sp-equipped {
+    background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.14);
+    border-radius: 12px; padding: 10px 12px;
+  }
+  .sp-eq-name { font-weight: 900; font-size: 16px; }
+  .sp-eq-sub { font-size: 12px; color: #cfd8ff; margin-top: 3px; }
+  .sp-eq-pow { font-size: 14px; font-weight: 800; color: var(--accent); margin-top: 4px; }
+  .sp-eq-empty { font-size: 13px; color: #9fb0e8; }
+  #spUnequip { margin-top: 8px; }
+  #spUnequip.hidden { display: none; }
+  .sp-list { display: flex; flex-direction: column; gap: 6px; }
+  .sp-item {
+    display: flex; align-items: center; gap: 7px; min-width: 0;
+    background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.1);
+    border-radius: 11px; padding: 6px 8px; cursor: pointer; text-align: left;
+  }
+  .sp-item:active { transform: scale(.99); }
+  .sp-item.recommended { border-color: var(--green); box-shadow: 0 0 14px rgba(74,222,128,.28); }
+  .sp-item .sp-ic { font-size: 18px; flex: 0 0 auto; }
+  .sp-item .sp-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+  .sp-item .sp-name { font-weight: 800; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp-item .sp-sub { font-size: 10.5px; color: #9fb0e8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp-item .sp-pow { font-size: 11px; font-weight: 800; color: var(--accent); flex: 0 0 auto; white-space: nowrap; }
+  .sp-item .sp-diff { font-size: 10.5px; font-weight: 800; flex: 0 0 auto; white-space: nowrap; }
+  .sp-item .sp-diff .arr { font-size: 14px; line-height: 1; }
+  .sp-item .sp-diff.up { color: #4ade80; }
+  .sp-item .sp-diff.down { color: #f87171; }
+  .sp-item .sp-diff.same { color: #9fb0e8; }
+  .sp-item .sp-equip { flex: 0 0 auto; padding: 5px 9px; font-size: 11.5px; }
+  .sp-none {
+    font-size: 13px; color: #9fb0e8; background: rgba(255,255,255,.04);
+    border-radius: 11px; padding: 12px; text-align: center;
+  }
   .rarity-common { color: #a3a3a3; } .rarity-magic { color: #60a5fa; } .rarity-rare { color: #fbbf24; }
   .rarity-epic { color: #c084fc; } .rarity-legendary { color: #fb923c; }
   .rarity-mythic { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,.9); animation: mythicGlow 2s ease-in-out infinite; }
@@ -1155,7 +1208,7 @@
         <div id="gearSlots"></div>
         <h3>Rygsæk <small style="color:#9fb0e8;text-transform:none;letter-spacing:0">(tryk på et item for at lægge det i kuben)</small></h3>
         <div class="bag-list" id="heroBag"></div>
-        <div class="ta" id="heroHint">Tryk på et slot for at skifte gear. Gear giver kraft!</div>
+        <div class="ta" id="heroHint">Tryk på en plads for at se hvad du har på — og for at tage det af igen.</div>
         <h3>👑 Mytiske skatte <span id="mythicCount" style="color:#ffd700"></span></h3>
         <div class="mythic-track" id="mythicTrack"></div>
         <h3>⭐ Talent-træ <span id="talentPoints" style="color:#fbbf24"></span></h3>
@@ -1166,6 +1219,19 @@
       </div>
     </div>
     <button class="btn ghost" style="margin-top:14px" onclick="showWorldMap()">← Tilbage til kortet</button>
+  </div>
+</div>
+
+<!-- SLOT-PANEL: tryk på en slot-plads i helteskærmen (Docs/equip-system.md) -->
+<div class="slot-panel hidden" id="slotPanel">
+  <div class="sp-card">
+    <button class="sp-close" id="spClose" onclick="closeSlotPanel()">✕</button>
+    <h3 id="spTitle">🪖 Hjelm</h3>
+    <div class="sp-equipped" id="spEquipped"></div>
+    <button class="btn small" id="spUnequip">↩️ Tag af</button>
+    <h3 id="spBagTitle">🎒 I tasken</h3>
+    <div class="sp-list" id="spList"></div>
+    <div class="ta" id="spHint"></div>
   </div>
 </div>
 
@@ -1631,7 +1697,7 @@ function saveProfiles(p) { try { localStorage.setItem(PROFILES_KEY, JSON.stringi
 function activeProfile() { return profileStore().find(p => p.id === activeId()) || null; }
 function activeId() { return localStorage.getItem(ACTIVE_KEY) || ""; }
 function profileKey(id) { return "ordjaegeren_v1_" + id; }
-function defaultState() { return { worlds: {}, wrong: {}, gear: {}, bag: [], skin: 0, lootCount: 0, heroClass: "kriger", xp: 0, potions: 2, talentPoints: 0, talents: { hp: 0, power: 0, crit: 0 }, achievements: [], stats: { words: {}, games: {}, days: {}, history: [] } }; } // worlds[i] = { hear:0-3, type:0-3, fill:0-3, done:[bool,bool,bool] }
+function defaultState() { return { worlds: {}, wrong: {}, gear: {}, gearRoll: {}, gearItem: {}, bag: [], skin: 0, lootCount: 0, heroClass: "kriger", xp: 0, potions: 2, talentPoints: 0, talents: { hp: 0, power: 0, crit: 0 }, achievements: [], stats: { words: {}, games: {}, days: {}, history: [] } }; } // worlds[i] = { hear:0-3, type:0-3, fill:0-3, done:[bool,bool,bool] }
 function loadState() {
   // Første kørsel: migrer eksisterende data (Robins) til en profil
   if (!profileStore().length) {
@@ -1644,6 +1710,14 @@ function loadState() {
   if (!state.worlds) state.worlds = {};
   if (!state.wrong) state.wrong = {};
   if (!state.gear) state.gear = {};
+  if (!state.gearRoll) state.gearRoll = {};
+  /* MIGRATION (gamle gemte spil): de har kun sjaeldenheden i state.gear og ingen
+     item-objekter. Vi bygger gearItem op med et rigtigt item pr. slot, saa navn og
+     styrke kan vises — og saa itemet kan TAGES AF igen. Sker kun én gang pr. slot. */
+  if (!state.gearItem) state.gearItem = {};
+  for (const gslot in state.gear) {
+    if (state.gear[gslot] && !state.gearItem[gslot]) state.gearItem[gslot] = rebuiltGearItem(gslot);
+  }
   if (!state.bag) state.bag = [];
   if (state.skin === undefined) state.skin = 0;
   if (state.lootCount === undefined) state.lootCount = 0;
@@ -1774,19 +1848,189 @@ function itemPower(item) {
 }
 function randomSlot() { return GEAR_SLOTS[Math.floor(Math.random() * GEAR_SLOTS.length)].key; }
 function rarityOf(rk) { return RARITIES.find(r => r.key === rk); }
+
+/* ============ UDRUSTET ITEM (gearItem) ============
+   state.gear[slot] er SJAELDENHEDEN (en streng som "rare") — ikke itemet. Den kan
+   hverken vise navn eller styrke, og derfor kunne man foer ikke se hvad man havde
+   paa. state.gearItem[slot] holder derfor SELVE item-objektet ved siden af (parallelt).
+   Fordelen: alle gamle sammenligninger som state.gear[x] === "mythic" virker uaendret.
+   Til gengaeld SKAL baade gear, gearRoll og gearItem ryddes naar man tager et item af. */
+function gearSlotLabel(slotKey) {
+  const s = GEAR_SLOTS.find(x => x.key === slotKey);
+  return s ? s.label : slotKey;
+}
+/* Bygger et item-objekt ud fra den GEMTE sjaeldenhed + styrke.
+   Bruges til gamle spil (fra foer gearItem fandtes), hvor selve itemet ikke blev gemt.
+   Vi gaetter aldrig: navnet bliver sjaeldenhedens navn, fx "Sjaelden Hjelm". */
+function rebuiltGearItem(slotKey) {
+  const rk = state.gear && state.gear[slotKey];
+  if (!rk) return null;
+  const r = rarityOf(rk);
+  const roll = (state.gearRoll && state.gearRoll[slotKey]) || 0;
+  const unique = rk === "mythic" ? mythicForSlot(slotKey) : rk === "secret" ? secretForSlot(slotKey) : null;
+  return {
+    slot: slotKey,
+    rarity: rk,
+    name: unique ? unique.name : ((r ? r.label : rk) + " " + gearSlotLabel(slotKey)),
+    roll: roll,
+    mythic: rk === "mythic",
+    secret: rk === "secret",
+    id: "gear_" + slotKey + "_" + rk
+  };
+}
+/* Det udrustede item i en slot. Fra gearItem hvis den findes, ellers rekonstrueret
+   (gammel save). Returnerer null hvis slotten er tom. */
+function gearItemFor(slotKey) {
+  if (!state.gear || !state.gear[slotKey]) return null;
+  if (!state.gearItem) state.gearItem = {};
+  const cached = state.gearItem[slotKey];
+  // Sikkerhedsnet: hvis sjaeldenheden er skiftet uden om equipItem (fx en gammel save
+  // eller et direkte indgreb i state), bygges itemet forfra i stedet for at vise et forkert navn.
+  if (cached && cached.slot === slotKey && cached.rarity === state.gear[slotKey]) return cached;
+  state.gearItem[slotKey] = rebuiltGearItem(slotKey);
+  return state.gearItem[slotKey];
+}
+/* Kraften af det udrustede item — til sammenligningen i slot-panelet. */
+function equippedPower(slotKey) {
+  const it = gearItemFor(slotKey);
+  return it ? itemPower(it) : 0;
+}
+function newItemId(prefix) { return (prefix || "it") + "_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7); }
+/* Danske tal i visningen: designet skriver "5,2" og "0,3" — ikke "5.2". */
+function fmtNum(n) {
+  const v = Math.round((n || 0) * 10) / 10;
+  return String(v).replace(".", ",");
+}
+
 /* heroPower er defineret i KLASSER-sektionen (inkl. level + klassebonus) */
 function equipItem(item) {
-  // byt: gammelt gear i slotten ryger i tasken
-  if (state.gear[item.slot]) state.bag.push({ ...state.gear[item.slot], id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
-  state.gear[item.slot] = item.rarity;
+  if (!item || !item.slot) return false;
+  if (!state.gear) state.gear = {};
   if (!state.gearRoll) state.gearRoll = {};
+  if (!state.gearItem) state.gearItem = {};
+  // BYT: det gamle item i slotten ryger ALTID tilbage i tasken — intet forsvinder.
+  // Vi laegger det RIGTIGE item tilbage (med sin egen styrke), ikke en ny-tilfaeldig kopi.
+  const old = gearItemFor(item.slot);
+  if (old && old.id !== item.id) state.bag.push({ ...old, id: newItemId("byt") });
+  state.gear[item.slot] = item.rarity;
   state.gearRoll[item.slot] = item.roll || 0;   // styrken foelger med itemet
+  state.gearItem[item.slot] = item;
   state.bag = state.bag.filter(b => b.id !== item.id);
   save();
   renderHero();
+  return true;
+}
+/* TAG AF — den handling der manglede. Itemet kommer tilbage i tasken med sin styrke
+   bevaret, og baade gear, gearRoll og gearItem ryddes for slotten. Glemmer man
+   gearRoll, taeller en foraeldroes styrke stadig med i kraften. */
+function unequipItem(slotKey) {
+  const it = gearItemFor(slotKey);
+  if (!it) {
+    toast("Der er ikke noget gear på " + gearSlotLabel(slotKey).toLowerCase() + " at tage af", 1800);
+    return false;
+  }
+  state.bag.push({ ...it, id: newItemId("af") });
+  delete state.gear[slotKey];
+  if (state.gearRoll) delete state.gearRoll[slotKey];
+  if (state.gearItem) delete state.gearItem[slotKey];
+  save();
+  renderHero();
+  toast("↩️ " + it.name + " tilbage i tasken", 1600);
+  return true;
+}
+
+/* ============ SLOT-PANEL (Docs/equip-system.md) ============
+   Tryk på en slot-plads → hvad er udrustet lige nu (navn, grad, styrke) + [Tag af],
+   og dernaest taskens items til DENNE slot, sorteret efter kraft med op/ned-pil. */
+let openSlotKey = null;
+function openSlotPanel(slotKey) {
+  openSlotKey = slotKey;
+  sfxClick();
+  const p = document.getElementById("slotPanel");
+  if (p && p.classList && typeof p.classList.remove === "function") p.classList.remove("hidden");
+  renderSlotPanel();
+}
+function closeSlotPanel() {
+  openSlotKey = null;
+  const p = document.getElementById("slotPanel");
+  if (p && p.classList && typeof p.classList.add === "function") p.classList.add("hidden");
+}
+function renderSlotPanel() {
+  const panel = document.getElementById("slotPanel");
+  const slotDef = GEAR_SLOTS.find(s => s.key === openSlotKey);
+  if (!panel || !slotDef) {
+    if (panel && panel.classList && typeof panel.classList.add === "function") panel.classList.add("hidden");
+    return;
+  }
+  const eq = gearItemFor(slotDef.key);
+  const eqPower = eq ? itemPower(eq) : 0;
+
+  // --- Oeverst: hvad er udrustet lige nu ---
+  document.getElementById("spTitle").textContent = slotDef.icon + " " + slotDef.label;
+  const eqEl = document.getElementById("spEquipped");
+  if (eq) {
+    const r = rarityOf(eq.rarity);
+    const g = itemGrade(eq);
+    eqEl.innerHTML =
+      '<div class="sp-eq-name rarity-' + eq.rarity + '">' + eq.name + "</div>" +
+      '<div class="sp-eq-sub">' + (r ? r.label : eq.rarity) + " · " + g.label +
+        " — styrke +" + (eq.roll || 0) + " %" + (g.stars ? " " + g.stars : "") + "</div>" +
+      '<div class="sp-eq-pow">Kraft ' + fmtNum(eqPower) + "</div>";
+  } else {
+    eqEl.innerHTML = '<div class="sp-eq-empty">Intet udstyr på denne plads endnu</div>';
+  }
+  const unBtn = document.getElementById("spUnequip");
+  if (unBtn) {
+    if (unBtn.classList && typeof unBtn.classList.toggle === "function") unBtn.classList.toggle("hidden", !eq);
+    unBtn.onclick = () => unequipItem(slotDef.key);
+  }
+
+  // --- Dernaest: tasken til DENNE slot, stærkest foerst ---
+  const cands = (state.bag || []).filter(b => b && b.slot === slotDef.key)
+    .sort((a, b) => itemPower(b) - itemPower(a));
+  const bagTitle = document.getElementById("spBagTitle");
+  if (bagTitle) bagTitle.textContent = "🎒 I tasken (" + cands.length + ")";
+  const listEl = document.getElementById("spList");
+  listEl.innerHTML = "";
+  if (!cands.length) {
+    // Regel 3: venlig besked naar der ikke er noget til slotten
+    listEl.innerHTML = '<div class="sp-none">Ingen ' + slotDef.label.toLowerCase() +
+      " i tasken endnu — fuldfør missioner for at finde en! 🎒</div>";
+  } else {
+    const best = cands[0];
+    cands.forEach(item => {
+      const g = itemGrade(item);
+      const r = rarityOf(item.rarity);
+      const p = itemPower(item);
+      const d = Math.round((p - eqPower) * 10) / 10;
+      const dir = d > 0 ? "up" : d < 0 ? "down" : "same";
+      const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "＝";
+      const diffTxt = dir === "same" ? "lige så stærk" : fmtNum(Math.abs(d)) + (dir === "up" ? " stærkere" : " svagere");
+      // Den stærkeste der SLAAR det man har på, anbefales med en groen pil
+      const recommended = item === best && d > 0;
+      const row = document.createElement("div");
+      row.className = "sp-item" + (recommended ? " recommended" : "");
+      row.innerHTML = '<span class="sp-ic">' + slotDef.icon + "</span>" +
+        '<span class="sp-info">' +
+          '<span class="sp-name rarity-' + item.rarity + '">' + item.name + "</span>" +
+          '<span class="sp-sub">' + (r ? r.label : item.rarity) + " · +" + (item.roll || 0) + " %" +
+            (g.stars ? " " + g.stars : "") + "</span>" +
+        "</span>" +
+        '<span class="sp-pow">' + fmtNum(p) + " kraft</span>" +
+        '<span class="sp-diff ' + dir + '"><span class="arr">' + arrow + "</span> " + diffTxt + (recommended ? " · anbefalet" : "") + "</span>" +
+        '<button class="btn small sp-equip">Udrust</button>';
+      row.onclick = () => { if (equipItem(item)) toastGear("Udstyret " + item.name + "!"); };
+      listEl.appendChild(row);
+    });
+  }
+  const hint = document.getElementById("spHint");
+  if (hint) hint.textContent = eq
+    ? "Det du har på, ryger automatisk tilbage i tasken."
+    : "Vælg et item — eller fuldfør missioner for at finde et.";
 }
 function showHero() {
   sfxClick();
+  closeSlotPanel();
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("screen-hero").classList.add("active");
   document.getElementById("hud").classList.remove("hidden");
@@ -1847,24 +2091,17 @@ function renderHero() {
   slotsEl.className = "gear-slots-grid";
   GEAR_SLOTS.forEach(slot => {
     const div = document.createElement("div");
-    const has = state.gear[slot.key];
-    const r = has ? rarityOf(has) : null;
-    div.className = "gear-slot" + (has ? " equipped" : " empty");
+    // gearItemFor giver det RIGTIGE item (navn + styrke) — og migrerer gamle saves
+    const eq = gearItemFor(slot.key);
+    const r = eq ? rarityOf(eq.rarity) : null;
+    div.className = "gear-slot" + (eq ? " equipped" : " empty");
     div.innerHTML = `<span class="gs-icon">${slot.icon}</span>
       <div class="gs-info">
-        <div class="gs-name ${r ? 'rarity-' + r.key : ''}">${has ? (r.label + " " + slot.label) : slot.label}</div>
-        <div class="gs-sub">${has ? "Kraft +" + r.power : "Ingen gear — vind en mission!"}</div>
+        <div class="gs-name ${r ? 'rarity-' + r.key : ''}">${eq ? eq.name : slot.label}</div>
+        <div class="gs-sub">${eq ? "Kraft " + fmtNum(itemPower(eq)) + " · +" + (eq.roll || 0) + " %" : "Ingen gear — vind en mission!"}</div>
       </div>`;
-    div.onclick = () => { // skift til næste item i tasken for denne slot
-      const candidates = state.bag.filter(b => b.slot === slot.key);
-      if (!candidates.length) { toastGear("Ingen " + slot.label.toLowerCase() + " i tasken endnu"); return; }
-      const next = candidates[0];
-      if (state.gear[slot.key]) state.bag.push({ slot: slot.key, rarity: state.gear[slot.key], name: GEAR_NAMES[slot.key][Math.floor(Math.random()*GEAR_NAMES[slot.key].length)], id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
-      state.gear[slot.key] = next.rarity;
-      state.bag = state.bag.filter(b => b.id !== next.id);
-      save(); renderHero();
-      toastGear("Udstyret " + next.name + " (" + r.label + ")");
-    };
+    // Tryk = aabn slot-panelet: se hvad der er paa, skift eller TAG AF
+    div.onclick = () => openSlotPanel(slot.key);
     slotsEl.appendChild(div);
   });
   // Rygsæk
@@ -1885,23 +2122,15 @@ function renderHero() {
         <span class="bi-bonus">${itemPower(item)} kraft</span>`;
       div.onclick = () => { // læg i kuben (altid synlig) — ellers udstyr
         if (bagToCube(item)) return; // flyttet til kuben
-        if (state.gear[item.slot]) {
-          const oldRk = state.gear[item.slot];
-          // Mytisk/secret gear beholder sit unikke navn ved udskiftning
-          const oldName = oldRk === "mythic" && mythicForSlot(item.slot) ? mythicForSlot(item.slot).name
-            : oldRk === "secret" && secretForSlot(item.slot) ? secretForSlot(item.slot).name
-            : GEAR_NAMES[item.slot][Math.floor(Math.random()*GEAR_NAMES[item.slot].length)];
-          state.bag.push({ slot: item.slot, rarity: oldRk, name: oldName, roll: rollItemStrength(oldRk), mythic: oldRk === "mythic", secret: oldRk === "secret", id: Date.now() + "_x" + Math.random().toString(36).slice(2,7) });
-        }
-        state.gear[item.slot] = item.rarity;
-        state.bag = state.bag.filter(b => b.id !== item.id);
-        save(); renderHero();
-        toastGear("Udstyret " + item.name + "!");
+        // Ét sted til udrustning: equipItem laegger ALTID det gamle item tilbage i tasken
+        if (equipItem(item)) toastGear("Udstyret " + item.name + "!");
       };
       bagEl.appendChild(div);
     });
   }
   renderCube(); // hold kuben i sync med rygsækken
+  // Er slot-panelet aabent, skal det ogsaa opdateres — ellers viser det gamle tal
+  if (openSlotKey) renderSlotPanel();
 }
 function toastGear(msg) {
   let t = document.getElementById("toastGear");

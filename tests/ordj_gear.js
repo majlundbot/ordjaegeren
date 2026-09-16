@@ -251,6 +251,267 @@ gtest('svaghedsvægtning: buildWordList inkluderer svage ord', () => {
   if (!list.includes('på')) throw new Error('svagt ord "på" burde dukke op i genøvning, fik: ' + JSON.stringify(list));
 });
 
+// ==================== EQUIP/UNEQUIP (Docs/equip-system.md) ====================
+// Kernen i det nye system: man kan nu TAGE GEAR AF igen — og intet item forsvinder.
+function resetGear() {
+  state.gear = {}; state.gearRoll = {}; state.gearItem = {}; state.bag = [];
+  state.xp = 0; state.heroClass = 'kriger'; state.talents = { hp: 0, power: 0, crit: 0 };
+  state.worlds = {}; state.potions = 2; state.talentPoints = 0; state.achievements = [];
+  closeSlotPanel();
+}
+function mkItem(slot, rarity, name, roll) {
+  return { id: 't_' + slot + '_' + Math.random().toString(36).slice(2, 7), slot: slot, rarity: rarity, name: name, roll: roll };
+}
+
+gtest('unequipItem findes (den manglende handling)', () => {
+  if (typeof unequipItem !== 'function') throw new Error('unequipItem mangler');
+  if (typeof gearItemFor !== 'function') throw new Error('gearItemFor mangler');
+  if (typeof equippedPower !== 'function') throw new Error('equippedPower mangler');
+});
+
+gtest('tag af: itemet ligger i tasken bagefter med sin styrke', () => {
+  resetGear();
+  const it = mkItem('helm', 'rare', 'Sølvhjelm', 20);
+  state.bag.push(it);
+  equipItem(it);
+  if (state.gear.helm !== 'rare') throw new Error('itemet skulle være udrustet');
+  if (state.gearItem.helm !== it) throw new Error('gearItem skal holde selve item-objektet');
+  const ok = unequipItem('helm');
+  if (ok !== true) throw new Error('unequipItem skulle returnere true');
+  if (state.gear.helm !== undefined) throw new Error('state.gear skal ryddes');
+  if (state.gearItem.helm !== undefined) throw new Error('state.gearItem skal ryddes');
+  if (state.bag.length !== 1) throw new Error('itemet skal ligge i tasken, fik ' + state.bag.length);
+  const back = state.bag[0];
+  if (back.name !== 'Sølvhjelm') throw new Error('samme navn forventet, fik ' + back.name);
+  if (back.roll !== 20) throw new Error('styrken skal bevares, fik ' + back.roll);
+  if (back.rarity !== 'rare' || back.slot !== 'helm') throw new Error('raritet/slot skal bevares');
+});
+
+gtest('kraften falder naar man tager af — og gearRoll ryddes (ingen forældreløs styrke)', () => {
+  resetGear();
+  if (heroPower() !== 0) throw new Error('skal starte på 0, fik ' + heroPower());
+  const it = mkItem('helm', 'rare', 'Sølvhjelm', 20); // 3 grundkraft × 1,20 = 3,6 → 4
+  state.bag.push(it);
+  equipItem(it);
+  const withGear = heroPower();
+  if (withGear !== 4) throw new Error('rare +20 % skal give 4 kraft, fik ' + withGear);
+  unequipItem('helm');
+  if (heroPower() !== 0) throw new Error('kraften skal tilbage til 0, fik ' + heroPower());
+  if (state.gearRoll && state.gearRoll.helm !== undefined) throw new Error('gearRoll.helm skal ryddes — ellers tæller en forældreløs styrke med');
+});
+
+gtest('intet item forsvinder: udrust nyt → det gamle ryger tilbage i tasken', () => {
+  resetGear();
+  const old = mkItem('helm', 'rare', 'Jernhjelm', 12);
+  const next = mkItem('helm', 'epic', 'Krystalhjelm', 0);
+  state.bag.push(old);
+  equipItem(old);
+  if (state.bag.length !== 0) throw new Error('tasken skal være tom efter udrustning');
+  state.bag.push(next);
+  equipItem(next);
+  if (state.gear.helm !== 'epic') throw new Error('det nye item skal være udrustet');
+  if (state.bag.length !== 1) throw new Error('det gamle item skal være tilbage, fik ' + state.bag.length);
+  if (state.bag[0].name !== 'Jernhjelm') throw new Error('det RIGTIGE gamle item skal tilbage, fik ' + state.bag[0].name);
+  if (state.bag[0].roll !== 12) throw new Error('gammel styrke skal bevares (ikke rulles igen), fik ' + state.bag[0].roll);
+  if (state.gearRoll.helm !== 0) throw new Error('gearRoll skal foelge det NYE item, fik ' + state.gearRoll.helm);
+});
+
+gtest('gammel save UDEN gearItem: gearItemFor rekonstruerer uden at gaa ned', () => {
+  resetGear();
+  state.gear = { helm: 'legendary' };
+  state.gearRoll = { helm: 10 };
+  delete state.gearItem;                       // som et spil gemt foer gearItem fandtes
+  const it = gearItemFor('helm');
+  if (!it) throw new Error('itemet skulle kunne rekonstrueres');
+  if (it.rarity !== 'legendary' || it.roll !== 10) throw new Error('raritet/styrke forkert: ' + JSON.stringify(it));
+  if (!it.name) throw new Error('navnet mangler (vis sjaeldenheden)');
+  if (it.name !== 'Legendarisk Hjelm') throw new Error('forventede sjaeldenheds-navn, fik ' + it.name);
+  if (state.gear.helm !== 'legendary') throw new Error('state.gear maa ikke aendres af rekonstruktionen');
+});
+
+gtest('gammel save: man kan TAGE AF og itemet ender i tasken', () => {
+  resetGear();
+  state.gear = { helm: 'legendary' };
+  state.gearRoll = { helm: 10 };
+  delete state.gearItem;
+  const ok = unequipItem('helm');
+  if (!ok) throw new Error('tag af skulle lykkes paa en gammel save');
+  if (state.gear.helm !== undefined) throw new Error('gear skal ryddes');
+  if (state.bag.length !== 1) throw new Error('itemet skal ligge i tasken, fik ' + state.bag.length);
+  if (state.bag[0].roll !== 10) throw new Error('styrken skal bevares, fik ' + state.bag[0].roll);
+  if (heroPower() !== 0) throw new Error('kraften skal falde, fik ' + heroPower());
+});
+
+gtest('tag af det SIDSTE item → tasken er ikke tom, kraften er 0', () => {
+  resetGear();
+  const it = mkItem('weapon', 'epic', 'Runeklinge', 0);   // grundkraft 4
+  state.bag.push(it);
+  equipItem(it);
+  if (state.bag.length !== 0) throw new Error('tasken skal være tom');
+  if (heroPower() !== 4) throw new Error('epic uden styrke skal give 4, fik ' + heroPower());
+  unequipItem('weapon');
+  if (state.bag.length !== 1) throw new Error('itemet skal være i tasken');
+  if (heroPower() !== 0) throw new Error('kraften skal være 0, fik ' + heroPower());
+});
+
+gtest('tag af en tom plads er harmløst (returnerer false)', () => {
+  resetGear();
+  const ok = unequipItem('boots');
+  if (ok !== false) throw new Error('skal returnere false paa tom plads');
+  if (state.bag.length !== 0) throw new Error('tasken skal være uændret');
+});
+
+gtest('intet item forsvinder: 6 byt i træk holder antallet konstant', () => {
+  resetGear();
+  for (let i = 0; i < 6; i++) {
+    state.bag.push(mkItem('helm', 'rare', 'Hjelm' + i, i));
+    const before = state.bag.length + (state.gear.helm ? 1 : 0);
+    equipItem(state.bag[state.bag.length - 1]);
+    const after = state.bag.length + (state.gear.helm ? 1 : 0);
+    if (after !== before) throw new Error('item forsvandt i byt ' + i + ' (' + before + ' → ' + after + ')');
+  }
+  if (state.bag.length !== 5) throw new Error('5 items skulle ligge i tasken, fik ' + state.bag.length);
+  unequipItem('helm');
+  if (state.bag.length !== 6) throw new Error('efter tag af skal ALLE 6 items ligge i tasken, fik ' + state.bag.length);
+});
+
+gtest('equippedPower = itemPower paa det udrustede item', () => {
+  resetGear();
+  if (equippedPower('helm') !== 0) throw new Error('tom plads skal give 0');
+  const it = mkItem('helm', 'rare', 'Sølvhjelm', 20);
+  state.bag.push(it);
+  equipItem(it);
+  const p = equippedPower('helm');
+  if (Math.abs(p - 3.6) > 0.01) throw new Error('rare +20 % = 3,6 kraft, fik ' + p);
+});
+
+gtest('helteskærmen viser det udrustede items NAVN (ikke bare sjaeldenheden)', () => {
+  resetGear();
+  const it = mkItem('helm', 'epic', 'Krystalhornhjelm', 25);
+  state.bag.push(it);
+  equipItem(it);
+  showHero();
+  const html = els['gearSlots'].children[0].innerHTML;
+  if (!html.includes('Krystalhornhjelm')) throw new Error('navnet mangler i slot-visningen: ' + html);
+  if (!html.includes('+25 %')) throw new Error('styrken mangler: ' + html);
+});
+
+gtest('et gammelt spil viser ogsaa gear i helteskærmen (migration)', () => {
+  resetGear();
+  state.gear = { boots: 'epic' };
+  state.gearRoll = { boots: 5 };
+  delete state.gearItem;
+  renderHero();  // maa ikke kaste
+  const html = els['gearSlots'].children[4].innerHTML; // boots er 5. slot
+  if (!html.includes('Episk')) throw new Error('sjaeldenheden skulle vises, fik: ' + html);
+});
+
+gtest('slot-panel: viser det udrustede item med navn, grad og styrke', () => {
+  resetGear();
+  const it = mkItem('helm', 'rare', 'Sølvhjelm', 30);   // 30/30 = PERFEKT
+  state.bag.push(it);
+  equipItem(it);
+  openSlotPanel('helm');
+  const html = els['spEquipped'].innerHTML;
+  if (!html.includes('Sølvhjelm')) throw new Error('navnet mangler: ' + html);
+  if (!html.includes('PERFEKT')) throw new Error('graden mangler: ' + html);
+  if (!html.includes('⭐⭐⭐')) throw new Error('stjernerne mangler: ' + html);
+  if (!html.includes('+30 %')) throw new Error('styrken mangler: ' + html);
+  if (!html.includes('Kraft 3,9')) throw new Error('kraften mangler (dansk komma): ' + html);
+  if (!els['spTitle'].textContent.includes('Hjelm')) throw new Error('titlen mangler slots-navnet');
+});
+
+gtest('slot-panel: tom plads giver venlig besked + skjult Tag af-knap', () => {
+  resetGear();
+  openSlotPanel('amulet');
+  if (!els['spEquipped'].innerHTML.includes('Intet udstyr')) throw new Error('tom-besked mangler: ' + els['spEquipped'].innerHTML);
+  if (!els['spUnequip'].classList.contains('hidden')) throw new Error('Tag af skal være skjult naar intet er udrustet');
+  if (!els['spList'].innerHTML.includes('Ingen amulet')) throw new Error('venlig tasken-besked mangler: ' + els['spList'].innerHTML);
+});
+
+gtest('slot-panel: Tag af-knappen tager itemet af og lægger det i tasken', () => {
+  resetGear();
+  const it = mkItem('helm', 'rare', 'Sølvhjelm', 20);
+  state.bag.push(it);
+  equipItem(it);
+  openSlotPanel('helm');
+  if (els['spUnequip'].classList.contains('hidden')) throw new Error('Tag af skal være synlig naar der er gear paa');
+  els['spUnequip'].onclick();
+  if (state.gear.helm !== undefined) throw new Error('itemet skulle være taget af');
+  if (state.bag.length !== 1) throw new Error('itemet skal ligge i tasken, fik ' + state.bag.length);
+});
+
+gtest('slot-panel: tasken sorteres efter kraft med op/ned-pile', () => {
+  resetGear();
+  const equipped = mkItem('helm', 'rare', 'Sølvhjelm', 0);       // 3,0 kraft
+  state.bag.push(equipped);
+  equipItem(equipped);
+  state.bag.push(mkItem('helm', 'common', 'Læderhjelm', 0));      // 1,0 → svagere
+  state.bag.push(mkItem('helm', 'epic', 'Krystalhjelm', 0));      // 4,0 → stærkere
+  state.bag.push(mkItem('helm', 'rare', 'Guldhjelm', 0));         // 3,0 → lige saa stærk
+  openSlotPanel('helm');
+  const rows = els['spList'].children;
+  if (rows.length !== 3) throw new Error('3 items i panelet forventet, fik ' + rows.length);
+  // Stærkest først
+  if (!rows[0].innerHTML.includes('Krystalhjelm')) throw new Error('stærkeste item skal staa først: ' + rows[0].innerHTML);
+  if (!rows[2].innerHTML.includes('Læderhjelm')) throw new Error('svageste item skal staa sidst: ' + rows[2].innerHTML);
+  // Grøn op-pil + anbefaling paa den stærkeste
+  if (!rows[0].innerHTML.includes('▲')) throw new Error('op-pil mangler: ' + rows[0].innerHTML);
+  if (!rows[0].innerHTML.includes('1 stærkere')) throw new Error('kraft-forskellen mangler: ' + rows[0].innerHTML);
+  if (!rows[0].innerHTML.includes('anbefalet')) throw new Error('anbefalingen mangler: ' + rows[0].innerHTML);
+  if (!rows[0].className.includes('recommended')) throw new Error('recommended-klassen mangler');
+  // Rød ned-pil paa den svageste
+  if (!rows[2].innerHTML.includes('▼')) throw new Error('ned-pil mangler: ' + rows[2].innerHTML);
+  if (!rows[2].innerHTML.includes('2 svagere')) throw new Error('svagere-teksten mangler: ' + rows[2].innerHTML);
+  // Lige saa stærk
+  if (!rows[1].innerHTML.includes('＝')) throw new Error('lige-saa-stærk-tegnet mangler: ' + rows[1].innerHTML);
+  // Hver række har en Udrust-knap
+  if (!rows[0].innerHTML.includes('Udrust')) throw new Error('Udrust-knappen mangler');
+});
+
+gtest('fortryd: efter tag af kan man udruste igen med ét tryk', () => {
+  resetGear();
+  const it = mkItem('helm', 'epic', 'Krystalhjelm', 10);
+  state.bag.push(it);
+  equipItem(it);
+  openSlotPanel('helm');
+  els['spUnequip'].onclick();
+  if (state.gear.helm !== undefined) throw new Error('skulle være taget af');
+  openSlotPanel('helm');
+  const row = els['spList'].children[0];
+  if (!row) throw new Error('itemet skal kunne ses i panelet igen');
+  row.onclick();                               // ét tryk
+  if (state.gear.helm !== 'epic') throw new Error('itemet skulle være udrustet igen');
+  if (state.bag.length !== 0) throw new Error('itemet skal ud af tasken igen');
+  if (state.gearRoll.helm !== 10) throw new Error('styrken skal foelge med tilbage');
+});
+
+gtest('et klik paa en slot-plads i helteskærmen aabner panelet', () => {
+  resetGear();
+  showHero();
+  const slot = els['gearSlots'].children[0];
+  if (!slot || !slot.onclick) throw new Error('slot mangler en klik-handling');
+  slot.onclick();
+  if (openSlotKey !== 'helm') throw new Error('panelet skulle aabne for helm, fik ' + openSlotKey);
+  if (els['slotPanel'].classList.contains('hidden')) throw new Error('panelet skulle være synligt');
+  closeSlotPanel();
+  if (!els['slotPanel'].classList.contains('hidden')) throw new Error('panelet skulle lukkes');
+  if (openSlotKey !== null) throw new Error('openSlotKey skal nulstilles');
+});
+
+gtest('mythic-gear: navn bevares, og det kan tages af igen', () => {
+  resetGear();
+  const it = makeItem('helm', 'mythic');
+  state.bag.push(it);
+  equipItem(it);
+  if (state.gear.helm !== 'mythic') throw new Error('state.gear skal stadig være en streng (mythic)');
+  openSlotPanel('helm');
+  if (!els['spEquipped'].innerHTML.includes(it.name)) throw new Error('det unikke mythic-navn skal vises: ' + els['spEquipped'].innerHTML);
+  unequipItem('helm');
+  if (state.gear.helm !== undefined || state.gearItem.helm !== undefined) throw new Error('mythic skal kunne tages af');
+  if (state.bag.length !== 1 || state.bag[0].rarity !== 'mythic') throw new Error('mythic skal tilbage i tasken');
+});
+
 gqueue.then(() => {
   console.log('\\nGear-fejl i alt: ' + fails.length);
   if (fails.length) process.exit(1);

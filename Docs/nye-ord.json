@@ -1,0 +1,39 @@
+{
+  "_note": "De 20 nye ord til verden 25 og 26. Laegges ind i WORDS i index.html naar equip-arbejdet er faerdigt (for at undgaa konflikt i samme fil). Saetningerne er skrevet saa de baerer ordet i en kontekst et barn kan forstaa, ogsaa naar ordet staves anderledes end det lyder.",
+  "world25": {
+    "navn": "Den svære skov",
+    "emoji": "🌲",
+    "monster": "Stavelses-trolden",
+    "tema": "Ord der staves anderledes end de lyder, og ord med stumme bogstaver",
+    "ord": {
+      "dejligt": "Det har været en dejlig dag.",
+      "ellers": "Skynd dig, ellers kommer vi for sent.",
+      "farligt": "Det er farligt at løbe over vejen.",
+      "færdig": "Jeg er færdig med min tegning.",
+      "næsten": "Jeg er næsten færdig med at læse.",
+      "rigtigt": "Det er rigtigt, hvad du siger.",
+      "sikkert": "Han er sikkert hjemme nu.",
+      "sjovt": "Det er sjovt at spille med venner.",
+      "skønt": "Det er skønt at være ude i solen.",
+      "specielt": "Han er specielt god til matematik."
+    }
+  },
+  "world26": {
+    "navn": "Mesterskabet",
+    "emoji": "🏆",
+    "monster": "Mester-dragen",
+    "tema": "Lange sammensatte ord, hvor man skal kunne dele dem for at stave dem",
+    "ord": {
+      "sommerfugl": "En sommerfugl landede på min hånd.",
+      "fødselsdag": "I morgen har jeg fødselsdag.",
+      "jordbær": "Jordbær smager bedst om sommeren.",
+      "skolegård": "Vi leger i skolegården hver dag.",
+      "bibliotek": "Jeg låner bøger på biblioteket.",
+      "sommerferie": "Til sommerferie skal vi til stranden.",
+      "computer": "Jeg spiller på min computer.",
+      "telefon": "Morfar ringer på sin telefon.",
+      "fodboldbane": "Vi spiller kamp på fodboldbanen.",
+      "aftensmad": "Vi spiser aftensmad klokken seks."
+    }
+  }
+}
