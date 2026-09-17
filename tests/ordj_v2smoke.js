@@ -22,9 +22,10 @@ function check(label, cond, extra) { console.log((cond ? 'OK   ' : 'FEJL ') + la
 // state via localStorage-stub med getItem der giver et rent state
 let fails = 0;
 
-// 1) Verden 2 findes og er låst fra start
+// 1) Verden 2 findes og kan vælges fra start (ny kontrakt 18. sep: ingen lås)
 check('verden 12 (Bog-klassen) findes', WORLDS[12] && WORLDS[12].name === 'Bog-klassen', WORLDS[12] && WORLDS[12].name);
-check('verden 12 låst fra start', worldUnlocked(12) === false);
+check('verden 12 kan vælges fra start', canEnterWorld(12) === true);
+check('verden 12 er ikke nået fra start (progression vises)', worldReached(12) === false);
 check('verden 23 (Følelses-skoven) findes', WORLDS[23] && WORLDS[23].name === 'Følelses-skoven');
 
 // 2) blankInSentence matcher bøjede former

@@ -32,8 +32,10 @@ check('stjerner 2/8 = 2', starsFor(2,8) === 2);
 check('stjerner 7/8 = 1', starsFor(7,8) === 1);
 const d = distractors('jeg', 3);
 check('4 unikke distraktorer inkl. ordet', d.length === 4 && new Set(d).size === 4 && d.includes('jeg'), JSON.stringify(d));
-check('verden 0 åben', worldUnlocked(0) === true);
-check('verden 1 låst fra start', worldUnlocked(1) === false);
+/* NY KONTRAKT (18. sep): alle 24 verdener kan vælges fra start. */
+check('verden 0 kan vælges', canEnterWorld(0) === true);
+check('verden 1 kan vælges fra start (ingen lås)', canEnterWorld(1) === true);
+check('verden 1 er ikke nået endnu i rejsen', worldReached(1) === false);
 const wl = buildWordList(0, 8);
 check('wordlist 8 unikke', wl.length === 8 && new Set(wl).size === 8, JSON.stringify(wl));
 check('24 unikke verdensnavne', new Set(WORLDS.map(w=>w.name)).size === 24);

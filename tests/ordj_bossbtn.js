@@ -49,7 +49,7 @@ const els = global.__els;
 const fails = [];
 function t(label, fn) { try { fn(); console.log('OK   ' + label); } catch(e) { fails.push(label + ': ' + e.message); console.log('FEJL ' + label + ' :: ' + e.message); } }
 
-t('verden 3 låst op efter Ild-drage-sejr', () => {
+t('verden 3 er nået efter Ild-drage-sejr (progression, ikke lås)', () => {
   state.worlds = {};
   state.heroClass = 'kriger';
   state.xp = 0;
@@ -58,7 +58,8 @@ t('verden 3 låst op efter Ild-drage-sejr', () => {
   const w0 = worldState(0); w0.done = [true,true,true]; w0.hear=3; w0.type=3; w0.fill=3; w0.boss = true;
   const w1 = worldState(1); w1.done = [true,true,true]; w1.hear=3; w1.type=3; w1.fill=3; w1.boss = true;
   const w2 = worldState(2); w2.done = [true,true,true]; w2.hear=3; w2.type=3; w2.fill=3; w2.boss = true;
-  if (!worldUnlocked(3)) throw new Error('verden 3 skal være låst op');
+  if (!worldReached(3)) throw new Error('verden 3 skal være nået i rejsen');
+  if (!canEnterWorld(3)) throw new Error('verden 3 skal kunne vælges');
 });
 
 t('besøg verden 2 → knap disabled+done (som i fejlen)', () => {
@@ -79,11 +80,12 @@ t('verden 3 → knappen er KLIKBAR (bugfix)', () => {
   if (!bossState) throw new Error('bossState ikke sat');
 });
 
-t('besejr Skovtrolden → verden 4 låses op', () => {
+t('besejr Skovtrolden → verden 4 nås i rejsen', () => {
   bossState.playerHp = 999;
   bossWin();
   if (!state.worlds[3] || !state.worlds[3].boss) throw new Error('worlds[3].boss skal være true');
-  if (!worldUnlocked(4)) throw new Error('verden 4 skal låses op efter sejr');
+  if (!worldReached(4)) throw new Error('verden 4 skal være nået efter sejr');
+  if (!canEnterWorld(4)) throw new Error('verden 4 skal kunne vælges');
 });
 
 console.log(fails.length === 0 ? 'ALLE BOSS-TESTS GRØNNE' : 'FEJL: ' + fails.length);

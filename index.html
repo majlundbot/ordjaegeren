@@ -119,16 +119,20 @@
     transition: transform .12s, border-color .12s, box-shadow .12s;
     box-shadow: 0 8px 20px rgba(0,0,0,.45); width: 128px;
   }
-  .world-card:not(.locked):hover { transform: translate(-50%, -56%) scale(1.06); border-color: var(--accent); box-shadow: 0 12px 28px rgba(0,0,0,.5), 0 0 18px rgba(255,210,63,.25); z-index: 5; }
-  .world-card:not(.locked):active { transform: translate(-50%, -50%) scale(.95); }
-  .world-card.locked { opacity: 1; cursor: not-allowed; filter: grayscale(.25) brightness(.8); border-color: rgba(255,255,255,.12); }
-  .world-card.locked .emoji { filter: grayscale(.6) opacity(.55); }
-  .world-card.locked .wname { color: rgba(255,255,255,.55); }
+  .world-card:hover { transform: translate(-50%, -56%) scale(1.06); border-color: var(--accent); box-shadow: 0 12px 28px rgba(0,0,0,.5), 0 0 18px rgba(255,210,63,.25); z-index: 5; }
+  .world-card:active { transform: translate(-50%, -50%) scale(.95); }
+  /* Ingen verdenslaas mere: man vaelger frit fra start (Kenneths krav).
+     Alle kort ser derfor aabne og klikbare ud. Forskellen ligger i detaljen:
+       .cleared = monsteret besejret (groen kant — "den her er klaret")
+       .reached = man er naaet hertil i rejsen, men ikke faerdig (lys kant)
+     Et kort uden begge klasser er en aaben udfordring laengere fremme. */
+  .world-card.reached { border-color: rgba(255,255,255,.28); }
+  .world-card.cleared { border-color: rgba(74,222,128,.5); box-shadow: 0 8px 20px rgba(0,0,0,.45), 0 0 14px rgba(74,222,128,.16); }
   .world-card .emoji { font-size: 30px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
   .world-card .wname { font-weight: 800; font-size: 12.5px; margin-top: 4px; }
-  .world-card .wstars { font-size: 12px; margin-top: 4px; letter-spacing: 1px; color: var(--accent); }
-  .world-card .wstars span.off { color: rgba(255,255,255,.18); }
-  .world-card .wstars span.new { color: var(--accent); }
+  .world-card .wstars { font-size: 13px; margin-top: 5px; letter-spacing: 2px; color: var(--accent); }
+  .world-card .wstars .ws.none { color: rgba(255,255,255,.16); }
+  .world-card .wstars .ws.part { color: rgba(255,210,63,.45); }
   /* Helt der rejser på kortet */
   .map-hero {
     position: absolute; transform: translate(-50%, -60%); z-index: 6; pointer-events: none;
@@ -137,14 +141,12 @@
     animation: heroBob 1.2s ease-in-out infinite;
   }
   @keyframes heroBob { 0%, 100% { margin-top: 0; } 50% { margin-top: -6px; } }
-  .world-card.shake { animation: shakeX .45s ease-in-out; }
-  @keyframes shakeX { 0%,100% { transform: translate(-50%,-50%); } 20%,60% { transform: translate(-54%,-50%); } 40%,80% { transform: translate(-46%,-50%); } }
   /* Status-badges på verdenskortet */
   .w-badge {
     display: inline-block; margin: 6px auto 2px; padding: 4px 10px; border-radius: 999px;
     font-size: 11px; font-weight: 900; letter-spacing: .5px; width: fit-content;
   }
-  .b-locked { background: rgba(255,255,255,.08); color: #9fb0e8; }
+  .b-open { background: rgba(167,139,250,.16); color: #c4b5fd; border: 1px solid rgba(167,139,250,.4); }
   .b-new { background: rgba(96,165,250,.2); color: #93c5fd; border: 1px solid rgba(96,165,250,.4); }
   .b-progress { background: rgba(251,191,36,.15); color: #fcd34d; border: 1px solid rgba(251,191,36,.4); }
   .b-dragon { background: rgba(248,113,113,.2); color: #fca5a5; border: 1px solid rgba(248,113,113,.5); animation: badgePulse 1.6s ease-in-out infinite; }
@@ -1025,7 +1027,7 @@
   <div class="title">ORDJÆGEREN</div>
   <div class="subtitle">Fang de 240 vigtigste ord i dansk — 24 verdener, 72 missioner!</div>
   <button class="btn" onclick="showClassSelect()">🚀 Start eventyret</button>
-  <button class="btn ghost" onclick="showWorldMap()">🗺️ Fortsæt (kort)</button>
+  <button class="btn ghost" onclick="showWorldMap()">🗺️ Vælg verden (alle 24)</button>
   <button class="btn ghost" style="margin-top:10px" onclick="showProfiles()">👥 Skift spiller</button>
   <div class="ta" id="startMeta"></div>
 </div>
@@ -1787,10 +1789,19 @@ let state = defaultState();
 loadState();
 function save() { localStorage.setItem(profileKey(activeId()), JSON.stringify(state)); }
 function worldState(i) { if (!state.worlds[i]) state.worlds[i] = { hear:null, type:null, fill:null, done:[false,false,false] }; return state.worlds[i]; }
-function worldUnlocked(i) {
+/* worldReached = har spilleren NÅET hertil i rejsen? Den bruges KUN til at
+   vise status og stjerner på kortet — den spærrer ikke for noget.
+   canEnterWorld = må man starte en mission her? Ja, altid: Kenneths krav er
+   at man fra start skal kunne vælge den verden man vil, så hele Robins klasse
+   kan teste en vilkårlig verden uden at spille sig igennem først. */
+function worldReached(i) {
   if (i === 0) return true;
   const prev = state.worlds[i-1];
   return !!(prev && prev.boss);
+}
+function canEnterWorld(i) {
+  // Sikkerhedsnet mod et ugyldigt indeks — ellers er alle 24 verdener åbne.
+  return Number.isInteger(i) && i >= 0 && i < WORLDS.length;
 }
 function totalStars() {
   let n = 0;
@@ -4868,7 +4879,7 @@ function renderMapPanel(elId, start, end, title) {
   let paths = "";
   for (let i = start; i < end - 1; i++) {
     const a = MAP_POS[i], b = MAP_POS[i + 1];
-    const open = worldUnlocked(i + 1);
+    const open = worldReached(i + 1);
     const x1 = (a.x / 100) * 1200, y1 = (a.y / 100) * 760, x2 = (b.x / 100) * 1200, y2 = (b.y / 100) * 760;
     const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - 26; // svag bue
     paths += `<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${open ? "#ffd76a" : "#4a5578"}" stroke-width="${open ? 5 : 3}" stroke-dasharray="${open ? "" : "7 7"}" opacity="${open ? ".85" : ".5"}"/>`;
@@ -4884,24 +4895,36 @@ function renderMapPanel(elId, start, end, title) {
     const d = document.createElement("div");
     const w = WORLDS[i];
     const p = MAP_POS[i];
-    const unlocked = worldUnlocked(i);
+    const reached = worldReached(i);
     const ws = state.worlds[i];
     const missionsDone = ws && ws.done && ws.done[0] && ws.done[1] && ws.done[2];
     const bossDone = ws && ws.boss;
+    // Alle 24 verdener er åbne — badgen viser hvor langt man er, ikke om man må.
     let badge = "";
-    if (!unlocked) badge = '<div class="w-badge b-locked">🔒 Låst</div>';
-    else if (bossDone) badge = '<div class="w-badge b-done">✅ Færdig</div>';
+    if (bossDone) badge = '<div class="w-badge b-done">✅ Færdig</div>';
     else if (missionsDone) badge = '<div class="w-badge b-dragon">👾 Slå monsteret!</div>';
     else if (ws && (ws.done[0] || ws.done[1] || ws.done[2])) badge = '<div class="w-badge b-progress">🚧 I gang</div>';
-    else badge = '<div class="w-badge b-new">🆕 Start her</div>';
+    else if (reached) badge = '<div class="w-badge b-new">🆕 Start her</div>';
+    else badge = '<div class="w-badge b-open">✨ Åben</div>';
     let segs = "";
     const doneArr = ws && ws.done ? ws.done : [false, false, false];
     const segStates = [doneArr[0], doneArr[1], doneArr[2], !!(ws && ws.boss)];
     for (let si = 0; si < 4; si++) segs += `<div class="w-seg ${segStates[si] ? "on" : "off"}"></div>`;
-    d.className = "world-card" + (unlocked ? "" : " locked");
+    /* Stjerner pr. verden — én stjerne pr. mission (3 = perfekt).
+       Selv om alt er åbent fra start, skal et barn kunne SE at der er noget
+       at stræbe efter: fuld stjerne = missionen er klaret perfekt. */
+    const missionStars = [(ws && ws.hear) || 0, (ws && ws.type) || 0, (ws && ws.fill) || 0];
+    let starMarks = "";
+    for (let si = 0; si < 3; si++) {
+      const n = missionStars[si];
+      starMarks += `<span class="ws ${n >= 3 ? "full" : n > 0 ? "part" : "none"}">★</span>`;
+    }
+    const wStars = missionStars[0] + missionStars[1] + missionStars[2];
+    d.className = "world-card" + (bossDone ? " cleared" : reached ? " reached" : "");
     d.style.left = p.x + "%";
     d.style.top = p.y + "%";
-    d.innerHTML = `<div class="emoji">${unlocked ? w.emoji : "🔒"}</div><div class="wname">${w.name}</div>${badge}<div class="w-progress">${segs}</div>`;
+    d.title = "Verden " + (i+1) + ": " + w.name + " — " + wStars + " af 9 stjerner" + (bossDone ? " · monster besejret" : "");
+    d.innerHTML = `<div class="emoji">${w.emoji}</div><div class="wname">${w.name}</div><div class="wstars">${starMarks}</div>${badge}<div class="w-progress">${segs}</div>`;
     d.onclick = () => travelToWorld(i);
     map.appendChild(d);
   }
@@ -4970,14 +4993,9 @@ function updateMapChrome() {
 }
 bindMapSwipe();
 function travelToWorld(i) {
-  if (!worldUnlocked(i)) {
-    const prev = WORLDS[i - 1];
-    toast("🔒 Besejr monsteret i " + prev.name + " først!", 2500);
-    const cards = document.querySelectorAll("#worldMapA .world-card, #worldMapB .world-card");
-    const el = cards[i];
-    if (el) { el.classList.add("shake"); setTimeout(() => el.classList.remove("shake"), 500); }
-    return;
-  }
+  // Ingen verdenslaas mere (Kenneth: "fra start skal man selv kunne vælge den
+  // verden man vil"). canEnterWorld siger nej til ugyldige indeks — intet andet.
+  if (!canEnterWorld(i)) return;
   const hero = document.getElementById(i >= 12 ? "mapHeroB" : "mapHeroA");
   if (hero) {
     const p = MAP_POS[i];

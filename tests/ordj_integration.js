@@ -95,7 +95,11 @@ resetState();
 check('verden 0 har alle 3 spil registreret', state.worlds[0] && state.worlds[0].hear && state.worlds[0].type && state.worlds[0].fill,
   JSON.stringify(state.worlds[0]));
 check('verden 0 har alle 3 spil med stjerner', state.worlds[0].hear > 0 && state.worlds[0].type > 0 && state.worlds[0].fill > 0, JSON.stringify(state.worlds[0]));
-check('verden 1 IKKE åben uden besejret drage', worldUnlocked(1) === false, worldUnlocked(1));
+/* NY KONTRAKT (18. sep): verdenslåsen er fjernet — man vælger frit fra start.
+   Progressionen findes stadig, men heder nu worldReached og styrer KUN
+   visningen (status/stjerner på kortet), ikke om man må starte en mission. */
+check('verden 1 kan vælges fra start (ingen lås)', canEnterWorld(1) === true, canEnterWorld(1));
+check('verden 1 er endnu ikke NÅET i rejsen (progression vises stadig)', worldReached(1) === false, worldReached(1));
 check('XP tildelt (3 missioner)', state.xp > 0, state.xp);
 check('historik har 3 missioner', state.stats.history.length === 3, state.stats.history.length);
 
@@ -142,15 +146,16 @@ let badBoss = [];
 BOSSES.forEach((b, i) => { if (!b.name || !b.power || b.power < 5 || b.power > 200) badBoss.push(i + ':' + JSON.stringify(b).slice(0,40)); });
 check('alle 24 drager har navn + rimelig styrke', badBoss.length === 0, JSON.stringify(badBoss.slice(0,4)));
 
-// ===== INTEGRATION: verdens-oplåsning stemmer med 24 verdener =====
-check('verden 0 altid åben', worldUnlocked(0) === true);
+// ===== INTEGRATION: verdens-valg + progression stemmer med 24 verdener =====
+check('verden 0 kan altid vælges', canEnterWorld(0) === true);
 resetState();
-check('verden 23 låst fra start', worldUnlocked(23) === false);
-// Lås alle op progressivt: komplet verden i gennem 23 verdener
+check('verden 23 kan vælges fra start (ingen lås)', canEnterWorld(23) === true, canEnterWorld(23));
+check('verden 23 er ikke NÅET fra start', worldReached(23) === false, worldReached(23));
+// Nå alle verdener progressivt: komplet verden i gennem 23 verdener
 for (let i = 0; i < 23; i++) {
   state.worlds[i] = { hear: 3, type: 3, fill: 3, boss: true };
 }
-check('verden 23 åben når drage i V22 er besejret', worldUnlocked(23) === true, worldUnlocked(23));
+check('verden 23 er NÅET når drage i V22 er besejret', worldReached(23) === true, worldReached(23));
 
 console.log(F === 0 ? '\\nALLE INTEGRATION+FUZZ-TESTS GRØNNE' : '\\n' + F + ' FEJL');
 if (F) process.exit(1);

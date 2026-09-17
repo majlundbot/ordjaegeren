@@ -217,11 +217,22 @@ gtest('kriger-klassen giver ekstra HP', () => {
   if (bossState.playerHp !== 80) throw new Error('kriger skal have 80 HP, fik ' + bossState.playerHp);
 });
 
-gtest('worldUnlocked kræver boss besejret', () => {
+/* NY KONTRAKT (18. sep): ingen verdenslås — alt kan vælges fra start.
+   worldReached viser stadig OM spilleren er nået hertil (til status/stjerner). */
+gtest('worldReached kræver boss besejret (progression vises, ikke spærrer)', () => {
   state.worlds = { 0: { hear:3, type:3, fill:3, done:[true,true,true], boss:true } };
-  if (!worldUnlocked(1)) throw new Error('verden 1 skal være åben når boss 0 er besejret');
+  if (!worldReached(1)) throw new Error('verden 1 skal være NÅET når boss 0 er besejret');
   state.worlds = { 0: { hear:3, type:3, fill:3, done:[true,true,true] } };
-  if (worldUnlocked(1)) throw new Error('verden 1 må ikke være åben uden boss-sejr');
+  if (worldReached(1)) throw new Error('verden 1 må ikke være nået uden boss-sejr');
+});
+
+gtest('man kan vælge en vilkårlig verden fra start', () => {
+  state.worlds = {};
+  for (let i = 0; i < WORLDS.length; i++) {
+    if (!canEnterWorld(i)) throw new Error('verden ' + i + ' skal kunne vælges fra start');
+  }
+  if (canEnterWorld(-1)) throw new Error('negativt indeks må ikke kunne vælges');
+  if (canEnterWorld(WORLDS.length)) throw new Error('indeks ud over spillet må ikke kunne vælges');
 });
 
 gtest('statistik: markWrong/markRight registreres', () => {
