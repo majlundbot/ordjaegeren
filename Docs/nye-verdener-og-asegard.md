@@ -79,6 +79,42 @@ Længere sammensatte ord, hvor man skal kunne dele dem for at stave dem:
 
 ---
 
+## 5. OPDATERING (17. sep): side C er nu færdig — 10 nye verdener (27-36)
+
+Kenneth: *"Jeg kan godt lide den sidste verden du har lavet, men du skal lave den som de
+andre. Så der er 12 forskellige."* Side C havde kun 2 verdener. Nu har alle tre sider 12.
+Spillet er **360 ord / 36 verdener / 108 missioner**, og alle tre kort er identiske i
+layout (samme 12 positioner i `MAP_POS` pr. side).
+
+**Rækkefølgen er en fortsat sværhedskurve i TEMAER** — ikke bare længere ord:
+
+| Verden | Navn | Tema | Eksempler | Monster |
+|---|---|---|---|---|
+| 27 | Dobbelt-bjerget 🏔️ | dobbeltkonsonanter | tallerken, klippe, svømme | Tvillingen 👯 |
+| 28 | Stum-skoven 🌫️ | stumme bogstaver | hjul, gæst, guld, fugl | Stilheds-ånden 👻 |
+| 29 | Byens gader 🏙️ | fremmedord | pizza, biograf, robot | Trafik-trolden 🚦 |
+| 30 | Skole-loftet 🎒 | skole- og fagord | matematik, frikvarter, lineal | Klassens Spøgelse 🎓 |
+| 31 | Vildt-reservatet 🦌 | natur og dyr | egern, pindsvin, skildpadde | Ulveflokken 🐺 |
+| 32 | Følelses-fjeldet 😌 | følelser/egenskaber | stolt, taknemlig, tålmodig | Sorgens Skygge 😢 |
+| 33 | Spejl-søen 🪞 | ej-/øj-lyde | spejl, nøgle, højt | Spejl-trolden 🪞 |
+| 34 | Samfunds-byen 🏛️ | samfunds-ord | penge, arbejde, sygehus | Byens Vogter 🚓 |
+| 35 | Eventyr-riget 🏰 | eventyr og myteri | ridder, prinsesse, viking | Troldmands-kongen 🧙 |
+| 36 | Drømme-tårnet 🌌 | de sværeste ord | frihed, sandhed, kærlighed | Drømme-kejseren 🌌 |
+
+**Kraften fortsætter hele kurven:** 116 → 122 → 128 → 134 → 140 → 147 → 154 → 161 → 170
+→ 180. Den sidste verden ER nu den stærkeste i spillet. Grunden er enkel: testen kræver
+at kraften stiger for HVER verden, og en verden 28 der var svagere end verden 26 ville
+føle som en nedtur for barnet. Mester-dragen beholder en vigtigere rolle: den er stadig
+den eneste drage og den eneste kilde til 🏔️ ASEGÅRD-udstyret (`asgardForWorld`).
+
+**Lyd:** 100 nye ord × 2 = **200 nye lydfiler** i `audio/v2/` (i alt 360 × 2 = 720).
+
+**Sproget (Kenneths krav):** ordet står i PRÆCIS sin egen form i alle 100 nye sætninger —
+fx "en appelsin" (fælleskøn) og "et hjul" (intetkøn), aldrig "en dejligt dag"-typen.
+Bevis: `node tests/tools/check_saetninger.js` viser 0 afvigelser blandt de nye ord.
+
+---
+
 ## 4. Faldgruber
 
 - **Tempus:** "240 ord" står i titel, fortælling og tests. Skal til 260 — find ALLE steder.

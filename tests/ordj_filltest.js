@@ -1,4 +1,4 @@
-// Autoritativ test: kør den faktiske blankInSentence-funktion på alle 260 ord
+// Autoritativ test: kør den faktiske blankInSentence-funktion på alle 360 ord
 const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 const m = src.match(/const WORDS = (\{.*?\n\});/s);
@@ -25,5 +25,5 @@ if (fejl.length === 0) {
   console.log(JSON.stringify(fejl, null, 1));
   process.exit(1);
 }
-if (pairs.length !== 260) { console.log('FEJL forventede 260 ord, fandt ' + pairs.length); process.exit(1); }
-console.log('OK   ordlisten har præcis 260 skrevne nøgler');
+if (pairs.length !== 360) { console.log('FEJL forventede 360 ord, fandt ' + pairs.length); process.exit(1); }
+console.log('OK   ordlisten har præcis 360 skrevne nøgler');

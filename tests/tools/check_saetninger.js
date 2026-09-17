@@ -6,11 +6,16 @@ const D = '/Users/kennethmajlund/.openclaw/workspace/Projects/Ordjægeren/';
 const html = fs.readFileSync(D + 'index.html', 'utf-8');
 const wm = html.match(/const WORDS = \{[\s\S]*?\n\};/)[0];
 
-// Noeglerne er uciterede:  ord:"Saetning.",
+// Nøglerne er uciterede:  ord:"Sætning.",
+// Mønsteret skal også fange den FØRSTE nøgle på en linje (den står efter linjeskift
+// + indrykning): derfor både linjestart og et tegn/whitespace foran. Uden dette sprang
+// værktøjet 13 ord over (fx "sommerfugl" og "dejligt"), så det ikke var et fuldt bevis.
 const par = [];
-for (const m of wm.matchAll(/(?:^|[{,]\s*)([a-zæøå]+):"([^"]*)"/gm)) {
+for (const m of wm.matchAll(/(?:^|[{,\s])([a-zæøå]+):"([^"]*)"/gm)) {
   par.push([m[1], m[2]]);
 }
+const unikkePar = [...new Map(par.map(p => [p[0] + '\u0000' + p[1], p])).values()];
+par.length = 0; par.push(...unikkePar);
 console.log('ord i WORDS: ' + par.length);
 console.log('');
 

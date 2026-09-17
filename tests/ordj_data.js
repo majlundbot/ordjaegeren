@@ -1,4 +1,4 @@
-// ORDDATA-VAGT: låser kvaliteten af alle 260 ord+sætninger.
+// ORDDATA-VAGT: låser kvaliteten af alle 360 ord+sætninger.
 // Baggrund: spillet viste en forkert sætning for "der" — denne pakke fanger den slags.
 // Udvidet 17. sep da verden 25 og 26 kom til: nu tælles BÅDE unikke nøgler og de
 // SKREVNE nøgler, så en usynlig dublet (som den gamle "over") ikke kan snige sig ind.
@@ -26,7 +26,7 @@ const check = (l, c, e) => { if (!c) F++; console.log((c ? 'OK   ' : 'FEJL ') + 
 const keys = Object.keys(WORDS);
 console.log('--- Orddata: ' + keys.length + ' ord ---');
 
-check('der er præcis 260 ord', keys.length === 260, keys.length);
+check('der er præcis 360 ord', keys.length === 360, keys.length);
 check('hvert ord er en lille streng uden mellemrum', keys.every(k => /^[a-zæøå]+$/.test(k)),
   JSON.stringify(keys.filter(k => !/^[a-zæøå]+$/.test(k))));
 check('hver sætning er ikke-tom og slutter med tegnsætning', keys.every(k => /[.!?]$/.test((WORDS[k]||'').trim())),
@@ -40,7 +40,7 @@ check('ingen to ord deler samme sætning', dupes.length === 0, JSON.stringify(du
 
 // 2) Hvert ord skal kunne give et hul i sin EGEN sætning
 const noBlank = keys.filter(k => !blankInSentence(k, WORDS[k], '____').includes('____'));
-check('alle 260 ord giver et hul i deres egen sætning', noBlank.length === 0, JSON.stringify(noBlank));
+check('alle 360 ord giver et hul i deres egen sætning', noBlank.length === 0, JSON.stringify(noBlank));
 
 // 3) Hullet skal stå dér hvor ordet står — ikke et tilfældigt sted.
 /* Kontrakten (justeret 17. sep for verden 25): hullet skal stå på en FORM af ordet.
@@ -93,13 +93,13 @@ check('intet ord ligger i to verdener', multi.length === 0, JSON.stringify(multi
 check('hver verden har 10 ord', WORLDS.every(w => w.words.length === 10), JSON.stringify(WORLDS.map(w => w.words.length)));
 check('alle ord i verdenerne findes i ordlisten', Object.keys(inWorlds).every(k => WORDS[k]),
   JSON.stringify(Object.keys(inWorlds).filter(k => !WORDS[k])));
-check('26 verdener', WORLDS.length === 26, WORLDS.length);
+check('36 verdener', WORLDS.length === 36, WORLDS.length);
 /* KONSISTENS-KRAVET: verdenerne skal tilsammen indeholde PRÆCIS de samme ord som
    WORDS — hverken et ord mere eller et ord mindre. Det er dét der fanger en usynlig
    dublet eller et glemt ord. */
 const antalVerdensord = WORLDS.reduce((n, w) => n + w.words.length, 0);
-check('260 ord i verdenerne til sammen', antalVerdensord === 260, antalVerdensord);
-check('ordene i verdenerne = ordene i WORDS (260 unikke)',
+check('360 ord i verdenerne til sammen', antalVerdensord === 360, antalVerdensord);
+check('ordene i verdenerne = ordene i WORDS (360 unikke)',
   antalVerdensord === keys.length && Object.keys(inWorlds).length === keys.length,
   antalVerdensord + ' verdensord / ' + Object.keys(inWorlds).length + ' unikke / ' + keys.length + ' i WORDS');
 check('hvert ord i WORDS bruges i en verden', keys.every(k => inWorlds[k]), JSON.stringify(keys.filter(k => !inWorlds[k])));
@@ -124,10 +124,10 @@ while ((pos = wBlock.indexOf(':"', pos)) >= 0) {
 }
 const dubletter = skrevne.filter((k, i) => skrevne.indexOf(k) !== i);
 check('ingen nøgle skrives to gange i WORDS', dubletter.length === 0, JSON.stringify(dubletter));
-check('antal skrevne nøgler = antal ord (260 = 260)', skrevne.length === 260 && keys.length === 260, skrevne.length + ' skrevne / ' + keys.length + ' unikke');
+check('antal skrevne nøgler = antal ord (360 = 360)', skrevne.length === 360 && keys.length === 360, skrevne.length + ' skrevne / ' + keys.length + ' unikke');
 
 // 7) Hver drage hører til sin verden
-check('26 drager, én pr. verden', BOSSES.length === 26 && BOSSES.every(b => b && b.name), BOSSES.length);
+check('36 drager, én pr. verden', BOSSES.length === 36 && BOSSES.every(b => b && b.name), BOSSES.length);
 
 console.log(F === 0 ? '\\nORDDATA OK' : '\\n' + F + ' FEJL');
 process.exit(F ? 1 : 0);

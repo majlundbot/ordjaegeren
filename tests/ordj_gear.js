@@ -135,8 +135,8 @@ gtest('state migreres korrekt (gamle saves)', () => {
   if (!Array.isArray(s2.bag)) throw new Error('bag skal være array');
 });
 
-gtest('boss-data: 26 drager, stigende kraft', () => {
-  if (BOSSES.length !== 26) throw new Error('26 drager forventet');
+gtest('boss-data: 36 drager, stigende kraft', () => {
+  if (BOSSES.length !== 36) throw new Error('36 drager forventet');
   for (let i = 1; i < BOSSES.length; i++) {
     if (BOSSES[i].power <= BOSSES[i-1].power) throw new Error('kraft skal stige: ' + i);
   }

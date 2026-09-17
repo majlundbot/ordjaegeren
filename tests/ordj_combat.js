@@ -51,7 +51,7 @@ check('elementOf(0) = ild', elementOf(0).key === 'ild');
 check('elementOf(1) = is', elementOf(1).key === 'is');
 check('elementOf(4) = skygge', elementOf(4).key === 'skygge');
 check('elementOf cykler (5 = ild igen)', elementOf(5).key === 'ild', elementOf(5).key);
-check('alle 26 verdener får et gyldigt element', Array.from({length:WORLDS.length},(_,i)=>elementOf(i)).every(e => e && e.moves.length >= 3));
+check('alle 36 verdener får et gyldigt element', Array.from({length:WORLDS.length},(_,i)=>elementOf(i)).every(e => e && e.moves.length >= 3));
 
 /* ===== 2) SIGNATURANGREB (synkront) ===== */
 console.log('--- Signaturangreb ---');

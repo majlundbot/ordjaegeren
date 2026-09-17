@@ -20,9 +20,9 @@ const tests = `
 // ==== TESTS ====
 function check(label, cond, extra) { console.log((cond ? 'OK  ' : 'FEJL') + ' ' + label + (extra && !cond ? ' :: ' + extra : '')); }
 
-check('260 ord i WORDS', Object.keys(WORDS).length === 260, Object.keys(WORDS).length);
+check('360 ord i WORDS', Object.keys(WORDS).length === 360, Object.keys(WORDS).length);
 const inWorlds = WORLDS.flatMap(w => w.words);
-check('260 ord i verdener, ingen dubletter', inWorlds.length === 260 && new Set(inWorlds).size === 260, inWorlds.length + '/' + new Set(inWorlds).size);
+check('360 ord i verdener, ingen dubletter', inWorlds.length === 360 && new Set(inWorlds).size === 360, inWorlds.length + '/' + new Set(inWorlds).size);
 /* Kontrakten (justeret 17. sep for verden 25): sætningen skal indeholde ordet —
    eller intetkøns-formen uden -t ("dejligt" står som "dejlig" i "Det har været en
    dejlig dag."). Lydfilen læser ordet som barnet kender det; vi skriver ikke
@@ -39,13 +39,14 @@ check('stjerner 2/8 = 2', starsFor(2,8) === 2);
 check('stjerner 7/8 = 1', starsFor(7,8) === 1);
 const d = distractors('jeg', 3);
 check('4 unikke distraktorer inkl. ordet', d.length === 4 && new Set(d).size === 4 && d.includes('jeg'), JSON.stringify(d));
-/* NY KONTRAKT (18. sep): alle 26 verdener kan vælges fra start. */
+/* NY KONTRAKT (18. sep): alle 36 verdener kan vælges fra start. */
 check('verden 0 kan vælges', canEnterWorld(0) === true);
 check('verden 1 kan vælges fra start (ingen lås)', canEnterWorld(1) === true);
 check('verden 1 er ikke nået endnu i rejsen', worldReached(1) === false);
 const wl = buildWordList(0, 8);
 check('wordlist 8 unikke', wl.length === 8 && new Set(wl).size === 8, JSON.stringify(wl));
-check('26 unikke verdensnavne', new Set(WORLDS.map(w=>w.name)).size === 26);
+check('36 unikke verdensnavne', new Set(WORLDS.map(w=>w.name)).size === 36);
+check('verden 36 kan også vælges', canEnterWorld(35) === true);
 // tilfældig stikprøve af sætninger der skal vise ____ korrekt
 const randWords = ['hvem','hvordan','tilbage','aldrig','sådan'];
 randWords.forEach(w => {

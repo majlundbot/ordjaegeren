@@ -20,6 +20,45 @@ telefon · fodboldbane · aftensmad
 testpakker, der havde antagelser om 24/240 (ordj_maps, ordj_monstre, ordj_data,
 ordj_smoke_all, ordj_vaelgverden, ordj_integration, ordj_test2, ordj_gear, ordj_stress).
 
+## 1c. Tredje kort-side gjort færdig: 10 nye verdener (27-36)
+`[x] FÆRDIG (17. sep)` — Kenneth: *"Jeg kan godt lide den sidste verden du har lavet, men
+du skal lave den som de andre. Så der er 12 forskellige."* Side C havde kun 2 verdener
+mod de to andre sidens 12. Nu har ALLE TRE sider 12 verdener: **360 ord / 36 verdener /
+108 missioner.** Alle tre kort er identiske i layout (samme 12 positioner i `MAP_POS` pr.
+side), og `mapPageForWorld(i)` styrer uændret hvilket kort en verden hører til.
+
+**De 10 nye verdener (tema i parentes)** — hver med 10 ord, sit eget monster og 200 nye
+lydfiler i `audio/v2/`:
+
+| Verden | Navn | Tema | Monster (kraft) |
+|---|---|---|---|
+| 27 | Dobbelt-bjerget 🏔️ | dobbeltkonsonanter | Tvillingen 👯 (116) |
+| 28 | Stum-skoven 🌫️ | stumme bogstaver | Stilheds-ånden 👻 (122) |
+| 29 | Byens gader 🏙️ | fremmedord | Trafik-trolden 🚦 (128) |
+| 30 | Skole-loftet 🎒 | skole- og fagord | Klassens Spøgelse 🎓 (134) |
+| 31 | Vildt-reservatet 🦌 | natur og dyr | Ulveflokken 🐺 (140) |
+| 32 | Følelses-fjeldet 😌 | følelser og egenskaber | Sorgens Skygge 😢 (147) |
+| 33 | Spejl-søen 🪞 | ej-/øj-lyde | Spejl-trolden 🪞 (154) |
+| 34 | Samfunds-byen 🏛️ | samfunds-ord | Byens Vogter 🚓 (161) |
+| 35 | Eventyr-riget 🏰 | eventyr og myteri | Troldmands-kongen 🧙 (170) |
+| 36 | Drømme-tårnet 🌌 | de sværeste ord | Drømme-kejseren 🌌 (180) |
+
+**Kraft-kurven:** den stiger uafbrudt i alle 36 verdener (testen kræver det), så den
+SIDSTE verden er nu den stærkeste i spillet. Mester-dragen (110, verden 26) er stadig
+den eneste drage og den eneste vej til 🏔️ ASEGÅRD — en anden og vigtigere slags
+"stærkest". Det er skrevet ind i koden og i testen, så ingen af de to roller kan forsvinde.
+
+**Sproget blev kontrolleret maskinelt:** alle 100 nye sætninger har ordet stående i
+PRÆCIS sin egen form (ingen bøjning), og `tests/tools/check_saetninger.js` viser at alle
+100 er rene. De 47 afvigelser rapporten viser, er ALLE gamle ord fra verden 1-26
+(hund→"Hunden logrer", æble→"Æblet er rødt") — de er ikke rørt i denne omgang.
+
+**Faldgrube fundet (og undgået):** `tests/ordj_adaptiv.js` og `tests/ordj_selv3.js`
+låser hv-drillen til PRÆCIS 6 ord ("alle 6 hv-ord"). Derfor står der ingen hv-ord i de
+nye lister (hvid/hval blev skiftet til fugl/kugle) — ellers ville to grønne pakker blive
+røde uden at spillet var blevet dårligere. Skal hv-drillen udvides senere, skal de to
+tests opdateres med vilje.
+
 **BESLUTNING TAGET (assistenten, 17. sep): TREDJE KORT-SIDE.** Kenneth svarede ikke inden
 natten, men der er kun én løsning der opfylder hans eget krav om at de to eksisterende kort
 skal være **identiske i layout**: lægger man de nye verdener på akademi-kortet, holder de ikke

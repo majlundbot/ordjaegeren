@@ -9,7 +9,7 @@
  *      én gang ("over"), og den var usynlig i filen.
  *   2) Antallet af UNIKKE nøgler (Object.keys) og at de to tal er ens.
  *   3) At hver verden har 10 ord, at ORDENE i verdenerne tilsammen er præcis lige så
- *      mange som WORDS (260 = 260), og at intet ord optræder to steder.
+ *      mange som WORDS (360 = 360), og at intet ord optræder to steder.
  *   4) At hvert ord har BÅDE en ord-lydfil og en sætnings-lydfil i audio/v2/.
  *
  * Exit-kode 0 = alt konsistent, 1 = fejl (så den kan bruges som port i CI).
@@ -80,6 +80,6 @@ console.log(JSON.stringify({
   antal_verdener: WORLDS.length,
   ord_pr_verden: [...new Set(WORLDS.map(w => (w.words || []).length))],
   ord_uden_lyd: mangleLyd.length,
-  konklusion: fejl.length === 0 ? 'KONSISTENT: 260 unikke ord, ingen dubletter' : 'FEJL'
+  konklusion: fejl.length === 0 ? 'KONSISTENT: 360 unikke ord, ingen dubletter' : 'FEJL'
 }, null, 2));
 if (fejl.length) { fejl.forEach(f => console.error('FEJL: ' + f)); process.exit(1); }

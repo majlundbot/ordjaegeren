@@ -1,4 +1,4 @@
-// SMOKE: alle 26 verdener x 3 spil, alle 26 drager, alle 12 lektioner/drills — intet må crashe
+// SMOKE: alle 36 verdener x 3 spil, alle 36 drager, alle 12 lektioner/drills — intet må crashe
 const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 global.fakeCanvas = { getContext: () => ({ clearRect(){}, fillRect(){}, beginPath(){}, arc(){}, ellipse(){}, fill(){}, stroke(){}, save(){}, restore(){}, translate(){}, rotate(){}, drawImage(){}, createRadialGradient(){ return { addColorStop(){} }; }, measureText: () => ({width:10}) }), width:0, height:0 };
@@ -23,7 +23,7 @@ function reset() {
 }
 reset();
 
-// ===== 1) ALLE 26 VERDENER x 3 SPIL KAN STARTES UDEN CRASH =====
+// ===== 1) ALLE 36 VERDENER x 3 SPIL KAN STARTES UDEN CRASH =====
 const games = ['hear','type','fill'];
 let crashes = [];
 for (let w = 0; w < WORLDS.length; w++) {
@@ -40,9 +40,9 @@ for (let w = 0; w < WORLDS.length; w++) {
     } catch(e) { crashes.push('V'+w+'/'+g+':'+e.message); }
   }
 }
-check('alle 26 verdener x 3 spil starter + render uden crash', crashes.length === 0, JSON.stringify(crashes.slice(0,6)));
+check('alle 36 verdener x 3 spil starter + render uden crash', crashes.length === 0, JSON.stringify(crashes.slice(0,6)));
 
-// ===== 2) ALLE 26 DRAGEKAMPE KAN STARTES =====
+// ===== 2) ALLE 36 DRAGEKAMPE KAN STARTES =====
 reset();
 crashes = [];
 for (let w = 0; w < BOSSES.length; w++) {
@@ -53,7 +53,7 @@ for (let w = 0; w < BOSSES.length; w++) {
     if (bossState.dragonMax !== BOSSES[w].power * 6) crashes.push('V'+w+':drage-HP forkert');
   } catch(e) { crashes.push('V'+w+':'+e.message); }
 }
-check('alle 26 dragekampe starter uden crash', crashes.length === 0, JSON.stringify(crashes.slice(0,6)));
+check('alle 36 dragekampe starter uden crash', crashes.length === 0, JSON.stringify(crashes.slice(0,6)));
 check('spiller-HP > drage-HP i verden 0 (vindbar)', (50 + heroPower()*6) > BOSSES[0].power*6);
 
 // ===== 3) ALLE 12 MØNSTRE: lektion + drill =====

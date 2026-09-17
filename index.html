@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ordjægeren — Lær de 260 vigtigste ord</title>
+<title>Ordjægeren — Lær de 360 vigtigste ord</title>
 <style>
   :root {
     --accent: #ffd23f;
@@ -1119,9 +1119,9 @@
 <!-- START -->
 <div class="screen active" id="screen-start">
   <div class="title">ORDJÆGEREN</div>
-  <div class="subtitle">Fang de 260 vigtigste ord i dansk — 26 verdener, 78 missioner!</div>
+  <div class="subtitle">Fang de 360 vigtigste ord i dansk — 36 verdener, 108 missioner!</div>
   <button class="btn" onclick="showClassSelect()">🚀 Start eventyret</button>
-  <button class="btn ghost" onclick="showWorldMap()">🗺️ Vælg verden (alle 26)</button>
+  <button class="btn ghost" onclick="showWorldMap()">🗺️ Vælg verden (alle 36)</button>
   <button class="btn ghost" style="margin-top:10px" onclick="showProfiles()">👥 Skift spiller</button>
   <div class="ta" id="startMeta"></div>
 </div>
@@ -1158,9 +1158,9 @@
   <div class="map-carousel" id="mapCarousel">
     <div class="worldmap" id="worldMapA"></div>
     <div class="worldmap" id="worldMapB"></div>
-    <!-- TREDJE KORT-SIDE (verden 25-26): de to første kort er identiske i layout,
-         så de nye verdener kan ikke ligge oveni dem — de får deres egen side,
-         bygget med PRÆCIS samme mønster (renderMapPanel + swipe). -->
+    <!-- TREDJE KORT-SIDE (verden 25-36): alle tre kort er identiske i layout, og hver
+         side har sine egne 12 positioner i MAP_POS — derfor kan de nye verdener ikke
+         ligge oveni de gamle. Bygget med PRÆCIS samme mønster (renderMapPanel + swipe). -->
     <div class="worldmap" id="worldMapC"></div>
   </div>
   <div class="map-nav">
@@ -1523,21 +1523,24 @@ const WORDS = {
   svømme:"Jeg lærte at svømme i sommer.", briller:"Min far har fået nye briller.",
   appelsin:"Jeg spiser en appelsin i frikvarteret.", middag:"Vi spiser middag klokken tolv.",
   /* ============ VERDEN 28: Stum-skoven (10 ord) ============
-     Tema: STUMME BOGSTAVER. H'et i "hjul", D'et i "guld" og D'et i "født" kan man
-     ikke høre — men man SKAL skrive dem. Alle sætninger bruger ordet i præcis den form. */
+     Tema: STUMME BOGSTAVER. H'et i "hjul", D'et i "guld", G'et i "fugl" og D'et i
+     "født" kan man ikke høre — men man SKAL skrive dem. Alle sætninger bruger ordet i
+     præcis den form barnet skal stave.
+     BEMÆRK: ingen ord på "hv-" her. Mønster-testen i tests/ordj_adaptiv.js låser
+     hv-drillen ved 6 ord, og "hv" er i forvejen dækket af hvad/hvor/hvem/hvordan. */
   hjul:"Et hjul på cyklen drejer rundt.", hjerte:"Mit hjerte slår hurtigt, når jeg løber.",
   hjælpe:"Kan du hjælpe mig med at rydde op?", hjem:"Nu vil jeg gerne hjem.",
-  hvid:"Sneen er helt hvid.", hval:"En hval svømmer i havet.",
   gæst:"Vi får en gæst på besøg i morgen.", guld:"Vinderen får en medalje af guld.",
   jord:"Der er jord på mine sko.", født:"Jeg er født i marts.",
+  fugl:"En fugl sidder på grenen.", kugle:"En kugle er helt rund.",
   /* ============ VERDEN 29: Byens gader (10 ord) ============
      Tema: FREMMEDORD som et dansk barn møder i byen. De staves ikke som de lyder
      for et dansk øre — derfor skal de læres som hele ord. */
   pizza:"Vi spiser pizza hver fredag.", bus:"Vi kører med bus til byen.",
-  tog:"Vi tager tog til Århus i morgen.", biograf:"Vi skal i biograf og se en film.",
+  tog:"Vi tager tog til Århus i morgen.", biograf:"En biograf er et sted, hvor man ser film.",
   hotel:"Vi sov på et hotel i ferien.", restaurant:"Vi spiste på en restaurant i byen.",
   kamera:"Jeg tager et billede med mit kamera.", robot:"Min bror har bygget en robot af klodser.",
-  guitar:"Jeg kan spille på en guitar.", cirkus:"Vi var i cirkus og så en klovn.",
+  guitar:"Jeg kan spille på en guitar.", cirkus:"Et cirkus har klovne og vilde dyr.",
   /* ============ VERDEN 30: Skole-loftet (10 ord) ============
      Tema: SKOLE- OG FAGORD. Ordene barnet møder i skemaet og i klasselokalet. */
   matematik:"Jeg er god til matematik.", engelsk:"Vi lærer engelsk i skolen.",
@@ -1573,10 +1576,10 @@ const WORDS = {
      Tema: SAMFUNDS-ORD. Ord et skolebarn møder uden for hjemmet: penge, arbejde,
      sygehus, politi. Alle står i den form sætningen kræver. */
   penge:"Jeg har sparet penge op i min sparegris.", arbejde:"Han skal på arbejde klokken otte.",
-  sygehus:"Han var på sygehus i tre dage.", politi:"Der kom politi i en blå bil.",
+  sygehus:"Et sygehus har læger og sygeplejersker.", politi:"Der kom politi i en blå bil.",
   brandbil:"En brandbil kører hurtigt med blå lys.", museum:"Vi var på museum og så gamle ting.",
   teater:"Vi var på teater i sidste uge.", avis:"Han læser avis hver morgen.",
-  station:"Vi mødtes på station klokken ni.", lufthavn:"Vi kørte til lufthavn i god tid.",
+  station:"En station er et sted, hvor toget stopper.", lufthavn:"En lufthavn er et stort sted med mange fly.",
   /* ============ VERDEN 35: Eventyr-riget (10 ord) ============
      Tema: EVENTYR OG MYTERI. Ordene barnet kender fra historierne — og her møder
      det også ordet "drage" som ord, ikke kun som monster. */
@@ -1731,7 +1734,8 @@ function asgardMissing(worldIdx) {
   return asgardForWorld(worldIdx).filter(m =>
     state.gear[m.slot] !== "asgard" && !state.bag.some(b => b.slot === m.slot && b.rarity === "asgard"));
 }
-/* Den GARANTEREDE belønning for at besejre bossen i en af de to nye verdener.
+/* Den GARANTEREDE belønning for at besejre bossen i en af de to ASEGÅRD-verdener
+   (verden 25 og 26). De øvrige verdener på side C giver ikke guderne — kun de to.
    null = man har allerede alle dem denne verden kan give (så giver sejren hjul-loot). */
 function asgardDropForWorld(worldIdx) {
   const missing = asgardMissing(worldIdx);
@@ -1910,8 +1914,8 @@ function checkAchievements() {
   if (c >= 1) unlockAchievement("first_dragon");
   if (c >= 5) unlockAchievement("five_dragons");
   if (c >= 10) unlockAchievement("ten_dragons");
-  // Bedrifterne pr. KORT tæller kortets EGNE 12 verdener. Med 26 verdener i alt
-  // ville "alle monstre i Ord-akademiet" ellers blive låst op efter 24 af 26 sejre.
+  // Bedrifterne pr. KORT tæller kortets EGNE 12 verdener. Med 36 verdener i alt
+  // ville "alle monstre i Ord-akademiet" ellers blive låst op efter 24 af 36 sejre.
   if (bossesBeatenIn(0, 12) >= 12) unlockAchievement("all_v1");
   if (bossesBeatenIn(12, 24) >= 12) unlockAchievement("all_v2");
   if (c >= WORLDS.length) unlockAchievement("all_worlds");
@@ -1973,8 +1977,11 @@ const BOSSES = [
   { name: "Hurtigløberen",         emoji: "🏃", power: 80, c1: "#93c5fd", c2: "#1d4ed8" },
   { name: "Urmonstret",            emoji: "⏰", power: 85, c1: "#e9d5ff", c2: "#7e22ce" },
   { name: "Følelsernes Kejser",    emoji: "😊", power: 90, c1: "#fde68a", c2: "#b45309" },
-/* ============ VERDEN 3 (Mester-riget) — de to sværeste ============
-   Kraften følger den stigende kurve hele vejen igennem: 26 er den stærkeste i spillet. */
+/* ============ VERDEN 3 (Mester-riget) — de sværeste ============
+   Kraften følger den stigende kurve hele vejen igennem. Fra verden 25 og frem
+   stiger den uden stop, og den SIDSTE verden (36) er derfor den stærkeste i
+   spillet. Mester-dragen (kraft 110) er stadig den stærkeste drage og den
+   eneste vej til ASEGÅRD-udstyret. */
   { name: "Stavelses-trolden",     emoji: "🌲", power: 95, c1: "#86efac", c2: "#14532d" },
   { name: "Mester-dragen",         emoji: "🐉", power: 110, c1: "#fffbe8", c2: "#b45309" }, // final boss i Mester-rigets FØRSTE halvdel — ikke som de andre
 /* ============ VERDEN 3 udvidet: 10 NYE MONSTRE (verden 27-36) ============
@@ -2038,7 +2045,7 @@ const WORLDS = [
      verden 26 de lange sammensatte — og herfra bliver det sværere endnu. Hver verden
      har sit eget TEMA, så ordene kan huskes i sammenhæng i stedet for som løsrevne ord. */
   { name:"Dobbelt-bjerget",     emoji:"🏔️", words:["tallerken","klippe","springe","gætte","kigge","rulle","svømme","briller","appelsin","middag"] },
-  { name:"Stum-skoven",         emoji:"🌫️", words:["hjul","hjerte","hjælpe","hjem","hvid","hval","gæst","guld","jord","født"] },
+  { name:"Stum-skoven",         emoji:"🌫️", words:["hjul","hjerte","hjælpe","hjem","gæst","guld","jord","født","fugl","kugle"] },
   { name:"Byens gader",         emoji:"🏙️", words:["pizza","bus","tog","biograf","hotel","restaurant","kamera","robot","guitar","cirkus"] },
   { name:"Skole-loftet",        emoji:"🎒", words:["matematik","engelsk","historie","idræt","frikvarter","opgave","regne","blyant","lineal","gruppe"] },
   { name:"Vildt-reservatet",    emoji:"🦌", words:["egern","pindsvin","ugle","hjort","bi","edderkop","myre","skildpadde","delfin","bjørn"] },
@@ -2122,7 +2129,7 @@ function worldReached(i) {
   return !!(prev && prev.boss);
 }
 function canEnterWorld(i) {
-  // Sikkerhedsnet mod et ugyldigt indeks — ellers er alle 26 verdener åbne.
+  // Sikkerhedsnet mod et ugyldigt indeks — ellers er alle 36 verdener åbne.
   return Number.isInteger(i) && i >= 0 && i < WORLDS.length;
 }
 function totalStars() {
@@ -4065,7 +4072,7 @@ function bossWin() {
   // ikke fra kuben og ikke fra lykkehjulet, som man kan gentage i det uendelige.
   const asgardDrop = asgardDropForWorld(cur.world);
   // SECRET drop? Kun fra akademi-monstre (verden 2) — 7% chance, mega speciel.
-  // Der rulles IKKE når ASEGÅRD er på vej: de to nye verdener skal føles som
+  // Der rulles IKKE når ASEGÅRD er på vej: de to ASEGÅRD-verdener skal føles som
   // den store gevinst, ikke som endnu et lotteri oveni.
   let secretDrop = null;
   if (!asgardDrop && inAcademy) secretDrop = rollSecretDrop();
@@ -4096,7 +4103,7 @@ function bossWin() {
       document.getElementById("bossMsg").textContent = "Snur lykkehjulet og se hvad monsteret efterlader! 🎰";
     }
     document.getElementById("bossHint").textContent =
-      cur.world >= 24 ? "De to nye verdener giver 🏔️ ASEGÅRD — gudernes eget udstyr (Kraft ×45-60)!"
+      (cur.world === 24 || cur.world === 25) ? "De to ASEGÅRD-verdener (25 og 26) giver 🏔️ ASEGÅRD — gudernes eget udstyr (Kraft ×45-60)!"
       : inAcademy ? "Akademi-monstre kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!"
       : "25% Mytisk · 25% Legendarisk · 50% Magisk";
     renderAttacks();
@@ -4541,7 +4548,7 @@ function buildWordList(worldIdx, count) {
 /* ============ LYD-KLASSER: ord der ikke maa vaere svarmuligheder samtidigt ============
    Kenneths fejl: "Hoer og slaa. Den siger ER og det rigtige svar er AT."
    Aarsagen var ikke lyden — det var VALGENE. distractors() trak tilfaeldigt fra
-   alle ordene i spillet (260), saa naar svaret var "at", kunne valgene blive at/er/af/der.
+   alle ordene i spillet (360), saa naar svaret var "at", kunne valgene blive at/er/af/der.
    Barnet KAN ikke vinde den runde ved at lytte; det er plat eller krone.
    De korte funktionsord deler vokalklang og slutlyd og ligner hinanden for meget
    til at staa sammen paa samme skaerm. Ord med SAMME klasse blandes aldrig. */
@@ -4578,7 +4585,7 @@ function distractors(word, n) {
   const sikre = ALL_WORDS.filter(w => w !== word && lydKlasse(w) !== min);
   const others = shuffle(sikre).slice(0, n);
   if (others.length < n) {
-    // Nødtilfaelde: der var ikke nok sikre ord (sker ikke med 260 ord).
+    // Nødtilfaelde: der var ikke nok sikre ord (sker ikke med 360 ord).
     const resten = shuffle(ALL_WORDS.filter(w => w !== word && !others.includes(w)));
     while (others.length < n && resten.length) others.push(resten.pop());
   }
@@ -5270,15 +5277,20 @@ const MAP_POS = [
   { x: 10, y: 80 }, { x: 24, y: 60 }, { x: 18, y: 30 }, { x: 38, y: 16 },
   { x: 58, y: 26 }, { x: 74, y: 16 }, { x: 88, y: 32 }, { x: 80, y: 58 },
   { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 },
-  /* ============ VERDEN 3: Mester-riget — EGET kort (side C), kun 2 verdener.
-     Uden disse to positioner ville verden 25 og 26 blive lagt OVEN PÅ verden 1 og 2. */
-  { x: 24, y: 70 }, { x: 74, y: 26 }
+  /* ============ VERDEN 3: Mester-riget — EGET kort (side C), nu 12 verdener.
+     PRÆCIS de samme 12 positioner som side A og side B: Kenneths krav er at de tre
+     kort skal være IDENTISKE i layout, og den eneste måde at få det på er at gentage
+     det snoede mønster. Uden disse positioner ville verden 25-36 blive lagt OVEN PÅ
+     hinanden (index 0 og 12 peger på samme sted i arrayet). */
+  { x: 10, y: 80 }, { x: 24, y: 60 }, { x: 18, y: 30 }, { x: 38, y: 16 },
+  { x: 58, y: 26 }, { x: 74, y: 16 }, { x: 88, y: 32 }, { x: 80, y: 58 },
+  { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 }
 ];
 // Terræn/biom pr. verden (dekorative SVG-elementer i baggrunden)
-// Verden 2 bruger SAMME biom-mønster som Verden 1, så de to kort ser ens ud
+// Verden 2 og 3 bruger SAMME biom-mønster som Verden 1, så alle tre kort ser ens ud
 const MAP_BIOMES = ["skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne",
   "skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne",
-  "skov","kerne"]; // verden 25 = den svære skov · verden 26 = mesterskabets kerne
+  "skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne"]; // 24 = den svære skov · 35 = kerne (sidste verden)
 const MAP_COLORS = {
   skov: "#2d5a3d", bjerg: "#5a4a3a", dal: "#3d5a2a", ø: "#2a4a5a",
   flod: "#1f5f8f", hule: "#3a2a3a", tårn: "#4a3a5a", mark: "#5a4a1a",
@@ -5331,20 +5343,20 @@ function terrainMarkup(biome, x, y) {
 /* ============ KORT-SIDERNE ============
    Tre kort, bygget efter PRÆCIS samme mønster (renderMapPanel + swipe):
      side 0 = Galaksen (verden 1-12), side 1 = Ord-akademiet (13-24),
-     side 2 = Mester-riget (verden 25-26).
-   Kenneth har insisteret på at de to FØRSTE kort er identiske i layout — derfor kan
-   verden 25 og 26 ikke bare lægges oveni dem. De fik deres egen tredje side, så
-   begge de gamle kort står fuldstændig uændret. */
+     side 2 = Mester-riget (verden 25-36).
+   Kenneth har insisteret på at kortene er identiske i layout — derfor har hver side
+   sine EGNE 12 positioner (se MAP_POS), så verden 25-36 ikke lægges oveni verden 1-12.
+   Alle tre sider har nu 12 verdener; siden ≥ 24 hører til side 2. */
 const MAP_PAGES = [
   { title: "🌌 Galaksen",      start: 0,  end: 12, letter: "A", hint: "Swipe til venstre for Ord-akademiet 🎓" },
   { title: "🎓 Ord-akademiet", start: 12, end: 24, letter: "B", hint: "Swipe videre til Mester-riget 🏆" },
-  { title: "🏆 Mester-riget",  start: 24, end: 26, letter: "C", hint: "Swipe til højre for Ord-akademiet 🎓" }
+  { title: "🏆 Mester-riget",  start: 24, end: 36, letter: "C", hint: "Swipe til højre for Ord-akademiet 🎓" }
 ];
-// Hvilket kort hører en verden til? (24 og 25 ligger på den tredje side)
+// Hvilket kort hører en verden til? (verden 25-36 ligger på den tredje side)
 function mapPageForWorld(i) { return i >= 24 ? 2 : i >= 12 ? 1 : 0; }
 function mapLetterForWorld(i) { return MAP_PAGES[mapPageForWorld(i)].letter; }
 function renderWorldMap() {
-  // Tre separate kort: A = Galaksen (0-11), B = Ord-akademiet (12-23), C = Mester-riget (24-25)
+  // Tre separate kort: A = Galaksen (0-11), B = Ord-akademiet (12-23), C = Mester-riget (24-35)
   MAP_PAGES.forEach(p => renderMapPanel("worldMap" + p.letter, p.start, p.end, p.title));
   // Vis det kort hvor helten er
   setMapPage(mapPageForWorld(state.mapAt || 0), false);

@@ -218,10 +218,19 @@ console.log('--- 9. Verdenerne og deres bosser findes ---');
 check('verden 25 hedder Den svære skov', WORLDS[24].name === 'Den svære skov', WORLDS[24].name);
 check('verden 26 hedder Mesterskabet', WORLDS[25].name === 'Mesterskabet', WORLDS[25].name);
 check('bossen i verden 25 er Stavelses-trolden', BOSSES[24].name === 'Stavelses-trolden', BOSSES[24].name);
-check('bossen i verden 26 er Mester-dragen (stærkest i spillet)', BOSSES[25].name === 'Mester-dragen' && BOSSES[25].power === Math.max(...BOSSES.map(b => b.power)), BOSSES[25].power);
-check('de to nye verdener har deres egne ord med i WORDS',
+/* Mester-dragen er ikke længere stærkest i TAL — de 10 nye verdener (27-36) fortsætter
+   kurven opad. Den er stadig den eneste drage og den eneste vej til ASEGÅRD. */
+check('bossen i verden 26 er Mester-dragen (den stærkeste drage + ASEGÅRD-porten)',
+  BOSSES[25].name === 'Mester-dragen' && BOSSES[25].power > BOSSES[24].power, BOSSES[25].power);
+check('de 10 nye verdener giver IKKE ASEGÅRD (kun 25 og 26 gør)',
+  Array.from({ length: 10 }, (_, k) => asgardForWorld(26 + k).length).every(n => n === 0),
+  JSON.stringify(Array.from({ length: 10 }, (_, k) => asgardForWorld(26 + k).length)));
+check('de to ASEGÅRD-verdener har deres egne ord med i WORDS',
   WORLDS[24].words.concat(WORLDS[25].words).every(w => WORDS[w]),
   JSON.stringify(WORLDS[24].words.concat(WORLDS[25].words).filter(w => !WORDS[w])));
+check('også de 10 nye verdener har deres ord med i WORDS',
+  WORLDS.slice(26, 36).every(w => w.words.every(x => WORDS[x])),
+  JSON.stringify(WORLDS.slice(26, 36).flatMap(w => w.words).filter(x => !WORDS[x])));
 check('HTML har den tredje kort-side (worldMapC)', html.includes('id="worldMapC"'));
 
 queue.then(() => {

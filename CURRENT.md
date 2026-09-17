@@ -14,25 +14,27 @@ bash tests/run-all.sh      # alle pakker — alle skal være grønne
 ```
 Nye pakker for kampen:
 - `ordj_combat.js` — 70 tests: elementer, energimåler, combo, opladning, forsvar, signaturangreb, busy-lås, hel integrationskamp
-- `ordj_stress.js` — hostile timing (udskudte timere efter tilstand er ryddet) + alle 24 drager spillet til ende + alle 5 elementer
+- `ordj_stress.js` — hostile timing (udskudte timere efter tilstand er ryddet) + alle 36 monstre spillet til ende + alle 5 elementer
 
 **Lærepenge:** test altid med timere der kan fyre efter tilstanden er ændret. En udskudt
 banner læste `b.charge.name` efter opladningen var ryddet → crash. Fæng værdier NU,
 brug dem i callbacken.
 
 ## Spillets indhold
-- **24 verdener × 10 ord = 240 ord**, med lyd (edge-tts `da-DK-JeppeNeural`)
-  - 🌌 Verden 1 (0-11): **Galaksen** — funktionsord
-  - 🎓 Verden 2 (12-23): **Ord-akademiet** — sværere børneord
+- **36 verdener × 10 ord = 360 ord**, med lyd (edge-tts `da-DK-JeppeNeural`)
+  - 🌌 Side A (0-11): **Galaksen** — funktionsord
+  - 🎓 Side B (12-23): **Ord-akademiet** — sværere børneord
+  - 🏆 Side C (24-35): **Mester-riget** — de sværeste: skrivefælder, fremmedord, fagord,
+    natur og dyr, følelser, samfunds-ord, eventyr og de abstrakte ord (frihed, sandhed)
 - **3 spil pr. verden:** Hør & Slå (lyt+vælg), Fang ordet (stav), Sætningsgåden (fyld hul)
-- **24 drager** med D&D-d20-kampe (2d20 efter 4 besejrede drager)
+- **36 monstre** med D&D-d20-kampe (2d20 efter 4 besejrede drager)
 - **Gear/loot**, Horadric-kuben (altid synlig under helten), lykkehjul
-- **MYTISK** (10% drop), **SECRET** (7% fra akademi-drager, kan ikke cubes)
+- **MYTISK** (10% drop), **SECRET** (7% fra akademi-monstre, kan ikke cubes), **ASEGÅRD** (kun fra bossen i verden 25 og 26)
 - **Profiler** pr. spiller (Robin, Joey …), forældre-statistik
-- **To verdenskort med swipe** (native scroll-snap — virker på iPad)
+- **Tre verdenskort med swipe, 12 verdener på hver** (native scroll-snap — virker på iPad)
 
 ## Selvforbedring (nøglen)
-1. **12 lærings-mønstre — alle 240 ord dækket**
+1. **12 lærings-mønstre — alle 360 ord dækket**
    💨 hv-ord · ✌️ dobbelt-bogstaver · 🚀 to konsonanter i starten · 🤫 stumt D efter N · 🐘 lange ord
    🇩🇰 æ · 🇩🇰 ø · 🇩🇰 å · ✍️ ord med J · 📝 -er-endelser · 📏 korte ord · 🔤 flere stavelser
 2. **Øjeblikkelig fejl-forklaring** — fejler han et ord, vises reglen med det samme (gul boks → lektion)
@@ -63,16 +65,16 @@ Fire systemer der gør kampen til et payoff i stedet for en formalitet:
    dragen blinker hvid når den rammes, flyvende skadetal, nye lyde.
 
 **Elementer:** hver drage har et element (🔥 ild, ❄️ is, ⚡ lyn, 🧪 gift, 🌑 skygge)
-med egne angrebsnavne og farver — cykler over de 24 verdener.
+med egne angrebsnavne og farver — cykler over de 36 verdener.
 
 **Balance-regel (vigtigt):** `chargedDamage()` capper det opladede angreb til **30 %
 af spillerens max-liv**, så et barn aldrig slås ud fra fuld liv uden at kunne gøre
-noget. Testen tjekker dette for alle 24 drager.
+noget. Testen tjekker dette for alle 36 monstre.
 
 **Kampen varer nu ~5-7 runder** (før ~30) — hurtigere og mere intens.
 
 ## Kode-struktur (index.html — én selvstændig fil)
-- `WORDS` (240 ord→sætninger), `WORLDS` (24×10), `BOSSES` (24 drager), `MAP_POS` (24)
+- `WORDS` (360 ord→sætninger), `WORLDS` (36×10), `BOSSES` (36 monstre), `MAP_POS` (36)
 - `SPELL_PATTERNS` (12 mønstre) + `patternStats()` / `patternMastery()` / `patternImprovement()`
 - `markWrong` / `markRight` — registrerer fejl + mønster-tælling pr. mission
 - `buildWordList` — smart review (svage mønster-ord først, derpå svage enkelt-ord)
