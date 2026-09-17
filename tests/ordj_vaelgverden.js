@@ -83,7 +83,7 @@ check('ugyldigt indeks (36) kan ikke vælges', canEnterWorld(36) === false);
 let reached = 0;
 for (let i = 0; i < WORLDS.length; i++) if (worldReached(i)) reached++;
 check('kun verden 0 er NÅET i en tom profil', reached === 1 && worldReached(0) === true, reached);
-state.worlds[0] = { hear:3, type:3, fill:3, done:[true,true,true], boss:true };
+state.worlds[0] = { hear:3, type:3, fill:3, read:3, done:[true,true,true,true], boss:true };
 check('verden 1 bliver nået da monster 0 er besejret', worldReached(1) === true);
 state.worlds = {}; state.mapAt = 0;
 
@@ -99,9 +99,9 @@ check('ingen kort viser åben-lås 🔓 (læses som låst af børn)', all.every(
 
 // ---- 4) Kortet: progressionen er STADIG synlig (stjerner + status pr. verden) ----
 check('hvert verdenskort viser stjerner (wstars)', all.every(c => c.innerHTML.includes('class="wstars"')));
-check('hvert verdenskort har 3 stjerne-symboler', all.every(c => (c.innerHTML.match(/class="ws /g) || []).length === 3));
+check('hvert verdenskort har 4 stjerne-symboler (én pr. mission)', all.every(c => (c.innerHTML.match(/class="ws /g) || []).length === 4));
 check('hvert verdenskort har en status-badge (w-badge)', all.every(c => c.innerHTML.includes('w-badge')));
-check('hvert verdenskort har 4 status-segmenter (3 missioner + monster)', all.every(c => (c.innerHTML.match(/class="w-seg /g) || []).length === 4));
+check('hvert verdenskort har 5 status-segmenter (4 missioner + monster)', all.every(c => (c.innerHTML.match(/class="w-seg /g) || []).length === 5));
 check('et urørt kort langt fremme viser "Åben" (ikke låst)', all[23].innerHTML.includes('Åben'), all[23].innerHTML);
 check('også det sidste kort (verden 36) viser "Åben"', all[35].innerHTML.includes('Åben'), all[35].innerHTML);
 check('det næste skridt i rejsen viser "Start her"', all[0].innerHTML.includes('Start her'));
@@ -114,19 +114,19 @@ check('side C har præcis 12 kort — lige så mange som side A og B',
   all.slice(24, 36).length === 12 && all.length === 36);
 
 // ---- 5) Klaret vs ikke klaret kan ses tydeligt ----
-state.worlds = { 0: { hear:3, type:3, fill:3, done:[true,true,true], boss:true } };
+state.worlds = { 0: { hear:3, type:3, fill:3, read:3, done:[true,true,true,true], boss:true } };
 renderWorldMap();
 let c0 = cards()[0];
 check('klaret verden har .cleared-klassen', c0.className.includes('cleared'), c0.className);
 check('klaret verden viser "Færdig"', c0.innerHTML.includes('Færdig'));
-check('klaret verden har 3 fulde stjerner', (c0.innerHTML.match(/ws full/g) || []).length === 3);
+check('klaret verden har 4 fulde stjerner (alle fire missioner)', (c0.innerHTML.match(/ws full/g) || []).length === 4);
 check('nabo-verden er ikke klaret og viser ikke "Færdig"', !cards()[1].innerHTML.includes('Færdig'));
 
-state.worlds = { 2: { hear:3, type:1, fill:null, done:[true,true,false] } };
+state.worlds = { 2: { hear:3, type:1, fill:null, read:null, done:[true,true,false,false] } };
 renderWorldMap();
 let c2 = cards()[2];
 check('verden i gang viser "I gang"', c2.innerHTML.includes('I gang'), c2.innerHTML);
-check('verden i gang har 1 fuld + 1 halv stjerne og 1 tom', (c2.innerHTML.match(/ws full/g) || []).length === 1 && (c2.innerHTML.match(/ws part/g) || []).length === 1 && (c2.innerHTML.match(/ws none/g) || []).length === 1, c2.innerHTML);
+check('verden i gang har 1 fuld + 1 halv stjerne og 2 tomme', (c2.innerHTML.match(/ws full/g) || []).length === 1 && (c2.innerHTML.match(/ws part/g) || []).length === 1 && (c2.innerHTML.match(/ws none/g) || []).length === 2, c2.innerHTML);
 
 // ---- 6) Man kan gå DIREKTE til en tilfældig verden ----
 state.worlds = {}; state.mapAt = 0;
@@ -154,8 +154,8 @@ check('travelToWorld(99) gør ingenting (sikkerhedsnet)', state.mapAt === 0, sta
 state.worlds = {}; state.mapAt = 23;
 showWorld(23);
 check('showWorld(23) viser Følelses-skoven uden fremskridt', els['worldName'].textContent.includes('Følelses-skoven'), els['worldName'].textContent);
-check('showWorld(23) viser alle 3 missioner', els['gameGrid'].children.length === 3, els['gameGrid'].children.length);
-check('showWorld(23) siger 0/3 missioner', els['worldStatus'].innerHTML.includes('0/3'), els['worldStatus'].innerHTML);
+check('showWorld(23) viser alle 4 missioner', els['gameGrid'].children.length === 4, els['gameGrid'].children.length);
+check('showWorld(23) siger 0/4 missioner', els['worldStatus'].innerHTML.includes('0/4'), els['worldStatus'].innerHTML);
 
 // ---- 8) Ingen blindgyde: "🏠 Hjem" virker altid ----
 goHome();

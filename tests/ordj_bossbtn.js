@@ -10,7 +10,7 @@ const makeEl = (id) => {
   return el;
 };
 const els = {};
-const screens = ['screen-start','screen-map','screen-world','screen-hear','screen-type','screen-fill','screen-result','screen-collect','screen-hero','screen-boss','screen-stats','screen-class'];
+const screens = ['screen-start','screen-map','screen-world','screen-hear','screen-type','screen-fill','screen-read','screen-result','screen-collect','screen-hero','screen-boss','screen-stats','screen-class'];
 screens.forEach(id => els[id] = makeEl(id));
 ['hud','hudProgress','startMeta','worldMapA','worldMapB','worldEmoji','worldName','worldWords','worldStatus','gameGrid',
  'hearWord','hearSpeak','hearChoices','hearStatus','typeHint','typeInput','typeStatus','typeNext',
@@ -55,9 +55,9 @@ t('verden 3 er nået efter Ild-drage-sejr (progression, ikke lås)', () => {
   state.xp = 0;
   state.mapAt = 0;
   state.gear = {}; state.bag = []; state.skin = 0; state.lootCount = 0;
-  const w0 = worldState(0); w0.done = [true,true,true]; w0.hear=3; w0.type=3; w0.fill=3; w0.boss = true;
-  const w1 = worldState(1); w1.done = [true,true,true]; w1.hear=3; w1.type=3; w1.fill=3; w1.boss = true;
-  const w2 = worldState(2); w2.done = [true,true,true]; w2.hear=3; w2.type=3; w2.fill=3; w2.boss = true;
+  const w0 = worldState(0); w0.done = [true,true,true,true]; w0.hear=3; w0.type=3; w0.fill=3; w0.read=3; w0.boss = true;
+  const w1 = worldState(1); w1.done = [true,true,true,true]; w1.hear=3; w1.type=3; w1.fill=3; w1.read=3; w1.boss = true;
+  const w2 = worldState(2); w2.done = [true,true,true,true]; w2.hear=3; w2.type=3; w2.fill=3; w2.read=3; w2.boss = true;
   if (!worldReached(3)) throw new Error('verden 3 skal være nået i rejsen');
   if (!canEnterWorld(3)) throw new Error('verden 3 skal kunne vælges');
 });
@@ -70,7 +70,7 @@ t('besøg verden 2 → knap disabled+done (som i fejlen)', () => {
 
 t('verden 3 → knappen er KLIKBAR (bugfix)', () => {
   const w3 = worldState(3);
-  w3.done = [true,true,true]; w3.hear=3; w3.type=3; w3.fill=3;
+  w3.done = [true,true,true,true]; w3.hear=3; w3.type=3; w3.fill=3; w3.read=3;
   showWorld(3);
   if (els['bossBtn'].disabled !== false) throw new Error('knap skal være enabled — fik disabled=' + els['bossBtn'].disabled);
   if (!els['bossBtn'].textContent.includes('Skovtrolden')) throw new Error('skal vise Skovtrolden, fik: ' + els['bossBtn'].textContent);

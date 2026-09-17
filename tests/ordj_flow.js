@@ -1,4 +1,4 @@
-// Fuld flow-test: simulerer DOM og gennemspiller alle 3 spil
+// Fuld flow-test: simulerer DOM og gennemspiller alle 4 spil
 const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 
@@ -20,7 +20,7 @@ function makeEl(id) {
   return el;
 }
 const els = {};
-const screens = ['screen-start','screen-map','screen-world','screen-hear','screen-type','screen-fill','screen-result','screen-collect'];
+const screens = ['screen-start','screen-map','screen-world','screen-hear','screen-type','screen-fill','screen-read','screen-result','screen-collect'];
 screens.forEach(id => els[id] = makeEl(id));
 ['hud','hudProgress','startMeta','worldMap','worldEmoji','worldName','worldWords','worldStatus','gameGrid',
  'hearWord','hearSpeak','hearChoices','hearStatus','typeHint','typeInput','typeStatus','typeNext',
@@ -68,7 +68,7 @@ const fails = [];
 function flow(label, fn) { try { fn(); console.log('OK   ' + label); } catch(e) { fails.push(label + ': ' + e.message); console.log('FEJL ' + label + ' :: ' + e.stack.split('\\n')[0]); } }
 
 flow('showWorldMap', () => { showWorldMap(); if (!document.getElementById('screen-map').classList.contains('active')) throw new Error('map ikke aktiv'); });
-flow('showWorld(0)', () => { showWorld(0); if (els['gameGrid'].children.length !== 3) throw new Error('3 spil-knapper forventet, fik ' + els['gameGrid'].children.length); });
+flow('showWorld(0)', () => { showWorld(0); if (els['gameGrid'].children.length !== 4) throw new Error('4 spil-knapper forventet, fik ' + els['gameGrid'].children.length); });
 flow('startGame hear', () => {
   startGame(0, 'hear');
   if (!document.getElementById('screen-hear').classList.contains('active')) throw new Error('hear-skærm ikke aktiv');
@@ -101,6 +101,19 @@ flow('answerFill korrekt', () => {
   const btn = els['fillChoices'].children.find(c => c.textContent === word);
   if (!btn) throw new Error('rigtig knap ikke fundet for ' + word);
   answerFill(word, word, btn);
+});
+flow('startGame read (Forstå det! — 4. mission)', () => {
+  startGame(0, 'read');
+  if (!document.getElementById('screen-read').classList.contains('active')) throw new Error('read-skærm ikke aktiv');
+  if (els['readText'].textContent !== cur.readTasks[0].tekst) throw new Error('teksten vises ikke som tekst');
+  if (els['readChoices'].children.length !== 3) throw new Error('3 valg forventet, fik ' + els['readChoices'].children.length);
+  if (els['readStatus'].textContent !== '') throw new Error('svaret må ikke afsløres før man svarer');
+});
+flow('answerRead korrekt', () => {
+  const t0 = cur.readTasks[cur.idx];
+  const btn = document.createElement('button');
+  answerRead(t0.svar, t0, btn);
+  if (cur.errors !== 0) throw new Error('fejl talt: ' + cur.errors);
 });
 flow('finishGame', () => { finishGame(); if (!document.getElementById('screen-result').classList.contains('active')) throw new Error('resultat-skærm ikke aktiv'); });
 flow('spaced repetition: forkert ord gemmes', () => {

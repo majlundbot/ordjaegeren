@@ -167,7 +167,7 @@
   .b-dragon { background: rgba(248,113,113,.2); color: #fca5a5; border: 1px solid rgba(248,113,113,.5); animation: badgePulse 1.6s ease-in-out infinite; }
   .b-done { background: rgba(74,222,128,.18); color: #86efac; border: 1px solid rgba(74,222,128,.45); }
   @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 rgba(248,113,113,0); } 50% { box-shadow: 0 0 12px rgba(248,113,113,.5); } }
-  /* Progress-bar pr. verden: 3 missioner + monster */
+  /* Progress-bar pr. verden: 4 missioner + monster */
   .w-progress { display: flex; gap: 4px; justify-content: center; margin-top: calc(8px * var(--ws, 1)); padding: 0 calc(10px * var(--ws, 1)); }
   .w-seg { flex: 1; height: max(6px, calc(8px * var(--ws, 1))); border-radius: 4px; transition: background .3s; }
   .w-seg.on { background: linear-gradient(90deg, #4ade80, #22c55e); box-shadow: 0 0 6px rgba(74,222,128,.5); }
@@ -460,6 +460,24 @@
   .big-green { color: #4ade80; font-weight: 900; font-size: 1.5em; letter-spacing: 2px; text-shadow: 0 0 12px rgba(74,222,128,.5); }
   .syllables { font-size: 1.35em; font-weight: 900; letter-spacing: 1.5px; margin-left: 6px; }
   @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  /* ============ FORSTÅ DET! (læseforståelse — det PISA måler) ============
+     Teksten er TEKST. Der er INGEN højttaler-knap her: PISA-rapporten viser at
+     elever der får maskinen til at læse for sig, klarer sig markant dårligere.
+     Barnet læser selv — derfor stor skrift og venstrestillet tekst, så et barn
+     på 7 kan læse den på en iPad uden at zoome. Svar-knapperne står på ÉN kolonne,
+     fordi svarene er hele sætninger og ikke skal klemmes i to spalter. */
+  .read-box { width: 100%; max-width: 560px; margin: 6px auto 0; background: rgba(255,255,255,.06);
+    border: 2px solid rgba(255,255,255,.16); border-radius: 16px; padding: 16px 18px; text-align: left; }
+  .read-text { font-size: clamp(22px, 5.8vw, 32px); font-weight: 800; line-height: 1.45; color: #fff; }
+  .read-q { font-size: clamp(20px, 5.2vw, 27px); font-weight: 700; line-height: 1.4; color: var(--blue, #7dd3fc); margin: 14px auto 0; max-width: 560px; }
+  #readChoices { grid-template-columns: 1fr; max-width: 560px; }
+  #readChoices .choice { padding: 15px 14px; font-size: clamp(18px, 4.6vw, 23px); line-height: 1.3; }
+  .read-level { display: flex; justify-content: center; margin-bottom: 8px; }
+  .rl-badge { font-size: clamp(12px, 3.2vw, 15px); font-weight: 800; letter-spacing: .4px;
+    padding: 4px 12px; border-radius: 999px; background: rgba(125,211,252,.14); color: #7dd3fc; border: 1px solid rgba(125,211,252,.38); }
+  .rl-badge.rl-vurder { background: rgba(251,191,36,.14); color: #fcd34d; border-color: rgba(251,191,36,.4); }
+  .read-self { font-size: clamp(12px, 3.2vw, 14px); color: #9fb0e8; margin-top: 10px; }
 
   .input-word {
     font-family: inherit; font-weight: 800; font-size: clamp(26px, 7vw, 40px); text-align: center; color: #fff;
@@ -1119,7 +1137,7 @@
 <!-- START -->
 <div class="screen active" id="screen-start">
   <div class="title">ORDJÆGEREN</div>
-  <div class="subtitle">Fang de 360 vigtigste ord i dansk — 36 verdener, 108 missioner!</div>
+  <div class="subtitle">Fang de 360 vigtigste ord i dansk — 36 verdener, 144 missioner!</div>
   <button class="btn" onclick="showClassSelect()">🚀 Start eventyret</button>
   <button class="btn ghost" onclick="showWorldMap()">🗺️ Vælg verden (alle 36)</button>
   <button class="btn ghost" style="margin-top:10px" onclick="showProfiles()">👥 Skift spiller</button>
@@ -1292,6 +1310,20 @@
     <button class="speak-btn" id="fillSpeak" onclick="speakSentence()">🔊</button>
     <div class="choices" id="fillChoices"></div>
     <div class="ta" id="fillStatus"></div>
+  </div>
+</div>
+
+<!-- GAME: FORSTÅ DET! (læseforståelse) — ingen højttaler-knap med vilje: barnet læser selv -->
+<div class="screen" id="screen-read">
+  <div class="panel" style="max-width:640px">
+    <div class="round-progress" id="rp-read"></div>
+    <h2>📖 Forstå det!</h2>
+    <div class="read-level" id="readLevel"></div>
+    <div class="read-box"><div class="read-text" id="readText"></div></div>
+    <div class="read-q" id="readQ"></div>
+    <div class="choices" id="readChoices"></div>
+    <div class="ta" id="readStatus"></div>
+    <div class="ta read-self">Læs teksten selv — spillet læser den ikke op 👀</div>
   </div>
 </div>
 
@@ -2056,6 +2088,242 @@ const WORLDS = [
   { name:"Drømme-tårnet",       emoji:"🌌", words:["drøm","tanke","hemmelighed","fremtid","frihed","sandhed","kærlighed","venskab","fantasi","håb"] }
 ];
 
+/* ============ FORSTÅ DET! — opgaverne (PISA-læseforståelse, ikke stavning) ============
+   Kenneth: "vores opgave er så at klæde børn på til at score godt i PISA i fremtiden."
+   PISA måler LÆSEFORSTÅELSE i tre slags opgaver — og det er de tre niveauer her:
+     find    = svaret STÅR i teksten (finde information)
+     forstaa = barnet skal forstå en SAMMENHÆNG (der står ikke svaret direkte)
+     vurder  = skelne hvad der STÅR fra hvad nogen MENER (kommer efter verden 12)
+   Reglerne (håndhæves af tests/ordj_forstaa.js):
+     · 'bevis' er det ord i teksten der BEVISER svaret. Det står i teksten OG i det
+       rigtige svar — men i INGEN af distraktorerne. Så svaret kan udledes af teksten,
+       og distraktorerne kan ikke.
+     · hver distraktor indeholder mindst ét ord der IKKE står i teksten — den kan
+       altså ikke læses ud af teksten, men er noget et barn der ikke forstod den
+       realistisk ville vælge (troens farve, 'fordi de var trætte' osv.).
+     · VURDER-opgaverne har en 'navn'-kilde: teksten siger at en PERSON siger noget,
+       det rigtige svar begynder med 'Nej' (det er hans mening), og hver distraktor
+       begynder med 'Ja' (den tager meningen for en kendsgerning).
+   Teksten vises som TEKST — aldrig auto-oplæst. Barnet læser selv; det er hele pointen. */
+const READ_TASKS = [
+  /* 0 · Start-planeten */
+  [
+    { lv:"find", ord:"jeg", tekst:"Jeg har en rød bold i tasken.", q:"Hvilken farve har bolden?", svar:"Rød", forkert:["Grøn", "Blå"], bevis:"rød" },
+    { lv:"forstaa", ord:"har", tekst:"Det regner, så jeg har en hue på.", q:"Hvorfor har jeg hue på?", svar:"Fordi det regner", forkert:["Fordi jeg fryser", "Fordi det er aften"], bevis:"regner" },
+    { lv:"forstaa", ord:"og", tekst:"Jeg har en blyant og et stykke papir, så jeg kan tegne.", q:"Hvorfor kan jeg tegne?", svar:"Fordi jeg har blyant og papir", forkert:["Fordi jeg er glad", "Fordi det er mørkt"], bevis:"blyant" },
+  ],
+  /* 1 · Ord-bjergene */
+  [
+    { lv:"find", ord:"vi", tekst:"Vi går på bjerget med en stor taske.", q:"Hvad har vi med os?", svar:"En taske", forkert:["En hund", "En stol"], bevis:"taske" },
+    { lv:"forstaa", ord:"på", tekst:"Det er koldt på bjerget, så vi har varme trøjer på.", q:"Hvorfor har vi varme trøjer på?", svar:"Fordi det er koldt", forkert:["Fordi vi skal sove", "Fordi det er sommer"], bevis:"koldt" },
+    { lv:"forstaa", ord:"han", tekst:"Han tager mig med til bjerget, for han kender vejen.", q:"Hvorfor tager han mig med?", svar:"Fordi han kender vejen", forkert:["Fordi han er træt", "Fordi han er sulten"], bevis:"vejen" },
+  ],
+  /* 2 · Lyd-dalen */
+  [
+    { lv:"find", ord:"den", tekst:"Den lille fugl synger her i dalen.", q:"Hvad gør fuglen?", svar:"Synger", forkert:["Flyver", "Sover"], bevis:"synger" },
+    { lv:"forstaa", ord:"var", tekst:"Det var tåge i dalen, så vi kunne ikke se noget.", q:"Hvorfor kunne vi ikke se noget?", svar:"Fordi der var tåge", forkert:["Fordi det var mørkt", "Fordi vi var trætte"], bevis:"tåge" },
+    { lv:"forstaa", ord:"igennem", tekst:"Vi skal igennem dalen, for den er den korteste vej.", q:"Hvorfor skal vi igennem dalen?", svar:"Fordi den er den korteste vej", forkert:["Fordi den er smukkest", "Fordi vi elsker bakker"], bevis:"korteste" },
+  ],
+  /* 3 · Sætnings-skoven */
+  [
+    { lv:"find", ord:"hun", tekst:"Hun har en lille kanin i sin taske.", q:"Hvilket dyr har hun?", svar:"En kanin", forkert:["En hest", "En hund"], bevis:"kanin" },
+    { lv:"forstaa", ord:"nu", tekst:"Det er blevet mørkt, så nu går hun hjem.", q:"Hvorfor går hun hjem?", svar:"Fordi det er blevet mørkt", forkert:["Fordi hun er sulten", "Fordi hun skal i skole"], bevis:"mørkt" },
+    { lv:"forstaa", ord:"min", tekst:"Hun tager ikke hunden med i skoven, fordi den jager ræve.", q:"Hvorfor tager hun ikke hunden med?", svar:"Fordi den jager ræve", forkert:["Fordi den er træt", "Fordi den er bange"], bevis:"jager" },
+  ],
+  /* 4 · Gåde-øen */
+  [
+    { lv:"find", ord:"ud", tekst:"Kom ud til øen, hvor der er en skat.", q:"Hvad findes der på øen?", svar:"En skat", forkert:["En drage", "Et slot"], bevis:"skat" },
+    { lv:"forstaa", ord:"må", tekst:"Båden er tung, så vi må ikke være for mange om bord.", q:"Hvorfor må vi ikke være for mange om bord?", svar:"Fordi båden er tung", forkert:["Fordi den er gammel", "Fordi det regner"], bevis:"tung" },
+    { lv:"forstaa", ord:"hvis", tekst:"Hvis du vil finde skatten, må du komme ud til øen.", q:"Hvad skal du gøre for at finde skatten?", svar:"Komme ud til øen", forkert:["Vente på stranden", "Synge en sang"], bevis:"øen" },
+  ],
+  /* 5 · Fart-floden */
+  [
+    { lv:"find", ord:"alle", tekst:"Alle børnene ville se båden fra broen.", q:"Hvor ville børnene se båden fra?", svar:"Fra broen", forkert:["Fra stranden", "Fra skoven"], bevis:"broen" },
+    { lv:"forstaa", ord:"ville", tekst:"Floden var fyldt med vand, så vi kunne ikke se bunden.", q:"Hvorfor kunne vi ikke se bunden?", svar:"Fordi floden var fyldt med vand", forkert:["Fordi vandet var koldt", "Fordi det var mørkt"], bevis:"fyldt" },
+    { lv:"forstaa", ord:"se", tekst:"Vi ville godt se fiskene, så vi lagde os stille på broen.", q:"Hvorfor lagde vi os stille?", svar:"For at se fiskene", forkert:["For at sove lidt", "For at fange fisk"], bevis:"fiskene" },
+  ],
+  /* 6 · Hemmelige-hulen */
+  [
+    { lv:"find", ord:"lige", tekst:"Hulen ligger lige bag det store træ.", q:"Hvor ligger hulen?", svar:"Bag det store træ", forkert:["Foran en sten", "Oppe på bakken"], bevis:"træ" },
+    { lv:"forstaa", ord:"op", tekst:"Hulen er mørk, så vi tænder en lygte.", q:"Hvorfor tænder vi en lygte?", svar:"Fordi hulen er mørk", forkert:["Fordi vi skal sove", "Fordi det er koldt"], bevis:"mørk" },
+    { lv:"forstaa", ord:"hvordan", tekst:"Hun viser os, hvordan man finder ind, så vi kan gøre det selv.", q:"Hvorfor viser hun os, hvordan man finder ind?", svar:"Så vi kan finde ind selv", forkert:["Fordi hun skal hjem", "Fordi vi betaler hende"], bevis:"selv" },
+  ],
+  /* 7 · Tids-tårnet */
+  [
+    { lv:"find", ord:"meget", tekst:"Det er meget tidligt, da tårnet åbner.", q:"Hvornår åbner tårnet?", svar:"Tidligt", forkert:["Sent", "Om natten"], bevis:"tidligt" },
+    { lv:"forstaa", ord:"havde", tekst:"Vi havde god tid, så vi gik op ad trappen.", q:"Hvorfor gik vi op ad trappen?", svar:"Fordi vi havde god tid", forkert:["Fordi vi skulle træne", "Fordi elevatoren var i stykker"], bevis:"tid" },
+    { lv:"forstaa", ord:"man", tekst:"Ingen ved, hvor mange trin der er, men man kan tælle dem.", q:"Hvad kan man gøre ved trinene?", svar:"Tælle dem", forkert:["Male dem", "Fjerne dem"], bevis:"tælle" },
+  ],
+  /* 8 · Stjernemarken */
+  [
+    { lv:"find", ord:"når", tekst:"Vi går hjem, når det bliver mørkt.", q:"Hvornår går vi hjem?", svar:"Når det bliver mørkt", forkert:["Når det bliver lyst", "Når vi har spist"], bevis:"mørkt" },
+    { lv:"forstaa", ord:"alt", tekst:"Stjernerne er svære at se, fordi månen lyser så stærkt.", q:"Hvorfor er stjernerne svære at se?", svar:"Fordi månen lyser stærkt", forkert:["Fordi det regner", "Fordi vi er trætte"], bevis:"lyser" },
+    { lv:"forstaa", ord:"sagde", tekst:"Han sagde, at vi også kunne komme med, så vi gik efter ham.", q:"Hvorfor gik vi efter ham?", svar:"Fordi han sagde, vi kunne komme med", forkert:["Fordi vi var bange", "Fordi vi ville hjem"], bevis:"sagde" },
+  ],
+  /* 9 · Måne-byen */
+  [
+    { lv:"find", ord:"hej", tekst:"Hej, mit navn står på døren til vores hus.", q:"Hvor står navnet?", svar:"På døren", forkert:["På gulvet", "I vinduet"], bevis:"døren" },
+    { lv:"forstaa", ord:"blev", tekst:"Det blev sent, så vi skulle ind i huset.", q:"Hvorfor skulle vi ind i huset?", svar:"Fordi det blev sent", forkert:["Fordi det regnede", "Fordi vi var sultne"], bevis:"sent" },
+    { lv:"forstaa", ord:"hans", tekst:"Hans cykel var i stykker, så han lånte min.", q:"Hvorfor lånte han min cykel?", svar:"Fordi hans cykel var i stykker", forkert:["Fordi han ikke havde nogen", "Fordi han skulle skynde sig"], bevis:"stykker" },
+  ],
+  /* 10 · Raket-havet */
+  [
+    { lv:"find", ord:"over", tekst:"Raketten flyver over havet på kun to timer.", q:"Hvor lang tid tager turen?", svar:"To timer", forkert:["Fem minutter", "Et helt døgn"], bevis:"timer" },
+    { lv:"forstaa", ord:"aldrig", tekst:"Far siger, at vi aldrig må flyve selv, fordi raketten er ny.", q:"Hvorfor må vi ikke flyve selv?", svar:"Fordi raketten er ny", forkert:["Fordi far er træt", "Fordi havet er dybt"], bevis:"raketten" },
+    { lv:"forstaa", ord:"lidt", tekst:"Der er kun lidt mad om bord, så vi får ikke meget at spise.", q:"Hvorfor får vi ikke meget mad?", svar:"Fordi der er lidt mad", forkert:["Fordi maden er dårlig", "Fordi vi er trætte"], bevis:"lidt" },
+  ],
+  /* 11 · Galaksens kerne */
+  [
+    { lv:"find", ord:"mand", tekst:"En mand tager sin hund med ud i hele galaksen.", q:"Hvem tager en hund med?", svar:"En mand", forkert:["En dreng", "En pige"], bevis:"mand" },
+    { lv:"forstaa", ord:"mor", tekst:"Vi ser dit billede igen, fordi mor vil se det sammen med jer.", q:"Hvorfor ser vi billedet igen?", svar:"Fordi mor vil se det", forkert:["Fordi det er nyt", "Fordi vi skal sove"], bevis:"mor" },
+    { lv:"forstaa", ord:"deres", tekst:"Deres raket er tung, så den tager lang tid om at lette.", q:"Hvorfor tager det lang tid at lette?", svar:"Fordi raketten er tung", forkert:["Fordi det blæser", "Fordi de er bange"], bevis:"tung" },
+  ],
+  /* 12 · Bog-klassen */
+  [
+    { lv:"find", ord:"tavle", tekst:"Læreren skriver på tavlen i den første time.", q:"Hvad skriver læreren på?", svar:"Tavlen", forkert:["Vinduet", "Gulvet"], bevis:"tavlen" },
+    { lv:"forstaa", ord:"tegne", tekst:"Vi skulle læse en side i bogen, så vi kunne tegne bagefter.", q:"Hvorfor skulle vi læse en side?", svar:"For at kunne tegne bagefter", forkert:["Fordi vi skulle sove", "Fordi læreren blev vred"], bevis:"tegne" },
+    { lv:"vurder", ord:"lektie", tekst:"Mikkel siger, at lektier er spild af tid.", q:"Kan man vide ud fra sætningen, at lektier er spild af tid?", svar:"Nej, det er kun noget Mikkel siger", forkert:["Ja, det står i sætningen", "Ja, lektier er spild af tid"], navn:"Mikkel" },
+  ],
+  /* 13 · Skrive-værkstedet */
+  [
+    { lv:"find", ord:"vindue", tekst:"Der er et højt vindue i min stue.", q:"Hvad er der i stuen?", svar:"Et vindue", forkert:["En seng", "Et bord"], bevis:"vindue" },
+    { lv:"forstaa", ord:"gulv", tekst:"Der var koldt på gulvet, så vi lagde et tæppe i stuen.", q:"Hvorfor lagde vi et tæppe?", svar:"Fordi gulvet var koldt", forkert:["Fordi der var beskidt", "Fordi vi skulle sove"], bevis:"koldt" },
+    { lv:"vurder", ord:"væg", tekst:"Min søster siger, at man aldrig må male på væggen.", q:"Er det sikkert, at man aldrig må male på væggen?", svar:"Nej, det er kun noget min søster siger", forkert:["Ja, det står i sætningen", "Ja, man må aldrig male på væggen"], navn:"Søster" },
+  ],
+  /* 14 · Familiens hus */
+  [
+    { lv:"find", ord:"moster", tekst:"Min bedstefar bor i et hus med min moster.", q:"Hvem bor sammen med bedstefar?", svar:"Moster", forkert:["Onkel", "Fætter"], bevis:"moster" },
+    { lv:"forstaa", ord:"familie", tekst:"Det var min kusines fødselsdag, så hele familien kom.", q:"Hvorfor kom hele familien?", svar:"Fordi det var kusinens fødselsdag", forkert:["Fordi de skulle spise", "Fordi huset var nyt"], bevis:"fødselsdag" },
+    { lv:"vurder", ord:"bror", tekst:"Min bror siger, at bedstemor er den bedste i familien.", q:"Står det i sætningen, at bedstemor er den bedste?", svar:"Nej, det er kun noget min bror siger", forkert:["Ja, det står i sætningen", "Ja, bedstemor er den bedste"], navn:"bror" },
+  ],
+  /* 15 · Dyre-parken */
+  [
+    { lv:"find", ord:"ræv", tekst:"Hunden løber efter en ræv i parken.", q:"Hvilket dyr løber hunden efter?", svar:"En ræv", forkert:["En hest", "En gris"], bevis:"ræv" },
+    { lv:"forstaa", ord:"høne", tekst:"Hønen var bange for hunden, så den gik ind i hønsehuset.", q:"Hvorfor gik hønen ind?", svar:"Fordi den var bange for hunden", forkert:["Fordi den var sulten", "Fordi den skulle sove"], bevis:"bange" },
+    { lv:"vurder", ord:"hund", tekst:"Peter siger, at alle hunde er farlige.", q:"Kan man vide ud fra sætningen, at alle hunde er farlige?", svar:"Nej, det er kun noget Peter siger", forkert:["Ja, det står i sætningen", "Ja, alle hunde er farlige"], navn:"Peter" },
+  ],
+  /* 16 · Lege-pladsen */
+  [
+    { lv:"find", ord:"cykel", tekst:"Der er en rød cykel i garagen.", q:"Hvilken farve har cyklen?", svar:"Rød", forkert:["Grøn", "Blå"], bevis:"rød" },
+    { lv:"forstaa", ord:"løbe", tekst:"Bolden rullede ud på vejen, så vi løb efter den.", q:"Hvorfor løb vi efter bolden?", svar:"Fordi den rullede ud på vejen", forkert:["Fordi vi skulle lege", "Fordi den var ny"], bevis:"rullede" },
+    { lv:"vurder", ord:"lege", tekst:"Naboens dreng siger, at man ikke må lege på pladsen.", q:"Er det sikkert, at man ikke må lege på pladsen?", svar:"Nej, det er kun noget drengen siger", forkert:["Ja, det står i sætningen", "Ja, man må ikke lege der"], navn:"dreng" },
+  ],
+  /* 17 · Mad-markedet */
+  [
+    { lv:"find", ord:"mælk", tekst:"Vi køber ost og mælk i butikken.", q:"Hvad køber vi sammen med ost?", svar:"Mælk", forkert:["Smør", "Brød"], bevis:"mælk" },
+    { lv:"forstaa", ord:"brød", tekst:"Der var ikke mere brød, så vi købte en banan i stedet.", q:"Hvorfor købte vi en banan?", svar:"Fordi der ikke var mere brød", forkert:["Fordi bananen var billig", "Fordi vi ikke kunne lide ost"], bevis:"brød" },
+    { lv:"vurder", ord:"sukker", tekst:"Min fætter siger, at sukker er godt for tænderne.", q:"Kan man vide ud fra sætningen, at sukker er godt for tænderne?", svar:"Nej, det er kun noget min fætter siger", forkert:["Ja, det står i sætningen", "Ja, sukker er godt for tænderne"], navn:"fætter" },
+  ],
+  /* 18 · Tøj-kammeret */
+  [
+    { lv:"find", ord:"hue", tekst:"Jeg har en blå hue og et grønt bælte.", q:"Hvilken farve har huen?", svar:"Blå", forkert:["Rød", "Gul"], bevis:"blå" },
+    { lv:"forstaa", ord:"vanter", tekst:"Det var koldt udenfor, så jeg tog vanter på.", q:"Hvorfor tog jeg vanter på?", svar:"Fordi det var koldt", forkert:["Fordi de var nye", "Fordi jeg skulle i skole"], bevis:"koldt" },
+    { lv:"vurder", ord:"jakke", tekst:"Min moster siger, at man altid skal have jakke på.", q:"Er det sikkert, at man altid skal have jakke på?", svar:"Nej, det er kun noget min moster siger", forkert:["Ja, det står i sætningen", "Ja, man skal altid have jakke på"], navn:"moster" },
+  ],
+  /* 19 · Krop-værkstedet */
+  [
+    { lv:"find", ord:"øje", tekst:"Jeg har et øje, der klør.", q:"Hvad klør?", svar:"Mit øje", forkert:["Min næse", "Min mund"], bevis:"øje" },
+    { lv:"forstaa", ord:"hånd", tekst:"Jeg bar en tung kasse, så min hånd blev træt.", q:"Hvorfor blev hånden træt?", svar:"Fordi jeg bar en tung kasse", forkert:["Fordi jeg skrev meget", "Fordi det var koldt"], bevis:"kasse" },
+    { lv:"vurder", ord:"tand", tekst:"Min lærer siger, at man skal børste tænder tre gange om dagen.", q:"Kan man vide ud fra sætningen, at man skal børste tænder tre gange?", svar:"Nej, det er kun noget min lærer siger", forkert:["Ja, det står i sætningen", "Ja, man skal børste tænder tre gange"], navn:"lærer" },
+  ],
+  /* 20 · Natur-haven */
+  [
+    { lv:"find", ord:"måne", tekst:"Om natten kan man se månen og én stjerne.", q:"Hvad kan man se om natten?", svar:"Månen og en stjerne", forkert:["Solen", "Regnen"], bevis:"månen" },
+    { lv:"forstaa", ord:"vind", tekst:"Det blæste stærkt, så blomsterne bøjede sig.", q:"Hvorfor bøjede blomsterne sig?", svar:"Fordi det blæste stærkt", forkert:["Fordi de var tørre", "Fordi det regnede"], bevis:"blæste" },
+    { lv:"vurder", ord:"regn", tekst:"Min nabo siger, at det altid regner i haven.", q:"Er det sikkert, at det altid regner i haven?", svar:"Nej, det er kun noget min nabo siger", forkert:["Ja, det står i sætningen", "Ja, det regner altid i haven"], navn:"nabo" },
+  ],
+  /* 21 · Handle-hallen */
+  [
+    { lv:"find", ord:"bygge", tekst:"Vi kan bygge en hytte af gamle kasser.", q:"Hvad kan vi bygge hytten af?", svar:"Kasser", forkert:["Sten", "Bretter"], bevis:"kasser" },
+    { lv:"forstaa", ord:"danse", tekst:"Vi havde danset hele dagen, så vi måtte sidde ned og hvile.", q:"Hvorfor måtte vi sidde ned?", svar:"Fordi vi havde danset hele dagen", forkert:["Fordi vi skulle spise", "Fordi det var tidligt"], bevis:"danset" },
+    { lv:"vurder", ord:"synge", tekst:"Min kusine siger, at hun synger bedre end alle andre.", q:"Kan man vide ud fra sætningen, at hun synger bedre end alle andre?", svar:"Nej, det er kun noget min kusine siger", forkert:["Ja, det står i sætningen", "Ja, hun synger bedre end alle andre"], navn:"kusine" },
+  ],
+  /* 22 · Tids-uret */
+  [
+    { lv:"find", ord:"uge", tekst:"Ugen har syv dage, og dagen har fireogtyve timer.", q:"Hvor mange dage har en uge?", svar:"Syv", forkert:["Tolv", "Femten"], bevis:"syv" },
+    { lv:"forstaa", ord:"aften", tekst:"Det var blevet aften, så vi gik i seng.", q:"Hvorfor gik vi i seng?", svar:"Fordi det var blevet aften", forkert:["Fordi vi var trætte", "Fordi det var søndag"], bevis:"aften" },
+    { lv:"vurder", ord:"måned", tekst:"Min onkel siger, at et år kun har ti måneder.", q:"Er det rigtigt, at et år kun har ti måneder?", svar:"Nej, det er kun noget min onkel siger", forkert:["Ja, det står i sætningen", "Ja, et år har ti måneder"], navn:"onkel" },
+  ],
+  /* 23 · Følelses-skoven */
+  [
+    { lv:"find", ord:"glad", tekst:"Da hun fik sin gave, blev hun meget glad.", q:"Hvordan blev hun, da hun fik gaven?", svar:"Glad", forkert:["Vred", "Trist"], bevis:"glad" },
+    { lv:"forstaa", ord:"sulten", tekst:"Han havde ikke spist hele dagen, så han var sulten.", q:"Hvorfor var han sulten?", svar:"Fordi han ikke havde spist", forkert:["Fordi han var træt", "Fordi maden var kold"], bevis:"spist" },
+    { lv:"vurder", ord:"modig", tekst:"Min ven siger, at man ikke kan være modig, hvis man er bange.", q:"Kan man vide ud fra sætningen, at man ikke kan være modig og bange?", svar:"Nej, det er kun noget min ven siger", forkert:["Ja, det står i sætningen", "Ja, man kan ikke være modig og bange"], navn:"ven" },
+  ],
+  /* 24 · Den svære skov */
+  [
+    { lv:"find", ord:"dejligt", tekst:"Det har været en dejlig dag i skoven.", q:"Hvordan har dagen været?", svar:"Dejlig", forkert:["Farlig", "Kedelig"], bevis:"dejlig" },
+    { lv:"forstaa", ord:"farligt", tekst:"Stien var farlig, så vi gik en anden vej.", q:"Hvorfor gik vi en anden vej?", svar:"Fordi stien var farlig", forkert:["Fordi vi var færdige", "Fordi det var sjovt"], bevis:"farlig" },
+    { lv:"vurder", ord:"sikkert", tekst:"Min fætter siger, at det er sikkert at gå alene i skoven om natten.", q:"Er det sikkert at gå alene i skoven om natten?", svar:"Nej, det er kun noget min fætter siger", forkert:["Ja, det står i sætningen", "Ja, det er sikkert at gå alene"], navn:"fætter" },
+  ],
+  /* 25 · Mesterskabet */
+  [
+    { lv:"find", ord:"jordbær", tekst:"Vi spiste jordbær til aftensmad på min fødselsdag.", q:"Hvad spiste vi til aftensmad?", svar:"Jordbær", forkert:["Kartofler", "Æbler"], bevis:"jordbær" },
+    { lv:"forstaa", ord:"skolegård", tekst:"Det regnede i skolegården, så vi spillede inde i stedet.", q:"Hvorfor spillede vi inde?", svar:"Fordi det regnede", forkert:["Fordi vi var færdige", "Fordi bolden var væk"], bevis:"regnede" },
+    { lv:"vurder", ord:"computer", tekst:"Min ven siger, at man kan læse alle bøger på internettet.", q:"Kan man vide ud fra sætningen, at man kan læse alle bøger på internettet?", svar:"Nej, det er kun noget min ven siger", forkert:["Ja, det står i sætningen", "Ja, man kan læse alle bøger på internettet"], navn:"ven" },
+  ],
+  /* 26 · Dobbelt-bjerget */
+  [
+    { lv:"find", ord:"appelsin", tekst:"Til middag fik vi en appelsin på en tallerken.", q:"Hvad fik vi til middag?", svar:"En appelsin", forkert:["En banan", "En pære"], bevis:"appelsin" },
+    { lv:"forstaa", ord:"kigge", tekst:"Vi gik op på klippen for at kigge på udsigten.", q:"Hvorfor gik vi op på klippen?", svar:"For at kigge på udsigten", forkert:["For at svømme i havet", "For at spise middag"], bevis:"kigge" },
+    { lv:"vurder", ord:"svømme", tekst:"Min bror siger, at man kan svømme hurtigere end en fisk.", q:"Står det i sætningen, at man kan svømme hurtigere end en fisk?", svar:"Nej, det er kun noget min bror siger", forkert:["Ja, det står i sætningen", "Ja, man kan svømme hurtigere end en fisk"], navn:"bror" },
+  ],
+  /* 27 · Stum-skoven */
+  [
+    { lv:"find", ord:"jord", tekst:"Fuglen sidder på jorden ved siden af en kugle.", q:"Hvor sidder fuglen?", svar:"På jorden", forkert:["I træet", "På taget"], bevis:"jorden" },
+    { lv:"forstaa", ord:"hjul", tekst:"Hjulet var fladt, så cyklen kunne ikke køre.", q:"Hvorfor kunne cyklen ikke køre?", svar:"Fordi hjulet var fladt", forkert:["Fordi den var gammel", "Fordi det regnede"], bevis:"fladt" },
+    { lv:"vurder", ord:"gæst", tekst:"En gæst siger, at der ligger guld i skoven.", q:"Kan man vide ud fra sætningen, at der ligger guld i skoven?", svar:"Nej, det er kun noget gæsten siger", forkert:["Ja, det står i sætningen", "Ja, der ligger guld i skoven"], navn:"gæst" },
+  ],
+  /* 28 · Byens gader */
+  [
+    { lv:"find", ord:"tog", tekst:"Vi tager toget til biografen i byen.", q:"Hvordan kommer vi til biografen?", svar:"Med toget", forkert:["Med bussen", "På cyklen"], bevis:"toget" },
+    { lv:"forstaa", ord:"biograf", tekst:"Vi gik på restaurant, fordi der var lukket i biografen.", q:"Hvorfor gik vi på restaurant?", svar:"Fordi biografen var lukket", forkert:["Fordi vi var sultne", "Fordi pizzaen var billig"], bevis:"lukket" },
+    { lv:"vurder", ord:"kamera", tekst:"Min fætter siger, at man kan se alle film på en telefon.", q:"Er det sikkert, at man kan se alle film på en telefon?", svar:"Nej, det er kun noget min fætter siger", forkert:["Ja, det står i sætningen", "Ja, man kan se alle film på telefonen"], navn:"fætter" },
+  ],
+  /* 29 · Skole-loftet */
+  [
+    { lv:"find", ord:"lineal", tekst:"I frikvarteret tegner vi med en lineal, og vi skriver med en blyant.", q:"Hvad tegner vi med?", svar:"En lineal", forkert:["En saks", "Et viskelæder"], bevis:"lineal" },
+    { lv:"forstaa", ord:"gruppe", tekst:"Opgaven var svær, så vi regnede sammen i en gruppe.", q:"Hvorfor regnede vi sammen i en gruppe?", svar:"Fordi opgaven var svær", forkert:["Fordi læreren bestemte det", "Fordi vi skulle skynde sig"], bevis:"svær" },
+    { lv:"vurder", ord:"matematik", tekst:"Min lærer siger, at matematik er det vigtigste fag.", q:"Kan man vide ud fra sætningen, at matematik er det vigtigste fag?", svar:"Nej, det er kun noget min lærer siger", forkert:["Ja, det står i sætningen", "Ja, matematik er det vigtigste fag"], navn:"lærer" },
+  ],
+  /* 30 · Vildt-reservatet */
+  [
+    { lv:"find", ord:"ugle", tekst:"Om natten jager uglen i den mørke skov.", q:"Hvornår jager uglen?", svar:"Om natten", forkert:["Om morgenen", "Om eftermiddagen"], bevis:"natten" },
+    { lv:"forstaa", ord:"skildpadde", tekst:"Skildpadden går langsomt, men den kan blive meget gammel.", q:"Hvad kan skildpadden, selv om den går langsomt?", svar:"Den kan blive meget gammel", forkert:["Den kan løbe hurtigt", "Den kan flyve højt"], bevis:"gammel" },
+    { lv:"vurder", ord:"bjørn", tekst:"En jæger siger, at bjørnen er det farligste dyr i skoven.", q:"Er det sikkert, at bjørnen er det farligste dyr?", svar:"Nej, det er kun noget jægeren siger", forkert:["Ja, det står i sætningen", "Ja, bjørnen er det farligste dyr"], navn:"jæger" },
+  ],
+  /* 31 · Følelses-fjeldet */
+  [
+    { lv:"find", ord:"stolt", tekst:"Hun var meget stolt, da hun vandt løbet.", q:"Hvordan var hun, da hun vandt?", svar:"Stolt", forkert:["Nervøs", "Ensom"], bevis:"stolt" },
+    { lv:"forstaa", ord:"overrasket", tekst:"Han var overrasket, fordi ingen havde fortalt ham om festen.", q:"Hvorfor var han overrasket?", svar:"Fordi ingen havde fortalt om festen", forkert:["Fordi han var træt", "Fordi festen var kedelig"], bevis:"fortalt" },
+    { lv:"vurder", ord:"tålmodig", tekst:"Min ven siger, at den der er tålmodig, altid vinder.", q:"Kan man vide ud fra sætningen, at den tålmodige altid vinder?", svar:"Nej, det er kun noget min ven siger", forkert:["Ja, det står i sætningen", "Ja, den tålmodige vinder altid"], navn:"ven" },
+  ],
+  /* 32 · Spejl-søen */
+  [
+    { lv:"find", ord:"nøgle", tekst:"Spejderen fandt en nøgle i det kolde vand.", q:"Hvad fandt spejderen?", svar:"En nøgle", forkert:["En mønt", "En sten"], bevis:"nøgle" },
+    { lv:"forstaa", ord:"vand", tekst:"Vandet var stille som et spejl, så vi kunne se bunden.", q:"Hvorfor kunne vi se bunden?", svar:"Fordi vandet var stille", forkert:["Fordi solen skinnede", "Fordi vi svømmede ned"], bevis:"stille" },
+    { lv:"vurder", ord:"vejr", tekst:"Vejrudsigten siger, at det bliver det bedste vejr i tusind år.", q:"Kan man vide ud fra sætningen, at det bliver det bedste vejr i tusind år?", svar:"Nej, det er kun noget vejrudsigten siger", forkert:["Ja, det står i sætningen", "Ja, det bliver det bedste vejr i tusind år"], navn:"vejrudsigten" },
+  ],
+  /* 33 · Samfunds-byen */
+  [
+    { lv:"find", ord:"sygehus", tekst:"Brandbilen kører hurtigt hen til sygehuset.", q:"Hvor kører brandbilen hen?", svar:"Til sygehuset", forkert:["Til stationen", "Til museet"], bevis:"sygehuset" },
+    { lv:"forstaa", ord:"arbejde", tekst:"Han tog bussen til arbejde, fordi han ikke kunne finde sin cykel.", q:"Hvorfor tog han bussen?", svar:"Fordi han ikke kunne finde sin cykel", forkert:["Fordi det regnede", "Fordi bussen var hurtigere"], bevis:"cykel" },
+    { lv:"vurder", ord:"politi", tekst:"Min nabo siger, at politiet aldrig har travlt.", q:"Er det sikkert, at politiet aldrig har travlt?", svar:"Nej, det er kun noget min nabo siger", forkert:["Ja, det står i sætningen", "Ja, politiet har aldrig travlt"], navn:"nabo" },
+  ],
+  /* 34 · Eventyr-riget */
+  [
+    { lv:"find", ord:"slot", tekst:"Ridderen red til slottet for at finde skatten.", q:"Hvor red ridderen hen?", svar:"Til slottet", forkert:["Til skoven", "Til havet"], bevis:"slottet" },
+    { lv:"forstaa", ord:"trold", tekst:"Trolden gemte skatten, så ingen kunne finde den.", q:"Hvorfor gemte trolden skatten?", svar:"Fordi ingen skulle finde den", forkert:["Fordi han var træt", "Fordi skatten var tung"], bevis:"finde" },
+    { lv:"vurder", ord:"troldmand", tekst:"En troldmand siger, at ingen kan løfte sværdet.", q:"Kan man vide ud fra sætningen, at ingen kan løfte sværdet?", svar:"Nej, det er kun noget troldmanden siger", forkert:["Ja, det står i sætningen", "Ja, ingen kan løfte sværdet"], navn:"troldmand" },
+  ],
+  /* 35 · Drømme-tårnet */
+  [
+    { lv:"find", ord:"drøm", tekst:"I min drøm fløj jeg over et helt tårn.", q:"Hvad gjorde jeg i min drøm?", svar:"Jeg fløj", forkert:["Jeg løb", "Jeg svømmede"], bevis:"fløj" },
+    { lv:"forstaa", ord:"hemmelighed", tekst:"Han havde en hemmelighed, så han turde ikke sige noget.", q:"Hvorfor turde han ikke sige noget?", svar:"Fordi han havde en hemmelighed", forkert:["Fordi han var træt", "Fordi han var bange for højder"], bevis:"hemmelighed" },
+    { lv:"vurder", ord:"venskab", tekst:"Min ven siger, at man kun kan være lykkelig med mange penge.", q:"Kan man vide ud fra sætningen, at man kun kan være lykkelig med mange penge?", svar:"Nej, det er kun noget min ven siger", forkert:["Ja, det står i sætningen", "Ja, man kan kun være lykkelig med mange penge"], navn:"ven" },
+  ],
+];
+
 /* ============ STATE (med profiler — hver spiller har eget gemt fremskridt) ============ */
 const PROFILES_KEY = "ordjaegeren_profiles_v1";
 const ACTIVE_KEY = "ordjaegeren_active_v1";
@@ -2094,8 +2362,12 @@ function loadState() {
   // Migration: sikr at hver verdens done-array findes (gamle saves kan mangle det)
   for (const k in state.worlds) {
     const w = state.worlds[k];
-    if (w && !Array.isArray(w.done)) w.done = [false, false, false];
-    if (w && w.done.length < 3) w.done = [!!w.done[0], !!w.done[1], !!w.done[2]];
+    if (w && !Array.isArray(w.done)) w.done = [false, false, false, false];
+    /* FJERDE MISSION (Forstå det!): en gemt verden fra før den fandtes har kun 3
+       pladser i done. Var de tre klaret, ER verdenen klaret — derfor sætter vi
+       den fjerde til true, så et færdigt spil ikke pludselig låser monsteret
+       igen. Nye verdener skal stadig klare alle fire. */
+    if (w && w.done.length < 4) w.done = [!!w.done[0], !!w.done[1], !!w.done[2], !!(w.done[0] && w.done[1] && w.done[2])];
   }
   if (!state.stats) state.stats = { words: {}, games: {}, days: {}, history: [] };
   if (!state.stats.words) state.stats.words = {};
@@ -2117,7 +2389,7 @@ function loadState() {
 let state = defaultState();
 loadState();
 function save() { localStorage.setItem(profileKey(activeId()), JSON.stringify(state)); }
-function worldState(i) { if (!state.worlds[i]) state.worlds[i] = { hear:null, type:null, fill:null, done:[false,false,false] }; return state.worlds[i]; }
+function worldState(i) { if (!state.worlds[i]) state.worlds[i] = { hear:null, type:null, fill:null, read:null, done:[false,false,false,false] }; return state.worlds[i]; }
 /* worldReached = har spilleren NÅET hertil i rejsen? Den bruges KUN til at
    vise status og stjerner på kortet — den spærrer ikke for noget.
    canEnterWorld = må man starte en mission her? Ja, altid: Kenneths krav er
@@ -2134,7 +2406,7 @@ function canEnterWorld(i) {
 }
 function totalStars() {
   let n = 0;
-  for (let i = 0; i < WORLDS.length; i++) { const w = state.worlds[i]; if (w) n += (w.hear||0) + (w.type||0) + (w.fill||0); }
+  for (let i = 0; i < WORLDS.length; i++) { const w = state.worlds[i]; if (w) n += (w.hear||0) + (w.type||0) + (w.fill||0) + (w.read||0); }
   return n;
 }
 function collectedCount() {
@@ -2588,7 +2860,7 @@ function toast(msg, ms) {
 }
 
 /* ============ STATISTIK (forældre) ============ */
-const GAME_LABELS = { hear: "👂 Hør & Slå", type: "⌨️ Fang ordet", fill: "🧩 Sætnings-gåden" };
+const GAME_LABELS = { hear: "👂 Hør & Slå", type: "⌨️ Fang ordet", fill: "🧩 Sætnings-gåden", read: "📖 Forstå det!" };
 function showStats() {
   sfxClick();
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -3009,7 +3281,7 @@ function showProfiles() {
     d.className = "profile-card" + (active ? " selected" : "");
     // Vis spillerens fremskridt på kortet
     const pstate = JSON.parse(localStorage.getItem(profileKey(p.id)) || "null");
-    const stars = pstate && pstate.worlds ? Object.values(pstate.worlds).reduce((n, w) => n + (w.hear||0) + (w.type||0) + (w.fill||0), 0) : 0;
+    const stars = pstate && pstate.worlds ? Object.values(pstate.worlds).reduce((n, w) => n + (w.hear||0) + (w.type||0) + (w.fill||0) + (w.read||0), 0) : 0;
     const bosses = pstate && pstate.worlds ? Object.values(pstate.worlds).filter(w => w.boss).length : 0;
     d.innerHTML = `<div class="pc-icon">${p.icon}</div><div class="pc-name">${p.name}</div><div class="pc-progress">⭐ ${stars} · 🐉 ${bosses}/${WORLDS.length}</div>`;
     if (!active) d.onclick = () => switchProfile(p.id);
@@ -3257,7 +3529,9 @@ function showWorld(i) {
   const games = [
     { key:"hear", emoji:"👂", label:"Hør & Slå", desc:"Lyt og ram det rigtige ord" },
     { key:"type", emoji:"⌨️", label:"Fang ordet", desc:"Lyt og skriv ordet" },
-    { key:"fill", emoji:"🧩", label:"Sætnings-gåden", desc:"Vælg ordet der mangler" }
+    { key:"fill", emoji:"🧩", label:"Sætnings-gåden", desc:"Vælg ordet der mangler" },
+    // FJERDE MISSION: læseforståelse — barnet LÆSER selv (ingen oplæsning, ingen maskin-hjælp)
+    { key:"read", emoji:"📖", label:"Forstå det!", desc:"Læs teksten og svar på spørgsmålet" }
   ];
   games.forEach(game => {
     const b = document.createElement("button");
@@ -3274,14 +3548,14 @@ function showWorld(i) {
   });
   // Overordnet status for verdenen
   const statusLine = document.getElementById("worldStatus");
-  const missionsDone = ws.done[0] && ws.done[1] && ws.done[2];
+  const missionsDone = ws.done[0] && ws.done[1] && ws.done[2] && ws.done[3];
   if (ws.boss) statusLine.innerHTML = "✅ Verdenen er færdig!";
   else if (missionsDone) statusLine.innerHTML = "👾 Alle missioner klaret — kæmp mod monsteret!";
   else {
     const n = ws.done.filter(Boolean).length;
-    statusLine.innerHTML = `🚧 ${n}/3 missioner gennemført — gennemfør alle 3 for at møde monsteret`;
+    statusLine.innerHTML = `🚧 ${n}/4 missioner gennemført — gennemfør alle 4 for at møde monsteret`;
   }
-  // Monster-knap: vises når alle 3 missioner er gennemført OG monsteret ikke er besejret endnu
+  // Monster-knap: vises når alle 4 missioner er gennemført OG monsteret ikke er besejret endnu
   const bossBtn = document.getElementById("bossBtn");
   const dragon = BOSSES[i];
   const defeated = ws.boss;
@@ -3289,7 +3563,7 @@ function showWorld(i) {
   // fra en tidligere verdens drage-sejr (disabled kan man ikke klikke!)
   bossBtn.disabled = false;
   bossBtn.classList.remove("done");
-  if (ws.done[0] && ws.done[1] && ws.done[2] && !defeated) {
+  if (ws.done[0] && ws.done[1] && ws.done[2] && ws.done[3] && !defeated) {
     bossBtn.style.display = "block";
     bossBtn.textContent = "🐉 Kæmp mod " + dragon.name + " (kraft " + dragon.power + ")";
   } else if (defeated) {
@@ -4595,16 +4869,28 @@ function distractors(word, n) {
 function startGame(worldIdx, game) {
   stopAudio();
   sfxClick();
-  cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.wrongWords = []; cur.drill = null;
-  // ADAPTIV: antal ord tilpasses hvor godt det går (flere når det flyver, færre når det er tungt)
-  const base = game === "hear" ? 8 : 6;
-  cur.words = buildWordList(worldIdx, adaptiveWordCount(base));
+  cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.wrongWords = []; cur.drill = null; cur.readTasks = null;
+  if (game === "read") {
+    /* FORSTÅ DET!: runden er verdens LÆSE-opgaver — ikke en ordliste, som de tre
+       andre missioner bruger. Hver opgave har ét ord fra verdenen (t.ord), og dem
+       bruger vi som cur.words. Så er stjerne-logikken, statistikken, loot og
+       afslutningen PRÆCIS den samme kode som i Hør & Slå, Skriv ordet og
+       Sætnings-gåden — og et forkert svar rammer det ord, opgaven handlede om. */
+    const tasks = shuffle(READ_TASKS[worldIdx] || []);
+    cur.readTasks = tasks;
+    cur.words = tasks.map(t => t.ord);
+  } else {
+    // ADAPTIV: antal ord tilpasses hvor godt det går (flere når det flyver, færre når det er tungt)
+    const base = game === "hear" ? 8 : 6;
+    cur.words = buildWordList(worldIdx, adaptiveWordCount(base));
+  }
   cur.patternMisses = {}; // nulstil mønster-tæller for denne mission
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("hud").classList.remove("hidden");
   if (game === "hear") { document.getElementById("screen-hear").classList.add("active"); renderHear(); }
   if (game === "type") { document.getElementById("screen-type").classList.add("active"); renderType(); }
   if (game === "fill") { document.getElementById("screen-fill").classList.add("active"); renderFill(); }
+  if (game === "read") { document.getElementById("screen-read").classList.add("active"); renderRead(); }
   updateHud();
 }
 
@@ -4616,7 +4902,7 @@ function updateHud() {
   // Fremgangsbaren i selve spil-panelet: "Ord 3 af 10" + hvor langt man er.
   // Barnet skal kunne se at der er en ende — ellers føles runden uden slutning.
   const pct = tot ? Math.round((ix / tot) * 100) : 0;
-  ["rp-hear", "rp-type", "rp-fill"].forEach(id => {
+  ["rp-hear", "rp-type", "rp-fill", "rp-read"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = `<div class="rp-txt">Ord ${Math.min(ix + 1, tot)} af ${tot}</div>` +
@@ -4999,7 +5285,7 @@ function finishGame() {
   const stars = starsFor(cur.errors, cur.words.length);
   if (!isDrill) {
     ws[cur.game] = stars;
-    ws.done[["hear","type","fill"].indexOf(cur.game)] = true;
+    ws.done[["hear","type","fill","read"].indexOf(cur.game)] = true;
   }
   // Log mission til historik (til forældre-statistik)
   const wrongInMission = cur.wrongWords || [];
@@ -5011,8 +5297,8 @@ function finishGame() {
   const lvlBefore = heroLevel();
   state.xp = (state.xp || 0) + xpGain;
   save();
-  const worldComplete = ws.done[0] && ws.done[1] && ws.done[2];
-  const nextGameOrder = ["hear","type","fill"];
+  const worldComplete = ws.done[0] && ws.done[1] && ws.done[2] && ws.done[3];
+  const nextGameOrder = ["hear","type","fill","read"];
   const curGameIdx = nextGameOrder.indexOf(cur.game);
   const nextGame = nextGameOrder[curGameIdx + 1] || null;
 
@@ -5267,6 +5553,77 @@ function nextFill() {
   updateHud();
 }
 
+/* ============ FORSTÅ DET! — LÆSEFORSTÅELSE (det PISA måler) ============
+   Den eneste af de fire missioner hvor barnet ikke staver. Her skal barnet:
+     find    — finde et svar der STÅR i teksten
+     forstaa — forstå en sammenhæng (svaret står ikke direkte)
+     vurder  — skelne hvad der STÅR fra hvad nogen MENER
+   TRE REGLER DER IKKE MÅ BRYDES (Kenneths krav, og hele grunden til opgaven):
+     1) Teksten vises som TEKST. Der er ingen højttaler-knap og intet sted i koden
+        der læser teksten eller spørgsmålet op. Barnet læser selv. PISA-rapporten
+        viser at elever der får maskinen til at læse for sig, klarer sig markant
+        dårligere — så en genvej her ville ødelægge det vi prøver at bygge.
+     2) Ingen maskine må afsløre svaret før barnet har svaret. Det rigtige svar og
+        forklaringen skrives FØRST ind i #readStatus når der er svaret (answerRead).
+     3) Distraktorerne er troværdige: se READ_TASKS — hver forkert mulighed er noget
+        et barn der IKKE forstod teksten realistisk ville vælge, og hver af dem
+        indeholder mindst ét ord der ikke står i teksten. */
+const READ_LEVELS = {
+  find:    { icon: "🔎", name: "Find det" },
+  forstaa: { icon: "🧠", name: "Forstå det" },
+  vurder:  { icon: "🤔", name: "Tænk efter" }
+};
+// Svarmulighederne i tilfældig rækkefølge — det rigtige svar ligger aldrig fast på samme plads
+function readOptions(t) { return shuffle([t.svar].concat(t.forkert)); }
+function renderRead() {
+  cur.answered = false;
+  const t = cur.readTasks[cur.idx];
+  const lv = READ_LEVELS[t.lv] || READ_LEVELS.find;
+  document.getElementById("readLevel").innerHTML =
+    '<span class="rl-badge' + (t.lv === "vurder" ? " rl-vurder" : "") + '">' + lv.icon + " " + lv.name + "</span>";
+  document.getElementById("readText").textContent = t.tekst;
+  document.getElementById("readQ").textContent = t.q;
+  const box = document.getElementById("readChoices");
+  box.innerHTML = "";
+  readOptions(t).forEach(o => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = o;
+    b.onclick = () => answerRead(o, t, b);
+    box.appendChild(b);
+  });
+  document.getElementById("readStatus").textContent = "";
+}
+// Forklaringen vises KUN efter svaret — og forklarer hvorfor, ikke bare hvad
+function readExplain(t) {
+  if (t.lv === "vurder") {
+    return "Teksten siger kun, at " + t.navn + " siger det. Det er kun en mening — ikke noget man kan vide ud fra teksten.";
+  }
+  return "'" + t.bevis + "' står i teksten — det er dér svaret står.";
+}
+function answerRead(picked, t, btn) {
+  if (cur.answered) return;
+  cur.answered = true;
+  const word = t.ord;
+  if (picked === t.svar) {
+    btn.classList.add("correct"); sfxRight(); markRight(word);
+    document.getElementById("readStatus").textContent = "✔️ Rigtigt! " + (t.lv === "vurder" ? "Du skelnede mening fra fakta." : "Du fandt det i teksten.");
+  } else {
+    btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
+    const correctBtn = [...document.querySelectorAll("#readChoices .choice")].find(b => b.textContent === t.svar);
+    if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
+    document.getElementById("readStatus").innerHTML =
+      "Det rigtige svar er: <span class='big-red'>" + t.svar + "</span><br><span class='read-self'>" + readExplain(t) + "</span>";
+  }
+  setTimeout(nextRead, 1700);
+}
+function nextRead() {
+  cur.idx++;
+  if (cur.idx >= cur.readTasks.length) { finishGame(); return; }
+  renderRead();
+  updateHud();
+}
+
 /* ============ WORLD MAP RENDER — OPEN WORLD ============ */
 // Geografiske positioner (x%, y%) — en snoet sti gennem landet
 const MAP_POS = [
@@ -5437,33 +5794,33 @@ function renderMapPanel(elId, start, end, title) {
     const p = MAP_POS[i];
     const reached = worldReached(i);
     const ws = state.worlds[i];
-    const missionsDone = ws && ws.done && ws.done[0] && ws.done[1] && ws.done[2];
+    const missionsDone = ws && ws.done && ws.done[0] && ws.done[1] && ws.done[2] && ws.done[3];
     const bossDone = ws && ws.boss;
     // Alle verdener er åbne — badgen viser hvor langt man er, ikke om man må.
     let badge = "";
     if (bossDone) badge = '<div class="w-badge b-done">✅ Færdig</div>';
     else if (missionsDone) badge = '<div class="w-badge b-dragon">👾 Slå monsteret!</div>';
-    else if (ws && (ws.done[0] || ws.done[1] || ws.done[2])) badge = '<div class="w-badge b-progress">🚧 I gang</div>';
+    else if (ws && (ws.done[0] || ws.done[1] || ws.done[2] || ws.done[3])) badge = '<div class="w-badge b-progress">🚧 I gang</div>';
     else if (reached) badge = '<div class="w-badge b-new">🆕 Start her</div>';
     else badge = '<div class="w-badge b-open">✨ Åben</div>';
     let segs = "";
     const doneArr = ws && ws.done ? ws.done : [false, false, false];
-    const segStates = [doneArr[0], doneArr[1], doneArr[2], !!(ws && ws.boss)];
-    for (let si = 0; si < 4; si++) segs += `<div class="w-seg ${segStates[si] ? "on" : "off"}"></div>`;
-    /* Stjerner pr. verden — én stjerne pr. mission (3 = perfekt).
+    const segStates = [doneArr[0], doneArr[1], doneArr[2], doneArr[3], !!(ws && ws.boss)];
+    for (let si = 0; si < 5; si++) segs += `<div class="w-seg ${segStates[si] ? "on" : "off"}"></div>`;
+    /* Stjerner pr. verden — én stjerne pr. mission (4 = perfekt).
        Selv om alt er åbent fra start, skal et barn kunne SE at der er noget
        at stræbe efter: fuld stjerne = missionen er klaret perfekt. */
-    const missionStars = [(ws && ws.hear) || 0, (ws && ws.type) || 0, (ws && ws.fill) || 0];
+    const missionStars = [(ws && ws.hear) || 0, (ws && ws.type) || 0, (ws && ws.fill) || 0, (ws && ws.read) || 0];
     let starMarks = "";
-    for (let si = 0; si < 3; si++) {
+    for (let si = 0; si < 4; si++) {
       const n = missionStars[si];
       starMarks += `<span class="ws ${n >= 3 ? "full" : n > 0 ? "part" : "none"}">★</span>`;
     }
-    const wStars = missionStars[0] + missionStars[1] + missionStars[2];
+    const wStars = missionStars[0] + missionStars[1] + missionStars[2] + missionStars[3];
     d.className = "world-card" + (bossDone ? " cleared" : reached ? " reached" : "");
     d.style.left = p.x + "%";
     d.style.top = p.y + "%";
-    d.title = "Verden " + (i+1) + ": " + w.name + " — " + wStars + " af 9 stjerner" + (bossDone ? " · monster besejret" : "");
+    d.title = "Verden " + (i+1) + ": " + w.name + " — " + wStars + " af 12 stjerner" + (bossDone ? " · monster besejret" : "");
     d.innerHTML = `<div class="emoji">${w.emoji}</div><div class="wname">${w.name}</div><div class="wstars">${starMarks}</div>${badge}<div class="w-progress">${segs}</div>`;
     d.onclick = () => travelToWorld(i);
     map.appendChild(d);
@@ -5629,6 +5986,7 @@ updateStartMeta();
     else if (s === "hear")   { startGame(0, "hear"); }
     else if (s === "type")   { startGame(0, "type"); }
     else if (s === "fill")   { startGame(0, "fill"); }
+    else if (s === "read")   { startGame(0, "read"); }
     else if (s === "stats")    showStats();
     else if (s === "hero")     showHero();
     else if (s === "map")      showWorldMap();
