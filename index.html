@@ -1498,8 +1498,10 @@ const WORDS = {
   /* ============ VERDEN 25: Den svære skov (10 ord) ============
      Ord der staves anderledes end de lyder, og ord med stumme bogstaver.
      Sætningen bærer ordet i en sammenhæng et barn kan forstå — OGSÅ når udtalen
-     snyder (fx staves "dejligt", men står i sætningen som "dejlig"). */
-  dejligt:"Det har været en dejlig dag.", ellers:"Skynd dig, ellers kommer vi for sent.",
+     snyder (fx "dejligt", hvor j'et ikke lyder som et j, og t'et forsvinder).
+     Ordet skal stå i PRAECIS sin egen form i sætningen — ellers ville hullet
+     give forkert dansk (fx "en dejligt dag"). */
+  dejligt:"Det har været dejligt i dag.", ellers:"Skynd dig, ellers kommer vi for sent.",
   farligt:"Det er farligt at løbe over vejen.", færdig:"Jeg er færdig med min tegning.",
   næsten:"Jeg er næsten færdig med at læse.", rigtigt:"Det er rigtigt, hvad du siger.",
   sikkert:"Han er sikkert hjemme nu.", sjovt:"Det er sjovt at spille med venner.",
@@ -1510,7 +1512,87 @@ const WORDS = {
   jordbær:"Jordbær smager bedst om sommeren.", skolegård:"Vi leger i skolegården hver dag.",
   bibliotek:"Jeg låner bøger på biblioteket.", sommerferie:"Til sommerferie skal vi til stranden.",
   computer:"Jeg spiller på min computer.", telefon:"Morfar ringer på sin telefon.",
-  fodboldbane:"Vi spiller kamp på fodboldbanen.", aftensmad:"Vi spiser aftensmad klokken seks."
+  fodboldbane:"Vi spiller kamp på fodboldbanen.", aftensmad:"Vi spiser aftensmad klokken seks.",
+  /* ============ VERDEN 27: Dobbelt-bjerget (10 ord) ============
+     Tema: DOBBELTKONSONANTER. Når lyden er kort, skrives den med to ens bogstaver.
+     Ordet står i PRÆCIS sin egen form i sætningen — ellers ville hullet give
+     forkert dansk (fx "en tallerken" må ikke blive "en tallerkenen"). */
+  tallerken:"Jeg tager en tallerken ud af skabet.", klippe:"Båden sejlede tæt forbi en høj klippe.",
+  springe:"Kan du springe over bækken?", gætte:"Kan du gætte, hvor gammel jeg er?",
+  kigge:"Jeg vil kigge på stjernerne i aften.", rulle:"Bolden kan rulle langt ned ad bakken.",
+  svømme:"Jeg lærte at svømme i sommer.", briller:"Min far har fået nye briller.",
+  appelsin:"Jeg spiser en appelsin i frikvarteret.", middag:"Vi spiser middag klokken tolv.",
+  /* ============ VERDEN 28: Stum-skoven (10 ord) ============
+     Tema: STUMME BOGSTAVER. H'et i "hjul", D'et i "guld" og D'et i "født" kan man
+     ikke høre — men man SKAL skrive dem. Alle sætninger bruger ordet i præcis den form. */
+  hjul:"Et hjul på cyklen drejer rundt.", hjerte:"Mit hjerte slår hurtigt, når jeg løber.",
+  hjælpe:"Kan du hjælpe mig med at rydde op?", hjem:"Nu vil jeg gerne hjem.",
+  hvid:"Sneen er helt hvid.", hval:"En hval svømmer i havet.",
+  gæst:"Vi får en gæst på besøg i morgen.", guld:"Vinderen får en medalje af guld.",
+  jord:"Der er jord på mine sko.", født:"Jeg er født i marts.",
+  /* ============ VERDEN 29: Byens gader (10 ord) ============
+     Tema: FREMMEDORD som et dansk barn møder i byen. De staves ikke som de lyder
+     for et dansk øre — derfor skal de læres som hele ord. */
+  pizza:"Vi spiser pizza hver fredag.", bus:"Vi kører med bus til byen.",
+  tog:"Vi tager tog til Århus i morgen.", biograf:"Vi skal i biograf og se en film.",
+  hotel:"Vi sov på et hotel i ferien.", restaurant:"Vi spiste på en restaurant i byen.",
+  kamera:"Jeg tager et billede med mit kamera.", robot:"Min bror har bygget en robot af klodser.",
+  guitar:"Jeg kan spille på en guitar.", cirkus:"Vi var i cirkus og så en klovn.",
+  /* ============ VERDEN 30: Skole-loftet (10 ord) ============
+     Tema: SKOLE- OG FAGORD. Ordene barnet møder i skemaet og i klasselokalet. */
+  matematik:"Jeg er god til matematik.", engelsk:"Vi lærer engelsk i skolen.",
+  historie:"Vi har historie om vikingerne.", idræt:"Vi har idræt i hallen hver fredag.",
+  frikvarter:"Vi har frikvarter klokken ti.", opgave:"Kan du hjælpe mig med den svære opgave?",
+  regne:"Jeg kan regne med store tal.", blyant:"Jeg skriver med en blyant.",
+  lineal:"Der ligger en lineal i mit pennalhus.", gruppe:"Vi arbejder sammen i en gruppe.",
+  /* ============ VERDEN 31: Vildt-reservatet (10 ord) ============
+     Tema: NATUR OG DYR. Hvert navneord bruges i sin egen form efter "en/et",
+     så kønnet passer (et egern, en hjort, en bjørn). */
+  egern:"Et egern gemmer nødder i træet.", pindsvin:"Et pindsvin har pigge på ryggen.",
+  ugle:"En ugle har store, runde øjne.", hjort:"En hjort står stille i skoven.",
+  bi:"En bi laver honning.", edderkop:"En edderkop spinder et spind i hjørnet.",
+  myre:"En myre kravler op ad stenen.", skildpadde:"En skildpadde har en hård skal.",
+  delfin:"En delfin springer højt op af vandet.", bjørn:"En bjørn sover hele vinteren.",
+  /* ============ VERDEN 32: Følelses-fjeldet (10 ord) ============
+     Tema: FØLELSER OG EGENSKABER. Ordene står i fælleskøns- eller intetkønsformen
+     dér hvor sætningen kræver det — fx "Jeg ER stolt" og "Han FØLTE sig ensom". */
+  stolt:"Jeg er stolt af min tegning.", nervøs:"Jeg er nervøs før den store kamp.",
+  overrasket:"Jeg blev overrasket over gaven.", forvirret:"Jeg blev helt forvirret af de mange tal.",
+  taknemlig:"Jeg er taknemlig for din hjælp.", ensom:"Han følte sig ensom i den nye by.",
+  ivrig:"Hunden er ivrig efter at komme ud.", rolig:"Du skal være rolig og trække vejret.",
+  ærlig:"Det er vigtigt at være ærlig.", tålmodig:"Du skal være tålmodig, når du fisker.",
+  /* ============ VERDEN 33: Spejl-søen (10 ord) ============
+     Tema: EJ- OG ØJ-LYDE. Lyden er ét sted, bogstaverne et andet: spejl, nøgle, højt.
+     Det er den anden slags skrivefælde efter verden 25 (som tog de stumme). */
+  vejr:"Vi får fint vejr i morgen.", spejl:"Der hænger et spejl over vasken.",
+  nøgle:"Jeg har mistet min nøgle.", højt:"Fuglen sidder højt oppe i træet.",
+  høj:"Min bror er høj og stærk.", spejder:"Han er spejder og sover i telt.",
+  vej:"Vi går hen ad en støvet vej.", vand:"Jeg drikker et glas vand.",
+  tusind:"Der er tusind stjerner på himlen.", hundrede:"Der er hundrede sider i bogen.",
+  /* ============ VERDEN 34: Samfunds-byen (10 ord) ============
+     Tema: SAMFUNDS-ORD. Ord et skolebarn møder uden for hjemmet: penge, arbejde,
+     sygehus, politi. Alle står i den form sætningen kræver. */
+  penge:"Jeg har sparet penge op i min sparegris.", arbejde:"Han skal på arbejde klokken otte.",
+  sygehus:"Han var på sygehus i tre dage.", politi:"Der kom politi i en blå bil.",
+  brandbil:"En brandbil kører hurtigt med blå lys.", museum:"Vi var på museum og så gamle ting.",
+  teater:"Vi var på teater i sidste uge.", avis:"Han læser avis hver morgen.",
+  station:"Vi mødtes på station klokken ni.", lufthavn:"Vi kørte til lufthavn i god tid.",
+  /* ============ VERDEN 35: Eventyr-riget (10 ord) ============
+     Tema: EVENTYR OG MYTERI. Ordene barnet kender fra historierne — og her møder
+     det også ordet "drage" som ord, ikke kun som monster. */
+  ridder:"En ridder red på en hvid hest.", prinsesse:"En prinsesse boede i det høje tårn.",
+  trold:"En trold gemmer sig under broen.", heks:"En heks flyver på et kosteskaft.",
+  troldmand:"En troldmand kan lave magi.", drage:"En drage spyr ild ud over byen.",
+  slot:"Kongen bor på et stort slot.", skat:"Piraten fandt en skat i kisten.",
+  viking:"En viking sejlede over havet.", rune:"Der står en rune på stenen.",
+  /* ============ VERDEN 36: Drømme-tårnet (10 ord) ============
+     Tema: DE SVÆRESTE ORD I SPILLET. Abstrakte ord som man ikke kan pege på:
+     frihed, sandhed, kærlighed. De står i præcis den form et barn skal kunne stave. */
+  drøm:"Min største drøm er at flyve.", tanke:"Jeg fik en god tanke i badet.",
+  hemmelighed:"Kan du holde på en hemmelighed?", fremtid:"Fremtid er alt det, der ikke er sket endnu.",
+  frihed:"Frihed betyder, at man selv må bestemme.", sandhed:"Sandhed er noget, man ikke må lyve om.",
+  kærlighed:"Kærlighed er noget, man føler indeni.", venskab:"Venskab er, når man er gode venner.",
+  fantasi:"Med fantasi kan man rejse overalt.", håb:"Vi har et håb om bedre tider."
 };
 
 const ALL_WORDS = Object.keys(WORDS);
@@ -1894,7 +1976,30 @@ const BOSSES = [
 /* ============ VERDEN 3 (Mester-riget) — de to sværeste ============
    Kraften følger den stigende kurve hele vejen igennem: 26 er den stærkeste i spillet. */
   { name: "Stavelses-trolden",     emoji: "🌲", power: 95, c1: "#86efac", c2: "#14532d" },
-  { name: "Mester-dragen",         emoji: "🐉", power: 110, c1: "#fffbe8", c2: "#b45309" }, // FINAL BOSS — ikke som de andre
+  { name: "Mester-dragen",         emoji: "🐉", power: 110, c1: "#fffbe8", c2: "#b45309" }, // final boss i Mester-rigets FØRSTE halvdel — ikke som de andre
+/* ============ VERDEN 3 udvidet: 10 NYE MONSTRE (verden 27-36) ============
+   KRAFTEN FORTSÆTTER DEN STIGENDE KURVE HELE VEJEN (testen "kraften stiger for hver
+   verden" kræver det), og derfor bliver den SIDSTE verden nu den stærkeste — ikke
+   Mester-dragen. Det er den rigtige beslutning fordi:
+     1) kurven kan ikke både stige og have et loft midt i spillet — en verden 28 der
+        var svagere end verden 26 ville føles som en nedtur for barnet;
+     2) rækkefølgen på kortet ER sværhedsgraden. Side C læses fra øverste venstre mod
+        nederste højre, så nr. 12 på siden skal være den sværeste;
+     3) Mester-dragen mister ikke sin rolle: den er stadig den stærkeste DRAGE og den
+        eneste der giver 🏔️ ASEGÅRD-items (se asgardForWorld), altså porten til
+        gudernes udstyr. Det er en anden og vigtigere slags "stærkest".
+   Den sidste verden (36) er "🌌 Drømme-kejseren" med kraft 180 — loftet er 200 i
+   testen, så der er plads til en udvidelse mere senere. */
+  { name: "Tvillingen",           emoji: "👯", power: 116, c1: "#a7f3d0", c2: "#065f46" }, // dobbeltkonsonanter: alt kommer i par
+  { name: "Stilheds-ånden",       emoji: "👻", power: 122, c1: "#e2e8f0", c2: "#475569" }, // stumme bogstaver: den siger ingenting
+  { name: "Trafik-trolden",       emoji: "🚦", power: 128, c1: "#fde68a", c2: "#b45309" },
+  { name: "Klassens Spøgelse",    emoji: "🎓", power: 134, c1: "#bfdbfe", c2: "#1e3a8a" },
+  { name: "Ulveflokken",          emoji: "🐺", power: 140, c1: "#cbd5e1", c2: "#334155" },
+  { name: "Sorgens Skygge",       emoji: "😢", power: 147, c1: "#c4b5fd", c2: "#4c1d95" },
+  { name: "Spejl-trolden",        emoji: "🪞", power: 154, c1: "#a5f3fc", c2: "#155e75" },
+  { name: "Byens Vogter",         emoji: "🚓", power: 161, c1: "#93c5fd", c2: "#1e40af" },
+  { name: "Troldmands-kongen",    emoji: "🧙", power: 170, c1: "#ddd6fe", c2: "#5b21b6" },
+  { name: "Drømme-kejseren",      emoji: "🌌", power: 180, c1: "#fbcfe8", c2: "#831843" }, // STÆRKEST I SPILLET — sidste verden på side C
 ];
 
 const WORLDS = [
@@ -1927,7 +2032,21 @@ const WORLDS = [
      Verden 25: ord der staves anderledes end de lyder (stumme bogstaver).
      Verden 26: lange sammensatte ord, hvor man skal DELE ordet for at stave det. */
   { name:"Den svære skov",      emoji:"🌲", words:["dejligt","ellers","farligt","færdig","næsten","rigtigt","sikkert","sjovt","skønt","specielt"] },
-  { name:"Mesterskabet",        emoji:"🏆", words:["sommerfugl","fødselsdag","jordbær","skolegård","bibliotek","sommerferie","computer","telefon","fodboldbane","aftensmad"] }
+  { name:"Mesterskabet",        emoji:"🏆", words:["sommerfugl","fødselsdag","jordbær","skolegård","bibliotek","sommerferie","computer","telefon","fodboldbane","aftensmad"] },
+  /* ============ VERDEN 3 udvidet: 10 NYE verdener (27-36), så side C også har 12 ============
+     Rækkefølgen er en fortsat SVÆRHEDS-kurve: verden 25 tog de stumme/uregelrette ord,
+     verden 26 de lange sammensatte — og herfra bliver det sværere endnu. Hver verden
+     har sit eget TEMA, så ordene kan huskes i sammenhæng i stedet for som løsrevne ord. */
+  { name:"Dobbelt-bjerget",     emoji:"🏔️", words:["tallerken","klippe","springe","gætte","kigge","rulle","svømme","briller","appelsin","middag"] },
+  { name:"Stum-skoven",         emoji:"🌫️", words:["hjul","hjerte","hjælpe","hjem","hvid","hval","gæst","guld","jord","født"] },
+  { name:"Byens gader",         emoji:"🏙️", words:["pizza","bus","tog","biograf","hotel","restaurant","kamera","robot","guitar","cirkus"] },
+  { name:"Skole-loftet",        emoji:"🎒", words:["matematik","engelsk","historie","idræt","frikvarter","opgave","regne","blyant","lineal","gruppe"] },
+  { name:"Vildt-reservatet",    emoji:"🦌", words:["egern","pindsvin","ugle","hjort","bi","edderkop","myre","skildpadde","delfin","bjørn"] },
+  { name:"Følelses-fjeldet",    emoji:"😌", words:["stolt","nervøs","overrasket","forvirret","taknemlig","ensom","ivrig","rolig","ærlig","tålmodig"] },
+  { name:"Spejl-søen",          emoji:"🪞", words:["vejr","spejl","nøgle","højt","høj","spejder","vej","vand","tusind","hundrede"] },
+  { name:"Samfunds-byen",       emoji:"🏛️", words:["penge","arbejde","sygehus","politi","brandbil","museum","teater","avis","station","lufthavn"] },
+  { name:"Eventyr-riget",       emoji:"🏰", words:["ridder","prinsesse","trold","heks","troldmand","drage","slot","skat","viking","rune"] },
+  { name:"Drømme-tårnet",       emoji:"🌌", words:["drøm","tanke","hemmelighed","fremtid","frihed","sandhed","kærlighed","venskab","fantasi","håb"] }
 ];
 
 /* ============ STATE (med profiler — hver spiller har eget gemt fremskridt) ============ */
