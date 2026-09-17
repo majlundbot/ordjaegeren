@@ -20,11 +20,18 @@ const tests = `
 // ==== TESTS ====
 function check(label, cond, extra) { console.log((cond ? 'OK  ' : 'FEJL') + ' ' + label + (extra && !cond ? ' :: ' + extra : '')); }
 
-check('240 ord i WORDS', Object.keys(WORDS).length === 240, Object.keys(WORDS).length);
+check('260 ord i WORDS', Object.keys(WORDS).length === 260, Object.keys(WORDS).length);
 const inWorlds = WORLDS.flatMap(w => w.words);
-check('240 ord i verdener, ingen dubletter', inWorlds.length === 240 && new Set(inWorlds).size === 240, inWorlds.length + '/' + new Set(inWorlds).size);
-const missing = Object.entries(WORDS).filter(([w,s]) => !s.toLowerCase().includes(w.toLowerCase())).map(([w,s]) => w + '→' + s);
-check('alle sætninger indeholder ordet', missing.length === 0, JSON.stringify(missing.slice(0,5)));
+check('260 ord i verdener, ingen dubletter', inWorlds.length === 260 && new Set(inWorlds).size === 260, inWorlds.length + '/' + new Set(inWorlds).size);
+/* Kontrakten (justeret 17. sep for verden 25): sætningen skal indeholde ordet —
+   eller intetkøns-formen uden -t ("dejligt" står som "dejlig" i "Det har været en
+   dejlig dag."). Lydfilen læser ordet som barnet kender det; vi skriver ikke
+   sætningen om, fordi den er indtalt. */
+const missing = Object.entries(WORDS).filter(([w,s]) => {
+  const low = s.toLowerCase(), k = w.toLowerCase();
+  return !low.includes(k) && !(/t$/.test(k) && k.length >= 4 && low.includes(k.slice(0, -1)));
+}).map(([w,s]) => w + '→' + s);
+check('alle sætninger indeholder ordet (eller intetkøns-formen)', missing.length === 0, JSON.stringify(missing.slice(0,5)));
 const subst = blankInSentence('jeg', WORDS['jeg'], '____');
 check('sætnings-substitution', subst === '____ kan godt lide at spille fodbold.', subst);
 check('stjerner 0 fejl = 3', starsFor(0,8) === 3);
@@ -32,13 +39,13 @@ check('stjerner 2/8 = 2', starsFor(2,8) === 2);
 check('stjerner 7/8 = 1', starsFor(7,8) === 1);
 const d = distractors('jeg', 3);
 check('4 unikke distraktorer inkl. ordet', d.length === 4 && new Set(d).size === 4 && d.includes('jeg'), JSON.stringify(d));
-/* NY KONTRAKT (18. sep): alle 24 verdener kan vælges fra start. */
+/* NY KONTRAKT (18. sep): alle 26 verdener kan vælges fra start. */
 check('verden 0 kan vælges', canEnterWorld(0) === true);
 check('verden 1 kan vælges fra start (ingen lås)', canEnterWorld(1) === true);
 check('verden 1 er ikke nået endnu i rejsen', worldReached(1) === false);
 const wl = buildWordList(0, 8);
 check('wordlist 8 unikke', wl.length === 8 && new Set(wl).size === 8, JSON.stringify(wl));
-check('24 unikke verdensnavne', new Set(WORLDS.map(w=>w.name)).size === 24);
+check('26 unikke verdensnavne', new Set(WORLDS.map(w=>w.name)).size === 26);
 // tilfældig stikprøve af sætninger der skal vise ____ korrekt
 const randWords = ['hvem','hvordan','tilbage','aldrig','sådan'];
 randWords.forEach(w => {

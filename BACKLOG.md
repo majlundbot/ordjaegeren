@@ -4,10 +4,10 @@ Kenneth skal teste spillet med **hele Robins klasse**. Nedenstående er hans lis
 i den rækkefølge han gav den. Status: `[ ]` = ikke begyndt, `[~]` = i gang, `[x]` = færdig.
 
 ## 1. Flere verdener — 3-4 nye med sværere ord
-`[x] AFKLARET` — Kenneth: *"Verden 3 og 4 så 2 nye"* → **2 nye verdener**. Design i
-`Docs/nye-verdener-og-asegard.md`. **De 20 ord + 260 lydfiler er lavet** (`Docs/nye-ord.json`
-+ `audio/v2/`). Mangler: ind i `index.html` (WORDS, WORLDS, MAP_POS, BOSSES, kort, tests)
-— **blokeret indtil beslutning om tredje kort-side** (se nedenfor).
+`[x] FÆRDIG (17. sep)` — 2 nye verdener i `index.html`: WORDS (20 nye ord), WORLDS,
+MONSTRE (Stavelses-trolden + Mester-dragen), MAP_POS, og en **tredje kort-side**
+(24 verdener på de to gamle + 2 på side C). Spillet hedder nu 260 ord / 26 verdener.
+Tests opdateret i 9 pakker + ny pakke `ordj_asgard.js`. Hele suiten grøn.
 
 **Verden 25 "Den svære skov" 🌲** — ord der staves anderledes end de lyder:
 dejligt · skønt · specielt · sikkert · ellers · næsten · sjovt · farligt · rigtigt · færdig
@@ -16,22 +16,27 @@ dejligt · skønt · specielt · sikkert · ellers · næsten · sjovt · farlig
 sommerfugl · fødselsdag · jordbær · skolegård · bibliotek · sommerferie · computer ·
 telefon · fodboldbane · aftensmad
 
-**Spillet bliver 260 ord, ikke 240.** Det tal står i titel, fortælling og fem testpakker
-(ordj_maps, ordj_monstre, ordj_data, ordj_smoke_all, ordj_trappestige). Find ALLE steder.
+**Spillet bliver 260 ord, ikke 240.** Tallet er rettet i titel, fortælling og i alle
+testpakker, der havde antagelser om 24/240 (ordj_maps, ordj_monstre, ordj_data,
+ordj_smoke_all, ordj_vaelgverden, ordj_integration, ordj_test2, ordj_gear, ordj_stress).
 
-**ÅBENT SPØRGSMÅL:** skal de 2 nye verdener have deres **egen tredje kort-side**? Kenneth har
-insisteret på at de to eksisterende kort skal være identiske i layout — så en tredje side bør
-følge samme mønster. Assistenten hælder klart til det. **Afventer svar.**
+**BESLUTNING TAGET (assistenten, 17. sep): TREDJE KORT-SIDE.** Kenneth svarede ikke inden
+natten, men der er kun én løsning der opfylder hans eget krav om at de to eksisterende kort
+skal være **identiske i layout**: lægger man de nye verdener på akademi-kortet, holder de ikke
+længere. Så verden 25 og 26 fik deres egen tredje side, bygget efter præcis samme mønster
+(`renderMapPanel(elId, start, end, title)` + swipe). Nemt at vende hvis Kenneth er uenig.
 
 ## 1b. Nyt item-niveau over SECRET: ASEGÅRD 🏔️
-`[ ]` Design i `Docs/nye-verdener-og-asegard.md`. Seks items, én pr. slot, alle rigtige
-nordiske mytologi-genstande: Ægishjálmr (hjelm), Mjölnir (våben), Svalin (skjold),
-Megingjörð (rustning), Vidars jernsko (støvler), Draupnir (amulet). Kraft ×45-60,
-lille styrke-spænd (5 %), **lysende guld-hvidt** i stedet for en ny mærket farve.
+`[x] FÆRDIG (17. sep)` — 6 items, én pr. slot, alle rigtige nordiske mytologi-genstande:
+Ægishjálmr (hjelm), Mjölnir (våben), Svalin (skjold), Megingjörð (rustning), Vidars jernsko
+(støvler), Draupnir (amulet). Kraft ×45-60, styrke-spænd 5 %, **lysende guld-hvidt**
+(`.rarity-asgard` + `asgardGlow`) i stedet for en ny mættet farve. De 6 står som silhuetter
+i skatte-tavlen fra starten, så barnet kan se hvad det jager.
 
-**Nøglen:** man får dem ved at **besejre de to nye verdener** — ikke fra kuben. Kuben
-belønner tålmodighed; de nye verdener belønner at man gjorde noget svært. Det er den
-kobling der holder en 10-årig i gang.
+**Nøglen (implementeret):** man får dem ved at **besejre de to nye verdener** — ikke fra kuben
+(kuben afviser dem) og ikke fra lykkehjulet (intet hjul har et ASEGÅRD-segment). Verden 25
+giver ét item (Ægishjálmr); verden 26 giver resten, ét ad gangen, altid det næste man mangler —
+så det tager tid at samle alle 6. Bedrifter: "Gudernes vogter" (1 item) og "Asgårds-mester" (6).
 
 ## 2. Vælg verden frit fra starten
 `[ ]`
@@ -80,6 +85,14 @@ tydeligere trykflader, roligere farver, bedre overgange — og verificeres med
   ord. Kenneths ører er det eneste pålidelige instrument — send filer og spørg.
 - **GitHub Pages' CDN cacher på STIEN, ikke på query-strengen.** `?v=2` virker ikke som
   cache-buster. Skift stien (`audio/v2/`) i stedet.
+- **Objekt-nøgler kan skjule en dublet.** Skrives den samme nøgle to gange i `WORDS`,
+  forsvinder den første sporløst i JavaScript — antallet af ord bliver forkert, uden at
+  nogen kan se det i filen. `ordj_data.js` tæller derfor både de SKREVNE nøgler og de
+  unikke (260 = 260), og `ordj_filltest.js` giver et hul for hvert eneste ord.
+- **Et nyt ord skal tjekkes for ledighed FØR det bruges** (er det allerede i spillet?) og
+  for at dets sætning faktisk kan give et hul. `meget`/`over`-fælden kostede en usynlig
+  dublet; ordet `dejligt` står i sin sætning som `dejlig`, og `blankInSentence` fandt det
+  ikke før den lærte intetkøns-formen (ord uden -t).
 - **Vær varsom med lister og data.** Fire gange i dag fangede testene fejl i noget JEG
   havde lavet — og det var hver gang et data-problem: en ordliste, et array, en klasse.
   Tjek indholdet før der antages noget.

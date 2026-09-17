@@ -68,11 +68,17 @@ const fails = [];
 let gqueue = Promise.resolve();
 function gtest(label, fn) { gqueue = gqueue.then(() => { try { return Promise.resolve(fn()).then(() => console.log('OK   ' + label)); } catch(e) { fails.push(label + ': ' + e.message); console.log('FEJL ' + label + ' :: ' + e.message); } }); }
 
-gtest('gear-data: 6 slots, 7 rariteter (inkl. mythic + secret)', () => {
+gtest('gear-data: 6 slots, 8 rariteter (inkl. mythic + secret + asgard)', () => {
   if (GEAR_SLOTS.length !== 6) throw new Error('6 slots forventet');
-  if (RARITIES.length !== 7) throw new Error('7 rariteter forventet (inkl. mythic + secret)');
+  if (RARITIES.length !== 8) throw new Error('8 rariteter forventet (inkl. mythic + secret + asgard)');
   if (!RARITIES.find(r => r.key === 'mythic')) throw new Error('mythic-raritet mangler');
   if (!RARITIES.find(r => r.key === 'secret')) throw new Error('secret-raritet mangler');
+  if (!RARITIES.find(r => r.key === 'asgard')) throw new Error('asgard-raritet mangler');
+  // ASEGÅRD skal ligge OVER secret — både i listen og i kraft
+  const si = RARITIES.findIndex(r => r.key === 'secret'), ai = RARITIES.findIndex(r => r.key === 'asgard');
+  if (ai !== RARITIES.length - 1) throw new Error('asgard skal være det sidste (stærkeste) niveau');
+  if (ai <= si) throw new Error('asgard skal ligge efter secret');
+  if (RARITIES[ai].power <= RARITIES[si].power) throw new Error('asgard-kraft skal være over secret');
   if (Object.keys(GEAR_NAMES).length !== 6) throw new Error('navne for alle slots');
 });
 
@@ -129,8 +135,8 @@ gtest('state migreres korrekt (gamle saves)', () => {
   if (!Array.isArray(s2.bag)) throw new Error('bag skal være array');
 });
 
-gtest('boss-data: 24 drager, stigende kraft', () => {
-  if (BOSSES.length !== 24) throw new Error('24 drager forventet');
+gtest('boss-data: 26 drager, stigende kraft', () => {
+  if (BOSSES.length !== 26) throw new Error('26 drager forventet');
   for (let i = 1; i < BOSSES.length; i++) {
     if (BOSSES[i].power <= BOSSES[i-1].power) throw new Error('kraft skal stige: ' + i);
   }

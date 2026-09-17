@@ -30,7 +30,7 @@ const makeEl = id => {
 };
 const els = {};
 ['screen-start','screen-map','screen-world','screen-boss','screen-hero','hud','hudProgress','startMeta',
- 'worldMapA','worldMapB','mapCarousel','mapTitle','mapDots','worldEmoji','worldName','worldWords','worldStatus','gameGrid',
+ 'worldMapA','worldMapB','worldMapC','mapCarousel','mapTitle','mapDots','worldEmoji','worldName','worldWords','worldStatus','gameGrid',
  'bossBtn','bossStatus','bossMsg','bossHint','attackBar','fxLayer','toast'
 ].forEach(id => els[id] = makeEl(id));
 global.__els = els;
@@ -39,7 +39,7 @@ global.document = {
   getElementById: (id) => els[id] || (els[id] = makeEl(id)),
   querySelectorAll: (sel) => {
     if (sel.includes('.screen')) return ['screen-start','screen-map','screen-world','screen-boss','screen-hero'].map(id => els[id]);
-    if (sel.includes('.world-card')) return els['worldMapA'].children.concat(els['worldMapB'].children);
+    if (sel.includes('.world-card')) return els['worldMapA'].children.concat(els['worldMapB'].children, els['worldMapC'].children);
     return [];
   },
   querySelector: (sel) => sel.includes('.map-swipe-hint') ? makeEl('hint') : null
@@ -64,16 +64,18 @@ const fs = global.__fs;
 const __dirname = global.__dirname;
 function check(label, cond, extra) { console.log((cond ? 'OK   ' : 'FEJL ') + label + (extra && !cond ? ' :: ' + extra : '')); if (!cond) fails++; }
 let fails = 0;
-const cards = () => els['worldMapA'].children.concat(els['worldMapB'].children).filter(c => c.className.includes('world-card'));
+const cards = () => els['worldMapA'].children.concat(els['worldMapB'].children, els['worldMapC'].children).filter(c => c.className.includes('world-card'));
 
-// ---- 1) ALLE 24 verdener kan vælges fra en tom profil ----
+// ---- 1) ALLE 26 verdener kan vælges fra en tom profil ----
 state.worlds = {}; state.mapAt = 0;
 let notOpen = [];
 for (let i = 0; i < WORLDS.length; i++) if (!canEnterWorld(i)) notOpen.push(i);
-check('alle 24 verdener kan vælges fra start', WORLDS.length === 24 && notOpen.length === 0, JSON.stringify(notOpen));
+check('alle 26 verdener kan vælges fra start', WORLDS.length === 26 && notOpen.length === 0, JSON.stringify(notOpen));
 check('verden 23 (Følelses-skoven) kan vælges fra start', canEnterWorld(23) === true);
+check('verden 25 (Den svære skov) kan vælges fra start', canEnterWorld(24) === true);
+check('verden 26 (Mesterskabet) kan vælges fra start', canEnterWorld(25) === true);
 check('ugyldigt indeks (-1) kan ikke vælges', canEnterWorld(-1) === false);
-check('ugyldigt indeks (24) kan ikke vælges', canEnterWorld(24) === false);
+check('ugyldigt indeks (26) kan ikke vælges', canEnterWorld(26) === false);
 
 // ---- 2) Progressionen lever videre (worldReached = nået i rejsen) ----
 let reached = 0;
@@ -86,7 +88,7 @@ state.worlds = {}; state.mapAt = 0;
 // ---- 3) Kortet: INGEN lås nogen steder ----
 renderWorldMap();
 const all = cards();
-check('kortet tegner alle 24 verdenskort', all.length === 24, all.length);
+check('kortet tegner alle 26 verdenskort', all.length === 26, all.length);
 check('ingen kort har .locked-klassen', all.every(c => !c.className.includes('locked')));
 check('ingen kort viser "Låst"', all.every(c => !c.innerHTML.includes('Låst')));
 check('ingen kort viser låse-emoji 🔒', all.every(c => !c.innerHTML.includes('🔒')));
@@ -99,7 +101,11 @@ check('hvert verdenskort har 3 stjerne-symboler', all.every(c => (c.innerHTML.ma
 check('hvert verdenskort har en status-badge (w-badge)', all.every(c => c.innerHTML.includes('w-badge')));
 check('hvert verdenskort har 4 status-segmenter (3 missioner + monster)', all.every(c => (c.innerHTML.match(/class="w-seg /g) || []).length === 4));
 check('et urørt kort langt fremme viser "Åben" (ikke låst)', all[23].innerHTML.includes('Åben'), all[23].innerHTML);
-check('det næste skridt i rejsen viser "Start her"', all[0].innerHTML.includes('Start her'), all[0].innerHTML);
+check('også det sidste kort (verden 26) viser "Åben"', all[25].innerHTML.includes('Åben'), all[25].innerHTML);
+check('det næste skridt i rejsen viser "Start her"', all[0].innerHTML.includes('Start her'));
+check('de to nye verdener står på den tredje side med deres rigtige navne',
+  all[24].innerHTML.includes('Den svære skov') && all[25].innerHTML.includes('Mesterskabet'),
+  all[24].innerHTML + ' / ' + all[25].innerHTML);
 
 // ---- 5) Klaret vs ikke klaret kan ses tydeligt ----
 state.worlds = { 0: { hear:3, type:3, fill:3, done:[true,true,true], boss:true } };
@@ -122,6 +128,10 @@ travelToWorld(23);
 check('travelToWorld(23) flytter helten til Følelses-skoven', state.mapAt === 23, state.mapAt);
 renderWorldMap();
 check('helten står nu på akademi-kortet (side B)', els['worldMapB'].children.some(c => c.className.includes('map-hero')) && !els['worldMapA'].children.some(c => c.className.includes('map-hero')));
+travelToWorld(25);
+check('travelToWorld(25) flytter helten til Mesterskabet (verden 26)', state.mapAt === 25, state.mapAt);
+renderWorldMap();
+check('helten står nu på tredje kort (side C)', els['worldMapC'].children.some(c => c.className.includes('map-hero')) && !els['worldMapB'].children.some(c => c.className.includes('map-hero')));
 state.mapAt = 0;
 travelToWorld(-1);
 check('travelToWorld(-1) gør ingenting (sikkerhedsnet)', state.mapAt === 0, state.mapAt);

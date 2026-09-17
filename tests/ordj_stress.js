@@ -1,6 +1,6 @@
 // STRESS + hostile timing: jagter fejl hvor en udskudt timer læser tilstand der er ryddet/nulstillet.
 // Det var præcis den slags fejl der crashede kampen ("Cannot read properties of null (reading 'name')").
-// Kører også alle 24 drager igennem en hel kamp med tilfældige handlinger.
+// Kører også alle 26 drager igennem en hel kamp med tilfældige handlinger.
 const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 
@@ -105,11 +105,11 @@ step('lyn-hurtige handlinger oveni hinanden (skal ignoreres, ikke crashe)', asyn
   check('kun ét angreb blev gennemført', bossState.round <= 4, bossState.round);
 });
 
-/* ===== 2) ALLE 24 DRAGER: hel kamp med tilfældige handlinger ===== */
-console.log('--- Alle 24 drager: fuld kamp ---');
-step('24 kampe spilles til ende uden crash og med holdbare invariants', async () => {
+/* ===== 2) ALLE 26 DRAGER: hel kamp med tilfældige handlinger ===== */
+console.log('--- Alle 26 drager: fuld kamp ---');
+step('26 kampe spilles til ende uden crash og med holdbare invariants', async () => {
   let rounds = [], problems = [], wins = 0;
-  for (let w = 0; w < 24; w++) {
+  for (let w = 0; w < WORLDS.length; w++) {
     reset(['kriger','troldmand','jæger','paladin'][w % 4]);
     cur.world = w;
     startBoss(w);
@@ -131,17 +131,17 @@ step('24 kampe spilles til ende uden crash og med holdbare invariants', async ()
     const bad2 = inv();
     if (bad2) problems.push('V' + w + ' slut: ' + bad2);
   }
-  check('alle 24 kampe sluttede', problems.length === 0, JSON.stringify(problems.slice(0, 5)));
+  check('alle 26 kampe sluttede', problems.length === 0, JSON.stringify(problems.slice(0, 5)));
   const maxR = Math.max(...rounds), avg = (rounds.reduce((a, b) => a + b, 0) / rounds.length).toFixed(1);
-  console.log('     gennemsnitlige runder: ' + avg + ' · flest: ' + maxR + ' · vundet: ' + wins + '/24');
+  console.log('     gennemsnitlige runder: ' + avg + ' · flest: ' + maxR + ' · vundet: ' + wins + '/' + WORLDS.length);
   check('ingen kamp tog over 60 runder', maxR < 60, maxR);
   check('kampene varer ikke for evigt (gennemsnit < 45)', Number(avg) < 45, avg);
-  check('mindst nogle kampe vindes (mekanikken virker)', wins >= 3, wins + '/24');
+  check('mindst nogle kampe vindes (mekanikken virker)', wins >= 3, wins + '/' + WORLDS.length);
 });
 step('opladet angreb kan ALDRIG dræbe på én gang — heller ikke fra den stærkeste drage', async () => {
   const problems = [];
-  // tjek alle 24 drager med en basis-helt UDEN gear (værste tilfælde)
-  for (let w = 0; w < 24; w++) {
+  // tjek alle 26 drager med en basis-helt UDEN gear (værste tilfælde)
+  for (let w = 0; w < WORLDS.length; w++) {
     reset('kriger'); cur.world = w; startBoss(w);
     const b = bossState;
     const full = chargedDamage();
@@ -151,7 +151,7 @@ step('opladet angreb kan ALDRIG dræbe på én gang — heller ikke fra den stæ
     const blocked = Math.max(1, Math.round(full * 0.4));
     if (blocked >= full) problems.push('V' + w + ': blokering hjælper ikke');
   }
-  check('opladet angreb er under spillerens max-liv i alle 24 verdener', problems.length === 0, JSON.stringify(problems.slice(0,4)));
+  check('opladet angreb er under spillerens max-liv i alle 26 verdener', problems.length === 0, JSON.stringify(problems.slice(0,4)));
   // og med fuldt gear (højt max-liv) skal det stadig være en bid af livet, ikke en prik
   reset('kriger'); state.gear = {}; cur.world = 23; startBoss(23);
   bossState.playerMax = 500; bossState.playerHp = 500;

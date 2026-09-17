@@ -36,21 +36,21 @@ function resetState() {
   state.bag = []; state.gear = {}; state.lootCount = 0; state.xp = 0; state.talents = {hp:0,power:0,crit:0};
 }
 
-// ===== FUZZ 1: alle 240 ord har en sætning og kan laves stavelser =====
+// ===== FUZZ 1: alle 260 ord har en sætning og kan laves stavelser =====
 const allW = Object.keys(WORDS);
-check('240 ord i spillet', allW.length === 240, allW.length);
+check('260 ord i spillet', allW.length === 260, allW.length);
 let noSent = allW.filter(w => !WORDS[w] || !WORDS[w].length);
 check('alle ord har sætning', noSent.length === 0, JSON.stringify(noSent));
 let noSyl = allW.filter(w => { const s = syllabify(w); return !s || !s.length || s.join('') !== w; });
-check('stavelses-deling rekonstruerer ordet (alle 240)', noSyl.length === 0, JSON.stringify(noSyl.slice(0,5)));
+check('stavelses-deling rekonstruerer ordet (alle 260)', noSyl.length === 0, JSON.stringify(noSyl.slice(0,5)));
 let duplicateSent = {};
 let dupes = [];
 allW.forEach(w => { const s = WORDS[w]; if (duplicateSent[s]) dupes.push(w); duplicateSent[s] = 1; });
 check('ingen ord deler samme sætning', dupes.length === 0, JSON.stringify(dupes.slice(0,5)));
 
-// ===== FUZZ 2: alle 240 ord matcher mindst ét mønster (ellers kan de ikke læres adaptivt) =====
+// ===== FUZZ 2: alle 260 ord matcher mindst ét mønster (ellers kan de ikke læres adaptivt) =====
 let unmatched = allW.filter(w => !SPELL_PATTERNS.some(p => p.test(w)));
-check('alle 240 ord fanges af mindst ét mønster', unmatched.length === 0, JSON.stringify(unmatched));
+check('alle 260 ord fanges af mindst ét mønster', unmatched.length === 0, JSON.stringify(unmatched));
 
 // ===== FUZZ 3: hvert mønsters ord har bøjnings-matchbart hul i sætningen =====
 let holeProblems = [];
@@ -66,9 +66,9 @@ SPELL_PATTERNS.forEach(p => {
 });
 check('mønster-ord har matchende sætning (stikprøve)', holeProblems.length === 0, JSON.stringify(holeProblems.slice(0,8)));
 
-// ===== FUZZ 4: alle 24 verdener er komplette =====
-check('24 verdener', WORLDS.length === 24, WORLDS.length);
-check('24 drager', BOSSES.length === 24, BOSSES.length);
+// ===== FUZZ 4: alle 26 verdener er komplette =====
+check('26 verdener', WORLDS.length === 26, WORLDS.length);
+check('26 drager', BOSSES.length === 26, BOSSES.length);
 let badWorld = [];
 WORLDS.forEach((w, i) => {
   if (!w.words || w.words.length !== 10) badWorld.push('V' + i + ':ord=' + (w.words||[]).length);
@@ -76,7 +76,8 @@ WORLDS.forEach((w, i) => {
   w.words.forEach(x => { if (!WORDS[x]) badWorld.push('V' + i + ':' + x + ' mangler'); });
   if (!BOSSES[i]) badWorld.push('V' + i + ':ingen drage');
 });
-check('alle 24 verdener har 10 gyldige ord + drage', badWorld.length === 0, JSON.stringify(badWorld.slice(0,6)));
+check('alle 26 verdener har 10 gyldige ord + drage', badWorld.length === 0, JSON.stringify(badWorld.slice(0,6)));
+check('260 ord i verdenerne til sammen', WORLDS.reduce((n, w) => n + w.words.length, 0) === 260, WORLDS.reduce((n, w) => n + w.words.length, 0));
 let worldDupes = [];
 WORLDS.forEach((w, i) => w.words.forEach(x => { if (allW.indexOf(x) !== allW.indexOf(x)) worldDupes.push(x); }));
 const counted = {}; let overlaps = [];
@@ -141,21 +142,25 @@ check('talent øger power', heroPower() > p0, heroPower() + ' vs ' + p0);
 state.gear = { weapon: 'w1' };
 check('gear påvirker ikke krasher', typeof heroPower() === 'number');
 
-// ===== INTEGRATION: alle 24 drager har gyldig styrke =====
+// ===== INTEGRATION: alle 26 drager har gyldig styrke =====
 let badBoss = [];
 BOSSES.forEach((b, i) => { if (!b.name || !b.power || b.power < 5 || b.power > 200) badBoss.push(i + ':' + JSON.stringify(b).slice(0,40)); });
-check('alle 24 drager har navn + rimelig styrke', badBoss.length === 0, JSON.stringify(badBoss.slice(0,4)));
+check('alle 26 drager har navn + rimelig styrke', badBoss.length === 0, JSON.stringify(badBoss.slice(0,4)));
 
-// ===== INTEGRATION: verdens-valg + progression stemmer med 24 verdener =====
+// ===== INTEGRATION: verdens-valg + progression stemmer med 26 verdener =====
 check('verden 0 kan altid vælges', canEnterWorld(0) === true);
 resetState();
 check('verden 23 kan vælges fra start (ingen lås)', canEnterWorld(23) === true, canEnterWorld(23));
 check('verden 23 er ikke NÅET fra start', worldReached(23) === false, worldReached(23));
-// Nå alle verdener progressivt: komplet verden i gennem 23 verdener
-for (let i = 0; i < 23; i++) {
+check('verden 25 kan vælges fra start (Den svære skov)', canEnterWorld(24) === true, canEnterWorld(24));
+check('verden 26 kan vælges fra start (Mesterskabet)', canEnterWorld(25) === true, canEnterWorld(25));
+check('verden 26 er ikke NÅET fra start', worldReached(25) === false, worldReached(25));
+// Nå alle verdener progressivt: komplet verden i gennem 25 verdener
+for (let i = 0; i < 25; i++) {
   state.worlds[i] = { hear: 3, type: 3, fill: 3, boss: true };
 }
 check('verden 23 er NÅET når drage i V22 er besejret', worldReached(23) === true, worldReached(23));
+check('verden 26 er NÅET når drage i V25 er besejret', worldReached(25) === true, worldReached(25));
 
 console.log(F === 0 ? '\\nALLE INTEGRATION+FUZZ-TESTS GRØNNE' : '\\n' + F + ' FEJL');
 if (F) process.exit(1);

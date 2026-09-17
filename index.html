@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ordjægeren — Lær de 240 vigtigste ord</title>
+<title>Ordjægeren — Lær de 260 vigtigste ord</title>
 <style>
   :root {
     --accent: #ffd23f;
@@ -182,7 +182,10 @@
   }
   .new-profile-box input:focus { border-color: var(--blue); }
   /* Mytisk spor i helteskærmen */
-  .mythic-track { display: flex; gap: 5px; margin: 3px 0 6px; }
+  /* 18 pladser (6 mythic + 6 secret + 6 asgard) kan ikke være på én række i et
+     panel på 560 px. Vi lader rækken bryde, så de 12 gamle står som før og de 6
+     ASEGÅRD-pladser danner deres egen række nedenunder. */
+  .mythic-track { display: flex; gap: 5px; margin: 3px auto 6px; flex-wrap: wrap; max-width: 463px; }
   .mythic-slot {
     width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
     font-size: 17px; background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.14); color: rgba(255,255,255,.3);
@@ -197,6 +200,15 @@
     background: linear-gradient(160deg, rgba(255,78,205,.3), rgba(64,224,255,.1));
     border-color: #ff4ecd; color: #fff; box-shadow: 0 0 16px rgba(255,78,205,.7), 0 0 30px rgba(64,224,255,.4);
     animation: secretGlow 1.4s ease-in-out infinite;
+  }
+  /* Silhuetterne af ASEGÅRD-items står i tavlen fra starten: barnet skal kunne SE
+     hvad det jager, uden at få at vide hvor svært det er at få fat i. */
+  .mythic-slot.asgard:not(.owned) { border-color: rgba(255,248,216,.45); color: rgba(255,248,216,.75); }
+  .mythic-slot.asgard.owned {
+    border-color: #fffbe8; color: #1a1035;
+    box-shadow: 0 0 16px rgba(255,248,216,.85), 0 0 34px rgba(255,215,106,.5);
+    animation: asgardGlow 2.6s ease-in-out infinite;
+    background: linear-gradient(160deg, #fffbe8, #ffd76a);
   }
   /* RPG: TALENT-TRÆ */
   .talent-row { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
@@ -659,8 +671,14 @@
   .rarity-epic { color: #c084fc; } .rarity-legendary { color: #fb923c; }
   .rarity-mythic { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,.9); animation: mythicGlow 2s ease-in-out infinite; }
   .rarity-secret { color: #ff4ecd; text-shadow: 0 0 12px rgba(255,78,205,.9), 0 0 26px rgba(64,224,255,.6); animation: secretGlow 1.4s ease-in-out infinite; }
+  /* ASEGÅRD: gudernes eget udstyr — LYSENDE guld-hvidt, ikke endnu en mættet farve.
+     De øvrige niveauer er FARVEDE; dette skal se ud som om det lyser af sig selv,
+     så et barn kan se forskel på "endnu en sjældenhed" og "noget der er noget værd". */
+  .rarity-asgard { color: #fffbe8; text-shadow: 0 0 14px rgba(255,248,216,.95), 0 0 32px rgba(255,215,106,.8); animation: asgardGlow 2.6s ease-in-out infinite; }
   @keyframes mythicGlow { 0%, 100% { text-shadow: 0 0 8px rgba(255,215,0,.6); } 50% { text-shadow: 0 0 26px rgba(255,215,0,1), 0 0 50px rgba(255,255,220,.8); } }
   @keyframes secretGlow { 0%, 100% { text-shadow: 0 0 8px rgba(255,78,205,.7); } 50% { text-shadow: 0 0 26px rgba(255,78,205,1), 0 0 55px rgba(64,224,255,.9); } }
+  /* Roligere end secret (som pulserer hurtigt) — guld-HVIDT lys der ånder langsomt */
+  @keyframes asgardGlow { 0%, 100% { text-shadow: 0 0 10px rgba(255,248,216,.7), 0 0 22px rgba(255,215,106,.45); } 50% { text-shadow: 0 0 20px rgba(255,255,255,1), 0 0 48px rgba(255,240,180,.95); } }
   .mythic-loot { animation: mythicLootPulse 1.2s ease-in-out infinite; }
   @keyframes mythicLootPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
   /* Rygsæk: kompakt grid — ALLE items synlige, ingen scroll */
@@ -866,6 +884,12 @@
     border-color: #ff4ecd; background: linear-gradient(180deg, rgba(255,78,205,.3), rgba(64,224,255,.08));
     box-shadow: 0 0 16px rgba(255,78,205,.65); animation: secretGlow 1.4s ease-in-out infinite;
   }
+  /* ASEGÅRD-angreb: guld-HVIDT lys i stedet for en farve — det skal se ud som en
+     gave fra guderne, ikke som endnu et farvet item. */
+  .attack-btn.asgard {
+    border-color: #fffbe8; background: linear-gradient(180deg, rgba(255,251,232,.34), rgba(255,215,106,.12));
+    box-shadow: 0 0 18px rgba(255,248,216,.75), 0 0 40px rgba(255,215,106,.35);
+  }
   #fxLayer { position: fixed; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
   .fx-projectile {
     position: absolute; font-size: 40px; z-index: 21;
@@ -1025,9 +1049,9 @@
 <!-- START -->
 <div class="screen active" id="screen-start">
   <div class="title">ORDJÆGEREN</div>
-  <div class="subtitle">Fang de 240 vigtigste ord i dansk — 24 verdener, 72 missioner!</div>
+  <div class="subtitle">Fang de 260 vigtigste ord i dansk — 26 verdener, 78 missioner!</div>
   <button class="btn" onclick="showClassSelect()">🚀 Start eventyret</button>
-  <button class="btn ghost" onclick="showWorldMap()">🗺️ Vælg verden (alle 24)</button>
+  <button class="btn ghost" onclick="showWorldMap()">🗺️ Vælg verden (alle 26)</button>
   <button class="btn ghost" style="margin-top:10px" onclick="showProfiles()">👥 Skift spiller</button>
   <div class="ta" id="startMeta"></div>
 </div>
@@ -1064,6 +1088,10 @@
   <div class="map-carousel" id="mapCarousel">
     <div class="worldmap" id="worldMapA"></div>
     <div class="worldmap" id="worldMapB"></div>
+    <!-- TREDJE KORT-SIDE (verden 25-26): de to første kort er identiske i layout,
+         så de nye verdener kan ikke ligge oveni dem — de får deres egen side,
+         bygget med PRÆCIS samme mønster (renderMapPanel + swipe). -->
+    <div class="worldmap" id="worldMapC"></div>
   </div>
   <div class="map-nav">
     <button class="btn ghost small-map-btn" onclick="swipeMap(-1)">◀</button>
@@ -1247,7 +1275,7 @@
         <h3>Rygsæk <small style="color:#9fb0e8;text-transform:none;letter-spacing:0">(tryk på et item for at lægge det i kuben)</small></h3>
         <div class="bag-list" id="heroBag"></div>
         <div class="ta" id="heroHint">Tryk på en plads for at se hvad du har på — og for at tage det af igen.</div>
-        <h3>👑 Mytiske skatte <span id="mythicCount" style="color:#ffd700"></span></h3>
+        <h3>👑 Skatte-tavlen <span id="mythicCount" style="color:#ffd700"></span></h3>
         <div class="mythic-track" id="mythicTrack"></div>
         <h3>⭐ Talent-træ <span id="talentPoints" style="color:#fbbf24"></span></h3>
         <div class="talent-row" id="talentRow"></div>
@@ -1339,7 +1367,7 @@ const WORDS = {
   hvad:"Hvad skal vi lege i dag?", med:"Jeg leger med min ven.", så:"Så lad os starte!",
   for:"Tak for hjælpen.", mig:"Giv mig bolden.", der:"Drengen der bor i huset.", han:"Han er min storebror.",
   dig:"Jeg kan godt lide dig.", de:"De spiller fodbold.", den:"Den hund er sød.", kan:"Jeg kan svømme.",
-  over:"Vi går over gaden.", igennem:"Vi går igennem skoven.", var:"I går var det sjovt.", vil:"Jeg vil gerne have is.",
+  igennem:"Vi går igennem skoven.", var:"I går var det sjovt.", vil:"Jeg vil gerne have is.",
   her:"Kom her og leg!", et:"Jeg har et æble.", skal:"Vi skal i skole.", men:"Jeg vil gerne, men jeg må ikke.",
   ved:"Jeg ved ikke svaret.", om:"Vi snakker om vejret.", nu:"Kom nu!", ja:"Ja, det vil jeg gerne.",
   som:"Han er lige så hurtig som mig.", hun:"Hun er min søster.", nej:"Nej, jeg gider ikke.",
@@ -1365,6 +1393,11 @@ const WORDS = {
   hans:"Hans cykel er rød.", skulle:"Vi skulle have fri.", blev:"Det blev sent.",
   nogen:"Er der nogen der kan hjælpe?", lidt:"Jeg vil have lidt mere.", aldrig:"Jeg giver aldrig op!",
   får:"Jeg får en gave til jul.", siger:"Han siger altid noget sjovt.", selv:"Jeg kan klare det selv.",
+  /* "over" stod foer TO gange i listen (én gang her og én gang længere oppe).
+     I et objekt-literal forsvinder den foerste sporløst — JavaScript beholder kun
+     den sidste. Derfor var der 241 skrevne nøgler, men kun 240 ord i spillet,
+     og sætningen "Vi går over gaden." blev aldrig brugt. Dubletten er nu fjernet,
+     så antallet af skrevne nøgler og antallet af ord er det SAMME tal. */
   far:"Far kommer klokken fem.", over:"Bolden fløj over hegnet.", to:"Jeg har to katte.",
   kun:"Der er kun én tilbage.", sådan:"Sådan laver man en sandkage.", ser:"Jeg ser en fugl.",
   dit:"Er det dit spil?", jer:"Jeg kommer til jer i morgen.", igen:"Kan vi lege igen?",
@@ -1381,7 +1414,23 @@ const WORDS = {
   sol:"Solen skinner på himlen.", måne:"Månen lyser om natten.", stjerne:"Jeg ser en stjerne på himlen.", sky:"Der er en hvid sky på himlen.", regn:"Regnen falder på taget.", sne:"Sneen er hvid og kold.", vind:"Vinden blæser i træerne.", træ:"Træet har grønne blade.", blomst:"Blomsten dufter godt.", græs:"Græsset er vådt om morgenen.",
   spise:"Jeg skal spise min frokost.", sove:"Jeg skal sove nu.", sidde:"Jeg sidder på stolen.", stå:"Jeg skal stå op nu.", sige:"Jeg skal sige noget vigtigt.", give:"Jeg skal give mor en gave.", bygge:"Vi bygger et slot af sand.", male:"Jeg maler et flot billede.", synge:"Vi synger en sang sammen.", danse:"Jeg kan godt lide at danse.",
   dag:"Det er en dejlig dag i dag.", nat:"Om natten sover vi.", morgen:"Godmorgen, sagde far om morgenen.", aften:"Om aftenen ser vi fjernsyn.", uge:"Der er syv dage i en uge.", måned:"Januar er årets første måned.", år:"Jeg fylder år om et år.", klokken:"Klokken er ti om formiddagen.", minut:"Vent et minut, så kommer jeg.", sekund:"Et sekund er meget kort tid.",
-  glad:"Jeg er glad for min gave.", trist:"Jeg bliver trist, når det regner.", bange:"Jeg er ikke bange for mørket.", vred:"Jeg bliver vred, når nogen tager min ting.", træt:"Jeg er træt efter skole.", sulten:"Jeg er sulten efter lege.", tørstig:"Jeg er tørstig efter løbetur.", sjov:"Det var en sjov leg.", kedelig:"Filmen var kedelig.", modig:"Hunden er modig og stærk."
+  glad:"Jeg er glad for min gave.", trist:"Jeg bliver trist, når det regner.", bange:"Jeg er ikke bange for mørket.", vred:"Jeg bliver vred, når nogen tager min ting.", træt:"Jeg er træt efter skole.", sulten:"Jeg er sulten efter lege.", tørstig:"Jeg er tørstig efter løbetur.", sjov:"Det var en sjov leg.", kedelig:"Filmen var kedelig.", modig:"Hunden er modig og stærk.",
+  /* ============ VERDEN 25: Den svære skov (10 ord) ============
+     Ord der staves anderledes end de lyder, og ord med stumme bogstaver.
+     Sætningen bærer ordet i en sammenhæng et barn kan forstå — OGSÅ når udtalen
+     snyder (fx staves "dejligt", men står i sætningen som "dejlig"). */
+  dejligt:"Det har været en dejlig dag.", ellers:"Skynd dig, ellers kommer vi for sent.",
+  farligt:"Det er farligt at løbe over vejen.", færdig:"Jeg er færdig med min tegning.",
+  næsten:"Jeg er næsten færdig med at læse.", rigtigt:"Det er rigtigt, hvad du siger.",
+  sikkert:"Han er sikkert hjemme nu.", sjovt:"Det er sjovt at spille med venner.",
+  skønt:"Det er skønt at være ude i solen.", specielt:"Han er specielt god til matematik.",
+  /* ============ VERDEN 26: Mesterskabet (10 ord) ============
+     Lange sammensatte ord: man skal kunne DELE dem op for at kunne stave dem. */
+  sommerfugl:"En sommerfugl landede på min hånd.", fødselsdag:"I morgen har jeg fødselsdag.",
+  jordbær:"Jordbær smager bedst om sommeren.", skolegård:"Vi leger i skolegården hver dag.",
+  bibliotek:"Jeg låner bøger på biblioteket.", sommerferie:"Til sommerferie skal vi til stranden.",
+  computer:"Jeg spiller på min computer.", telefon:"Morfar ringer på sin telefon.",
+  fodboldbane:"Vi spiller kamp på fodboldbanen.", aftensmad:"Vi spiser aftensmad klokken seks."
 };
 
 const ALL_WORDS = Object.keys(WORDS);
@@ -1446,7 +1495,10 @@ const RARITIES = [
   { key: "epic",      label: "Episk",       color: "#c084fc", power: 4, weight: 9,  glow: "box-shadow:0 0 18px rgba(192,132,252,.5);" },
   { key: "legendary", label: "Legendarisk", color: "#fb923c", power: 6, weight: 3,  glow: "box-shadow:0 0 24px rgba(251,146,60,.6);" },
   { key: "mythic",    label: "Mytisk",      color: "#ffd700", power: 10, weight: 0, glow: "box-shadow:0 0 30px rgba(255,215,0,.8), 0 0 60px rgba(255,215,0,.35); animation: mythicGlow 2s ease-in-out infinite;" },
-  { key: "secret",    label: "HEMMELIG",    color: "#ff4ecd", power: 15, weight: 0, glow: "box-shadow:0 0 30px rgba(255,78,205,.9), 0 0 70px rgba(64,224,255,.6); animation: secretGlow 1.4s ease-in-out infinite;" }
+  { key: "secret",    label: "HEMMELIG",    color: "#ff4ecd", power: 15, weight: 0, glow: "box-shadow:0 0 30px rgba(255,78,205,.9), 0 0 70px rgba(64,224,255,.6); animation: secretGlow 1.4s ease-in-out infinite;" },
+  /* ASEGÅRD er niveauet OVER secret. Farven er guld-HVID og lysende i stedet for
+     endnu en mættet farve: det skal se anderledes ud, ikke bare kraftigere. */
+  { key: "asgard",    label: "ASEGÅRD",     color: "#fffbe8", power: 50, weight: 0, glow: "box-shadow:0 0 34px rgba(255,248,216,.95), 0 0 80px rgba(255,215,106,.55); animation: asgardGlow 2.6s ease-in-out infinite;" }
 ];
 
 /* ============ SECRET MYTHIC (end-game) ============ */
@@ -1471,6 +1523,58 @@ const SECRET_ITEMS = [
 ];
 function mythicForSlot(slotKey) { return MYTHIC_ITEMS.find(m => m.slot === slotKey) || null; }
 function secretForSlot(slotKey) { return SECRET_ITEMS.find(m => m.slot === slotKey) || null; }
+/* ============ ASEGÅRD: gudernes eget udstyr (niveauet OVER secret) ============
+   Kenneth: "Lige som vi gik fra mythic til secret, så find på nogle nye items også,
+   så det giver mening for en på 10 at lave de opgaver."
+   Derfor er det ikke bare endnu en farve: det er RIGTIGE navne fra vores egen
+   nordiske mytologi — udstyr ingen smed kan lave, kun guderne selv. Det kan et
+   dansk barn fortælle om i skolegården.
+   Kraft ×45-60, altså klart over secret (×22-36), og et LILLE styrke-spænd (5 %):
+   guderne ruller ikke dårligt — det er hele pointen med dem. */
+const ASGARD_ITEMS = [
+  { slot: "helm",   name: "Ægishjálmr",    attack: { key: "asgardhelm",   icon: "🪖", name: "Skræmmens-hjelm", mult: 45, color: "#fffbe8" } },
+  { slot: "weapon", name: "Mjölnir",       attack: { key: "asgardweapon", icon: "⚔️", name: "Torden-hammeren", mult: 48, color: "#fffbe8" } },
+  { slot: "shield", name: "Svalin",        attack: { key: "asgardshield", icon: "🛡️", name: "Sol-skjoldet",    mult: 51, color: "#fffbe8" } },
+  { slot: "armor",  name: "Megingjörð",    attack: { key: "asgardarmor",  icon: "🥋", name: "Styrke-bæltet",   mult: 54, color: "#fffbe8" } },
+  { slot: "boots",  name: "Vidars jernsko",attack: { key: "asgardboots",  icon: "👢", name: "Jern-skridtet",   mult: 57, color: "#fffbe8" } },
+  { slot: "amulet", name: "Draupnir",      attack: { key: "asgardamulet", icon: "📿", name: "Odins ring",      mult: 60, color: "#fffbe8" } }
+];
+function asgardForSlot(slotKey) { return ASGARD_ITEMS.find(m => m.slot === slotKey) || null; }
+function countAsgardEquipped() {
+  let n = 0;
+  for (const m of ASGARD_ITEMS) if (state.gear[m.slot] === "asgard") n++;
+  return n;
+}
+/* Hvor mange af de 6 har man i ALT — både udstyret og i tasken?
+   Bedriften "alle 6" må ikke hænge på teknik: har man 5 i tasken og 1 på kroppen,
+   ejer man alle 6. (De ældre mythic/secret-samlere tæller kun hver for sig.) */
+function asgardOwnedCount() {
+  let n = 0;
+  for (const m of ASGARD_ITEMS) {
+    if (state.gear[m.slot] === "asgard" || state.bag.some(b => b.slot === m.slot && b.rarity === "asgard")) n++;
+  }
+  return n;
+}
+/* HVOR DE KOMMER FRA — og hvorfor:
+   Verden 25 giver PRÆCIS ét item. Den første sejr over det svære skal føles som en
+   belønning, ikke som et lotteri. Verden 26 giver resten, ét ad gangen (altid det
+   næste man mangler), så der er noget at jage hver eneste gang finalen gentages.
+   Kuben og lykkehjulet kan ALDRIG give ASEGÅRD: man skal have gjort noget svært. */
+function asgardForWorld(worldIdx) {
+  if (worldIdx === 24) return [ASGARD_ITEMS[0]];      // verden 25 = "Den svære skov"
+  if (worldIdx === 25) return ASGARD_ITEMS.slice(1);  // verden 26 = "Mesterskabet"
+  return [];
+}
+function asgardMissing(worldIdx) {
+  return asgardForWorld(worldIdx).filter(m =>
+    state.gear[m.slot] !== "asgard" && !state.bag.some(b => b.slot === m.slot && b.rarity === "asgard"));
+}
+/* Den GARANTEREDE belønning for at besejre bossen i en af de to nye verdener.
+   null = man har allerede alle dem denne verden kan give (så giver sejren hjul-loot). */
+function asgardDropForWorld(worldIdx) {
+  const missing = asgardMissing(worldIdx);
+  return missing.length ? missing[0] : null;
+}
 function countMythicEquipped() {
   let n = 0;
   for (const m of MYTHIC_ITEMS) if (state.gear[m.slot] === "mythic") n++;
@@ -1620,6 +1724,9 @@ const ACHIEVEMENTS = [
   { key: "first_secret",  icon: "🔮", name: "Hemmelig vogter",  desc: "Få dit første HEMMELIGE item" },
   { key: "full_mythic",   icon: "👑", name: "Mytisk samler",    desc: "Saml alle 6 mytiske items" },
   { key: "full_secret",   icon: "🔮", name: "Legende",          desc: "Saml alle 6 HEMMELIGE items" },
+  { key: "all_worlds",    icon: "🏆", name: "Alle verdener",    desc: "Besejr alle 26 monstre" },
+  { key: "first_asgard",  icon: "🏔️", name: "Gudernes vogter",  desc: "Vind dit første ASEGÅRD-item" },
+  { key: "full_asgard",   icon: "🏔️", name: "Asgårds-mester",   desc: "Saml alle 6 ASEGÅRD-items" },
   { key: "ten_stars",     icon: "⭐", name: "Stjerne-jæger",    desc: "Saml 10 stjerner" },
   { key: "thirty_stars",  icon: "🌠", name: "Stjerne-helt",     desc: "Saml 30 stjerner" }
 ];
@@ -1641,8 +1748,11 @@ function checkAchievements() {
   if (c >= 1) unlockAchievement("first_dragon");
   if (c >= 5) unlockAchievement("five_dragons");
   if (c >= 10) unlockAchievement("ten_dragons");
-  if (c >= 12) unlockAchievement("all_v1");
-  if (c >= 24) unlockAchievement("all_v2");
+  // Bedrifterne pr. KORT tæller kortets EGNE 12 verdener. Med 26 verdener i alt
+  // ville "alle monstre i Ord-akademiet" ellers blive låst op efter 24 af 26 sejre.
+  if (bossesBeatenIn(0, 12) >= 12) unlockAchievement("all_v1");
+  if (bossesBeatenIn(12, 24) >= 12) unlockAchievement("all_v2");
+  if (c >= WORLDS.length) unlockAchievement("all_worlds");
   if (stars >= 10) unlockAchievement("ten_stars");
   if (stars >= 30) unlockAchievement("thirty_stars");
   if (heroLevel() >= 5) unlockAchievement("level5");
@@ -1651,6 +1761,10 @@ function checkAchievements() {
   if (countSecretEquipped() >= 1 || state.bag.some(b => b.rarity === "secret")) unlockAchievement("first_secret");
   if (countMythicEquipped() >= 6 || state.bag.filter(b => b.rarity === "mythic").length >= 6) unlockAchievement("full_mythic");
   if (countSecretEquipped() >= 6 || state.bag.filter(b => b.rarity === "secret").length >= 6) unlockAchievement("full_secret");
+  // ASEGÅRD: det er de to nye verdener der giver dem — ikke kuben og ikke hjulet.
+  // Vi tæller udstyr + taske SAMMEN, så "alle 6" ikke kan hænge på hvor de ligger.
+  if (asgardOwnedCount() >= 1) unlockAchievement("first_asgard");
+  if (asgardOwnedCount() >= 6) unlockAchievement("full_asgard");
 }
 function achievementCount() { return (state.achievements || []).length; }
 function showAchievements() {
@@ -1697,6 +1811,10 @@ const BOSSES = [
   { name: "Hurtigløberen",         emoji: "🏃", power: 80, c1: "#93c5fd", c2: "#1d4ed8" },
   { name: "Urmonstret",            emoji: "⏰", power: 85, c1: "#e9d5ff", c2: "#7e22ce" },
   { name: "Følelsernes Kejser",    emoji: "😊", power: 90, c1: "#fde68a", c2: "#b45309" },
+/* ============ VERDEN 3 (Mester-riget) — de to sværeste ============
+   Kraften følger den stigende kurve hele vejen igennem: 26 er den stærkeste i spillet. */
+  { name: "Stavelses-trolden",     emoji: "🌲", power: 95, c1: "#86efac", c2: "#14532d" },
+  { name: "Mester-dragen",         emoji: "🐉", power: 110, c1: "#fffbe8", c2: "#b45309" }, // FINAL BOSS — ikke som de andre
 ];
 
 const WORLDS = [
@@ -1724,7 +1842,12 @@ const WORLDS = [
   { name:"Natur-haven",         emoji:"🌳", words:["sol","måne","stjerne","sky","regn","sne","vind","træ","blomst","græs"] },
   { name:"Handle-hallen",       emoji:"🏃", words:["spise","sove","sidde","stå","sige","give","bygge","male","synge","danse"] },
   { name:"Tids-uret",           emoji:"⏰", words:["dag","nat","morgen","aften","uge","måned","år","klokken","minut","sekund"] },
-  { name:"Følelses-skoven",     emoji:"💖", words:["glad","trist","bange","vred","træt","sulten","tørstig","sjov","kedelig","modig"] }
+  { name:"Følelses-skoven",     emoji:"💖", words:["glad","trist","bange","vred","træt","sulten","tørstig","sjov","kedelig","modig"] },
+  /* ============ VERDEN 3: de to sværeste (eget kort, side C) ============
+     Verden 25: ord der staves anderledes end de lyder (stumme bogstaver).
+     Verden 26: lange sammensatte ord, hvor man skal DELE ordet for at stave det. */
+  { name:"Den svære skov",      emoji:"🌲", words:["dejligt","ellers","farligt","færdig","næsten","rigtigt","sikkert","sjovt","skønt","specielt"] },
+  { name:"Mesterskabet",        emoji:"🏆", words:["sommerfugl","fødselsdag","jordbær","skolegård","bibliotek","sommerferie","computer","telefon","fodboldbane","aftensmad"] }
 ];
 
 /* ============ STATE (med profiler — hver spiller har eget gemt fremskridt) ============ */
@@ -1800,7 +1923,7 @@ function worldReached(i) {
   return !!(prev && prev.boss);
 }
 function canEnterWorld(i) {
-  // Sikkerhedsnet mod et ugyldigt indeks — ellers er alle 24 verdener åbne.
+  // Sikkerhedsnet mod et ugyldigt indeks — ellers er alle 26 verdener åbne.
   return Number.isInteger(i) && i >= 0 && i < WORLDS.length;
 }
 function totalStars() {
@@ -1811,6 +1934,14 @@ function totalStars() {
 function collectedCount() {
   let n = 0;
   for (let i = 0; i < WORLDS.length; i++) { const w = state.worlds[i]; if (w && w.boss) n++; }
+  return n;
+}
+/* Hvor mange monstre er besejret på ÉT kort? Bruges til bedrifterne, så "alle
+   monstre i Ord-akademiet" stadig betyder netop akademiets 12 — ikke alle 26.
+   Det blev forkert i det øjeblik verden 25 og 26 kom til. */
+function bossesBeatenIn(start, end) {
+  let n = 0;
+  for (let i = start; i < end && i < WORLDS.length; i++) { const w = state.worlds[i]; if (w && w.boss) n++; }
   return n;
 }
 
@@ -1838,6 +1969,12 @@ function makeItem(slotKey, rarityKey) {
     const m = secretForSlot(slotKey);
     return { slot: slotKey, rarity: "secret", name: m ? m.name : "Hemmelig Skat", secret: true, roll: rollItemStrength("secret"), id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
   }
+  // ASEGÅRD: gudernes udstyr — unikt navn pr. slot, og et lille styrke-spænd,
+  // fordi guderne ikke ruller dårligt (se STRENGTH_SPAN nedenfor)
+  if (rarityKey === "asgard") {
+    const m = asgardForSlot(slotKey);
+    return { slot: slotKey, rarity: "asgard", name: m ? m.name : "Guddommelig Skat", asgard: true, roll: rollItemStrength("asgard"), id: Date.now() + "_" + Math.random().toString(36).slice(2,7) };
+  }
   const names = GEAR_NAMES[slotKey];
   return {
     slot: slotKey,
@@ -1851,9 +1988,11 @@ function makeItem(slotKey, rarityKey) {
   };
 }
 
-/* Styrke-tillæg i procent oveni sjaeldenhedens grundkraft. */
+/* Styrke-tillæg i procent oveni sjaeldenhedens grundkraft.
+   ASEGÅRD har kun 5 % spænd — det er ikke et lotteri man kan tabe,
+   for man har allerede gjort det svære for at få det. */
 const STRENGTH_SPAN = {
-  common: 35, magic: 32, rare: 30, epic: 25, legendary: 20, mythic: 12, secret: 8
+  common: 35, magic: 32, rare: 30, epic: 25, legendary: 20, mythic: 12, secret: 8, asgard: 5
 };
 function rollItemStrength(rarityKey) {
   const span = STRENGTH_SPAN[rarityKey] != null ? STRENGTH_SPAN[rarityKey] : 30;
@@ -1914,7 +2053,7 @@ function rebuiltGearItem(slotKey) {
   if (!rk) return null;
   const r = rarityOf(rk);
   const roll = (state.gearRoll && state.gearRoll[slotKey]) || 0;
-  const unique = rk === "mythic" ? mythicForSlot(slotKey) : rk === "secret" ? secretForSlot(slotKey) : null;
+  const unique = rk === "mythic" ? mythicForSlot(slotKey) : rk === "secret" ? secretForSlot(slotKey) : rk === "asgard" ? asgardForSlot(slotKey) : null;
   return {
     slot: slotKey,
     rarity: rk,
@@ -1922,6 +2061,7 @@ function rebuiltGearItem(slotKey) {
     roll: roll,
     mythic: rk === "mythic",
     secret: rk === "secret",
+    asgard: rk === "asgard",
     id: "gear_" + slotKey + "_" + rk
   };
 }
@@ -2096,7 +2236,10 @@ function renderHero() {
   const owned = {};
   MYTHIC_ITEMS.forEach(m => { if (state.gear[m.slot] === "mythic" || state.bag.some(b => b.slot === m.slot && b.rarity === "mythic")) owned[m.slot] = true; });
   SECRET_ITEMS.forEach(m => { if (state.gear[m.slot] === "secret" || state.bag.some(b => b.slot === m.slot && b.rarity === "secret")) owned["s_" + m.slot] = true; });
-  const totalUnique = MYTHIC_ITEMS.length + SECRET_ITEMS.length;
+  // ASEGÅRD vises som SILHUETTER fra starten: barnet skal kunne se hvad det jager.
+  // Vi skriver ikke hvordan man får dem — kun at de findes (og det er hele spændingen).
+  ASGARD_ITEMS.forEach(m => { if (state.gear[m.slot] === "asgard" || state.bag.some(b => b.slot === m.slot && b.rarity === "asgard")) owned["a_" + m.slot] = true; });
+  const totalUnique = MYTHIC_ITEMS.length + SECRET_ITEMS.length + ASGARD_ITEMS.length;
   document.getElementById("mythicCount").textContent = Object.keys(owned).length + "/" + totalUnique;
   const track = document.getElementById("mythicTrack");
   track.innerHTML = "";
@@ -2114,6 +2257,16 @@ function renderHero() {
     d.className = "mythic-slot secret" + (has ? " owned" : "");
     d.title = "🔮 " + m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (7% chance fra akademi-monstre!)");
     d.innerHTML = has ? m.attack.icon : "🔮";
+    track.appendChild(d);
+  });
+  // ASEGÅRD: gudernes udstyr — står som silhuetter til man har besejret de to svære
+  ASGARD_ITEMS.forEach(m => {
+    const d = document.createElement("div");
+    const has = owned["a_" + m.slot];
+    d.className = "mythic-slot asgard" + (has ? " owned" : "");
+    d.title = "🏔️ " + m.name + " — " + m.attack.name + " ×" + m.attack.mult +
+      (has ? "" : " (besejr bossen i verden 25 eller 26!)");
+    d.innerHTML = has ? m.attack.icon : "🏔️";
     track.appendChild(d);
   });
   // Talent-træ: vis point + 3 knapper
@@ -2727,9 +2880,10 @@ function renderCube() {
   }
 }
 function cubeAdd(item) {
-  // Mytiske + secret items kan ikke lægges i kuben — de er unikke og kan ikke forvandles
+  // Mytiske + secret + ASEGÅRD items kan ikke lægges i kuben — de er unikke og kan ikke forvandles
   if (item.rarity === "mythic") { toast("👑 Mytiske items kan ikke forvandles — de er unikke!", 2500); return; }
   if (item.rarity === "secret") { toast("🔮 HEMMELIGE items kan ikke forvandles — de er unikke!", 2500); return; }
+  if (item.rarity === "asgard") { toast("🏔️ ASEGÅRD-items er gudernes eget udstyr — de kan ikke forvandles!", 2500); return; }
   const i = CUBE_SLOTS.indexOf(null);
   if (i === -1) { toast("Kuben er fuld — forvandl eller tag et item ud!", 2000); return; }
   CUBE_SLOTS[i] = item;
@@ -2741,6 +2895,7 @@ function cubeAdd(item) {
 function bagToCube(item) {
   if (item.rarity === "mythic") { toast("👑 Mytiske items kan ikke forvandles — de er unikke!", 2500); return false; }
   if (item.rarity === "secret") { toast("🔮 HEMMELIGE items kan ikke forvandles — de er unikke!", 2500); return false; }
+  if (item.rarity === "asgard") { toast("🏔️ ASEGÅRD-items er gudernes eget udstyr — de kan ikke forvandles!", 2500); return false; }
   const i = CUBE_SLOTS.indexOf(null);
   if (i === -1) { toast("Kuben er fuld — forvandl eller tag et item ud!", 2000); return false; }
   CUBE_SLOTS[i] = item;
@@ -3051,6 +3206,17 @@ function renderAttacks() {
     b.onclick = () => bossAttack(a);
     bar.appendChild(b);
   });
+  // ASEGÅRD-angreb: de stærkeste i spillet (×45-60). Man har dem kun ved at have
+  // besejret bossen i verden 25 eller 26 — derfor føles hvert eneste af dem fortjent.
+  ASGARD_ITEMS.forEach(m => {
+    if (state.gear[m.slot] !== "asgard") return;
+    const a = m.attack;
+    const b = document.createElement("button");
+    b.className = "attack-btn asgard";
+    b.innerHTML = `<span class="ab-icon">${a.icon}</span><span>${a.name} ×${a.mult}</span>`;
+    b.onclick = () => bossAttack(a);
+    bar.appendChild(b);
+  });
 }
 /* Helten springer frem og angriber. hits = antal slag (1-3) — et tre-slags
    signaturangreb ser anderledes ud end et enkelt hug. */
@@ -3144,6 +3310,7 @@ function heroSvgMarkup() {
       <circle cx="80" cy="72" r="2" fill="#fff" opacity=".6"/>
       ${mythicAuraMarkup()}
       ${secretAuraMarkup()}
+      ${asgardAuraMarkup()}
     </svg>`;
 }
 // SECRET MYTHIC skin: aura bag helten — styrke/farve efter antal mytiske items
@@ -3183,6 +3350,37 @@ function secretAuraMarkup() {
     const px = 40 + Math.random() * 80, py = 60 + Math.random() * 100;
     const col = i % 2 ? c1 : c2;
     glow += `<circle cx="${px.toFixed(0)}" cy="${py.toFixed(0)}" r="${(i % 3 ? 2 : 2.6).toFixed(1)}" fill="${col}" opacity=".95"><animate attributeName="opacity" values=".2;1;.2" dur="${(0.9 + (i % 3) * 0.35).toFixed(2)}s" repeatCount="indefinite"/></circle>`;
+  }
+  return glow;
+}
+// ASEGÅRD-aura: guld-hvidt lys + en lysende ring — det sidste man ser i spillet.
+// Auraen er roligere end secret-auraen (den skal se ud som GUDELIGT lys, ikke fest).
+function asgardAuraMarkup() {
+  const n = countAsgardEquipped();
+  if (n === 0) return "";
+  const o = 0.24 + n * 0.07;
+  let glow = `<defs>
+      <radialGradient id="asgAura" cx="50%" cy="42%" r="62%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+        <stop offset="60%" stop-color="#fffbe8" stop-opacity="${o.toFixed(2)}"/>
+        <stop offset="100%" stop-color="#ffd76a" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="asgRing" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#1a1035" stop-opacity="0"/>
+        <stop offset="45%" stop-color="#1a1035" stop-opacity="0"/>
+        <stop offset="70%" stop-color="#fffbe8" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#1a1035" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="80" cy="112" rx="${52 + n * 6}" ry="${60 + n * 7}" fill="url(#asgAura)"/>
+    <circle cx="80" cy="112" r="${58 + n * 5}" fill="url(#asgRing)">
+      <animate attributeName="r" values="${58 + n * 5};${64 + n * 5};${58 + n * 5}" dur="4s" repeatCount="indefinite"/>
+    </circle>`;
+  // Lysende støv omkring helten: guld-hvide prikker der stiger langsomt op
+  for (let i = 0; i < 3 + n; i++) {
+    const px = 40 + Math.random() * 80, py = 60 + Math.random() * 90;
+    glow += `<circle cx="${px.toFixed(0)}" cy="${py.toFixed(0)}" r="${(i % 2 ? 1.6 : 2.3).toFixed(1)}" fill="#fffbe8" opacity=".9">` +
+      `<animate attributeName="opacity" values=".15;.95;.15" dur="${(1.6 + (i % 4) * 0.5).toFixed(2)}s" repeatCount="indefinite"/></circle>`;
   }
   return glow;
 }
@@ -3631,9 +3829,15 @@ function bossWin() {
   save();
   const completed = collectedCount();
   state.skin = Math.min(Math.floor(completed / 3), HERO_SKIN.length - 1);
-  // SECRET drop? Kun fra akademi-monstre (verden 2) — 7% chance, mega speciel
+  // ASEGÅRD: bossen i verden 25 og 26 giver GARANTERET et item (hvis man mangler
+  // et). Det er hele koblingen: belønningen kommer fra at have gjort noget SVÆRT —
+  // ikke fra kuben og ikke fra lykkehjulet, som man kan gentage i det uendelige.
+  const asgardDrop = asgardDropForWorld(cur.world);
+  // SECRET drop? Kun fra akademi-monstre (verden 2) — 7% chance, mega speciel.
+  // Der rulles IKKE når ASEGÅRD er på vej: de to nye verdener skal føles som
+  // den store gevinst, ikke som endnu et lotteri oveni.
   let secretDrop = null;
-  if (inAcademy) secretDrop = rollSecretDrop();
+  if (!asgardDrop && inAcademy) secretDrop = rollSecretDrop();
   // UI opdateres med kort animations-delay
   setTimeout(() => {
     document.getElementById("bossDragonEmoji").classList.add("dead");
@@ -3645,7 +3849,13 @@ function bossWin() {
     document.getElementById("rewardText").textContent = "Monster besejret! " + WORLDS[cur.world].name + " er fri!";
     sfxCard();
     document.getElementById("bossStatus").textContent = "🏆 SEJR! " + dragon.name + " er besejret!";
-    if (secretDrop) {
+    if (asgardDrop) {
+      const agItem = makeItem(asgardDrop.slot, "asgard");
+      state.bag.push(agItem);
+      save();
+      document.getElementById("bossMsg").innerHTML = "🏔️ <b>ASEGÅRD!</b> Guderne anerkender din sejr: <span class='rarity-asgard'>" + asgardDrop.name + "</span> — " + asgardDrop.attack.name + " ×" + asgardDrop.attack.mult + "!";
+      setTimeout(() => { toast("🏔️ ASEGÅRD! " + asgardDrop.name + " (Kraft +50) — udstyr det i helteskærmen!", 4000); sfxWin(); fxConfetti(); }, 500);
+    } else if (secretDrop) {
       document.getElementById("bossMsg").innerHTML = "🔮 <b>HEMMELIGT!</b> Monsteret efterlader <span class='rarity-secret'>" + secretDrop.name + "</span>! Snur hjulet for mere!";
       const secItem = makeItem(secretDrop.slot, "secret");
       state.bag.push(secItem);
@@ -3654,7 +3864,10 @@ function bossWin() {
     } else {
       document.getElementById("bossMsg").textContent = "Snur lykkehjulet og se hvad monsteret efterlader! 🎰";
     }
-    document.getElementById("bossHint").textContent = inAcademy ? "Akademi-monstre kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!" : "25% Mytisk · 25% Legendarisk · 50% Magisk";
+    document.getElementById("bossHint").textContent =
+      cur.world >= 24 ? "De to nye verdener giver 🏔️ ASEGÅRD — gudernes eget udstyr (Kraft ×45-60)!"
+      : inAcademy ? "Akademi-monstre kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!"
+      : "25% Mytisk · 25% Legendarisk · 50% Magisk";
     renderAttacks();
     checkAchievements();
     showLootWheel(); // lykkehjul med loot-chancer
@@ -3993,6 +4206,15 @@ function blankInSentence(word, sentence, fill) {
   const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const exact = new RegExp("(?<![\\p{L}\\p{N}_])" + esc + "(?![\\p{L}\\p{N}_])", "iu");
   if (exact.test(sentence)) return sentence.replace(exact, fill);
+  /* Intetkøns-former (brugt i verden 25): ordet "dejligt" står i sætningen som
+     "dejlig" ("Det har været en dejlig dag."). Lydfilen læser ordet som barnet
+     kender det, så VI SKRIVER IKKE SÆTNINGEN OM — vi finder i stedet formen uden
+     -t. Kun for ord på 4+ bogstaver, så korte ord ikke rammer tilfældigt. */
+  if (/t$/.test(word) && word.length >= 4) {
+    const stem = word.slice(0, -1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const neuter = new RegExp("(?<![\\p{L}\\p{N}_])" + stem + "(?![\\p{L}\\p{N}_])", "iu");
+    if (neuter.test(sentence)) return sentence.replace(neuter, fill);
+  }
   // Bøjede former (dansk): -en, -et, -n, -t, -er, -r, -ne, -de, + konsonantfordobling (katten, væggen)
   const inflected = new RegExp("(?<![\\p{L}\\p{N}_])" + esc + "(?:en|et|ne|n|t|e|r|s|er|de|ende|gen|ten|ret|set)?(?![\\p{L}\\p{N}_])", "iu");
   if (inflected.test(sentence)) return sentence.replace(inflected, fill);
@@ -4078,7 +4300,7 @@ function buildWordList(worldIdx, count) {
 /* ============ LYD-KLASSER: ord der ikke maa vaere svarmuligheder samtidigt ============
    Kenneths fejl: "Hoer og slaa. Den siger ER og det rigtige svar er AT."
    Aarsagen var ikke lyden — det var VALGENE. distractors() trak tilfaeldigt fra
-   alle 240 ord, saa naar svaret var "at", kunne valgene blive at/er/af/der.
+   alle ordene i spillet (260), saa naar svaret var "at", kunne valgene blive at/er/af/der.
    Barnet KAN ikke vinde den runde ved at lytte; det er plat eller krone.
    De korte funktionsord deler vokalklang og slutlyd og ligner hinanden for meget
    til at staa sammen paa samme skaerm. Ord med SAMME klasse blandes aldrig. */
@@ -4115,7 +4337,7 @@ function distractors(word, n) {
   const sikre = ALL_WORDS.filter(w => w !== word && lydKlasse(w) !== min);
   const others = shuffle(sikre).slice(0, n);
   if (others.length < n) {
-    // Nødtilfaelde: der var ikke nok sikre ord (sker ikke med 240 ord).
+    // Nødtilfaelde: der var ikke nok sikre ord (sker ikke med 260 ord).
     const resten = shuffle(ALL_WORDS.filter(w => w !== word && !others.includes(w)));
     while (others.length < n && resten.length) others.push(resten.pop());
   }
@@ -4806,12 +5028,16 @@ const MAP_POS = [
   // ============ VERDEN 2: Ord-akademiet — SAMME layout som Verden 1 (identiske positioner) ============
   { x: 10, y: 80 }, { x: 24, y: 60 }, { x: 18, y: 30 }, { x: 38, y: 16 },
   { x: 58, y: 26 }, { x: 74, y: 16 }, { x: 88, y: 32 }, { x: 80, y: 58 },
-  { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 }
+  { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 },
+  /* ============ VERDEN 3: Mester-riget — EGET kort (side C), kun 2 verdener.
+     Uden disse to positioner ville verden 25 og 26 blive lagt OVEN PÅ verden 1 og 2. */
+  { x: 24, y: 70 }, { x: 74, y: 26 }
 ];
 // Terræn/biom pr. verden (dekorative SVG-elementer i baggrunden)
 // Verden 2 bruger SAMME biom-mønster som Verden 1, så de to kort ser ens ud
 const MAP_BIOMES = ["skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne",
-  "skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne"];
+  "skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne",
+  "skov","kerne"]; // verden 25 = den svære skov · verden 26 = mesterskabets kerne
 const MAP_COLORS = {
   skov: "#2d5a3d", bjerg: "#5a4a3a", dal: "#3d5a2a", ø: "#2a4a5a",
   flod: "#1f5f8f", hule: "#3a2a3a", tårn: "#4a3a5a", mark: "#5a4a1a",
@@ -4861,13 +5087,26 @@ function terrainMarkup(biome, x, y) {
   }
   return parts.join("");
 }
+/* ============ KORT-SIDERNE ============
+   Tre kort, bygget efter PRÆCIS samme mønster (renderMapPanel + swipe):
+     side 0 = Galaksen (verden 1-12), side 1 = Ord-akademiet (13-24),
+     side 2 = Mester-riget (verden 25-26).
+   Kenneth har insisteret på at de to FØRSTE kort er identiske i layout — derfor kan
+   verden 25 og 26 ikke bare lægges oveni dem. De fik deres egen tredje side, så
+   begge de gamle kort står fuldstændig uændret. */
+const MAP_PAGES = [
+  { title: "🌌 Galaksen",      start: 0,  end: 12, letter: "A", hint: "Swipe til venstre for Ord-akademiet 🎓" },
+  { title: "🎓 Ord-akademiet", start: 12, end: 24, letter: "B", hint: "Swipe videre til Mester-riget 🏆" },
+  { title: "🏆 Mester-riget",  start: 24, end: 26, letter: "C", hint: "Swipe til højre for Ord-akademiet 🎓" }
+];
+// Hvilket kort hører en verden til? (24 og 25 ligger på den tredje side)
+function mapPageForWorld(i) { return i >= 24 ? 2 : i >= 12 ? 1 : 0; }
+function mapLetterForWorld(i) { return MAP_PAGES[mapPageForWorld(i)].letter; }
 function renderWorldMap() {
-  // To separate kort: A = Galaksen (verden 1, index 0-11), B = Ord-akademiet (verden 2, index 12-23)
-  renderMapPanel("worldMapA", 0, 12, "🌌 Galaksen");
-  renderMapPanel("worldMapB", 12, 24, "🎓 Ord-akademiet");
+  // Tre separate kort: A = Galaksen (0-11), B = Ord-akademiet (12-23), C = Mester-riget (24-25)
+  MAP_PAGES.forEach(p => renderMapPanel("worldMap" + p.letter, p.start, p.end, p.title));
   // Vis det kort hvor helten er
-  const mapPage = (state.mapAt || 0) >= 12 ? 1 : 0;
-  setMapPage(mapPage, false);
+  setMapPage(mapPageForWorld(state.mapAt || 0), false);
 }
 let curMapPage = 0;
 function renderMapPanel(elId, start, end, title) {
@@ -4885,11 +5124,16 @@ function renderMapPanel(elId, start, end, title) {
     paths += `<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${open ? "#ffd76a" : "#4a5578"}" stroke-width="${open ? 5 : 3}" stroke-dasharray="${open ? "" : "7 7"}" opacity="${open ? ".85" : ".5"}"/>`;
     if (open) paths += `<circle cx="${(x1+x2)/2}" cy="${my}" r="4" fill="#ffd76a" opacity=".9"/>`;
   }
-  // Hvert kort får sin egen himmel-gradient (akademiet er varmere)
-  const sky = start === 0
-    ? '<linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient>'
-    : '<linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="55%" stop-color="#3a2040"/><stop offset="100%" stop-color="#4a2a35"/></linearGradient>';
-  map.innerHTML = `<svg class="map-svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice"><defs>${sky}</defs><rect width="1200" height="760" fill="${start === 0 ? "url(#skyA)" : "url(#skyB)"}"/>${terr}${paths}</svg>`;
+  // Hvert kort får sin egen himmel-gradient (akademiet er varmere, Mester-riget gyldent)
+  const skyIdx = mapPageForWorld(start);
+  const sky = [
+    '<linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient>',
+    '<linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="55%" stop-color="#3a2040"/><stop offset="100%" stop-color="#4a2a35"/></linearGradient>',
+    // Mester-riget: guld-hvid horisont — det sidste kort skal se ud som noget særligt
+    '<linearGradient id="skyC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#20142a"/><stop offset="50%" stop-color="#4a3218"/><stop offset="100%" stop-color="#8a6220"/></linearGradient>'
+  ][skyIdx];
+  const skyId = ["skyA", "skyB", "skyC"][skyIdx];
+  map.innerHTML = `<svg class="map-svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice"><defs>${sky}</defs><rect width="1200" height="760" fill="url(#${skyId})"/>${terr}${paths}</svg>`;
   // 2) Verdener — absolut positionerede kort oven på landskabet
   for (let i = start; i < end; i++) {
     const d = document.createElement("div");
@@ -4899,7 +5143,7 @@ function renderMapPanel(elId, start, end, title) {
     const ws = state.worlds[i];
     const missionsDone = ws && ws.done && ws.done[0] && ws.done[1] && ws.done[2];
     const bossDone = ws && ws.boss;
-    // Alle 24 verdener er åbne — badgen viser hvor langt man er, ikke om man må.
+    // Alle verdener er åbne — badgen viser hvor langt man er, ikke om man må.
     let badge = "";
     if (bossDone) badge = '<div class="w-badge b-done">✅ Færdig</div>';
     else if (missionsDone) badge = '<div class="w-badge b-dragon">👾 Slå monsteret!</div>';
@@ -4930,7 +5174,7 @@ function renderMapPanel(elId, start, end, title) {
   }
   // 3) Helten — kun på det kort hvor han er
   const hero = document.createElement("div");
-  hero.id = "mapHero" + (start === 0 ? "A" : "B");
+  hero.id = "mapHero" + mapLetterForWorld(start);
   hero.className = "map-hero";
   const at = MAP_POS[state.mapAt || 0] || MAP_POS[0];
   const heroHere = (state.mapAt || 0) >= start && (state.mapAt || 0) < end;
@@ -4940,23 +5184,20 @@ function renderMapPanel(elId, start, end, title) {
   if (heroHere) map.appendChild(hero);
 }
 function setMapPage(page, animate) {
-  curMapPage = page ? 1 : 0;
+  // Tre sider nu — siden klem/mes til 0..2, så et gammelt kald med "1" stadig virker
+  curMapPage = Math.max(0, Math.min(MAP_PAGES.length - 1, page || 0));
   const car = document.getElementById("mapCarousel");
   if (car) {
-    // Native scroll — virker på ALLE browsere (inkl. iPad) uden transform-tricks
-    const target = car.scrollWidth ? (car.scrollWidth - car.clientWidth) * curMapPage : curMapPage * car.clientWidth;
+    // Native scroll — virker på ALLE browsers (inkl. iPad) uden transform-tricks.
+    // Positionen er en BRØK af den samlede scroll-afstand, så den passer til 3 sider.
+    const span = car.scrollWidth ? (car.scrollWidth - car.clientWidth) : car.clientWidth * (MAP_PAGES.length - 1);
+    const target = span * (curMapPage / (MAP_PAGES.length - 1));
     car.scrollTo({ left: target, behavior: animate ? "smooth" : "auto" });
   }
-  const t = document.getElementById("mapTitle");
-  if (t) t.textContent = curMapPage === 0 ? "🌌 Galaksen" : "🎓 Ord-akademiet";
-  const hint = document.querySelector(".map-swipe-hint");
-  if (hint) hint.textContent = curMapPage === 0 ? "Swipe til venstre for Ord-akademiet 🎓" : "Swipe til højre for Galaksen 🌌";
-  // Prikker
-  const dots = document.getElementById("mapDots");
-  if (dots) dots.innerHTML = [0, 1].map(i => `<span class="map-dot${i === curMapPage ? " on" : ""}" onclick="setMapPage(${i}, true)"></span>`).join("");
+  updateMapChrome();
 }
 function swipeMap(dir) {
-  const next = Math.max(0, Math.min(1, curMapPage + dir));
+  const next = Math.max(0, Math.min(MAP_PAGES.length - 1, curMapPage + dir));
   if (next !== curMapPage) { sfxClick(); setMapPage(next, true); }
 }
 // Touch-swipe på kortet (iPad) — native scroll håndterer selve swipe, vi opdaterer kun titel/prikker
@@ -4977,26 +5218,28 @@ function bindMapSwipe() {
   car.addEventListener("scroll", () => {
     if (scrollT) clearTimeout(scrollT);
     scrollT = setTimeout(() => {
-      const mid = car.scrollLeft + car.clientWidth / 2;
-      const page = mid >= car.clientWidth * 1.5 ? 1 : 0;
+      const page = Math.max(0, Math.min(MAP_PAGES.length - 1, Math.round(car.scrollLeft / (car.clientWidth || 1))));
       if (page !== curMapPage) { curMapPage = page; updateMapChrome(); }
     }, 120);
   }, { passive: true });
 }
+/* Titel, swipe-hint og prikker ud fra MAP_PAGES — én kilde til sandheden, så
+   side 0/1/2 ikke kan komme ud af trit med hinanden. */
 function updateMapChrome() {
+  const p = MAP_PAGES[curMapPage] || MAP_PAGES[0];
   const t = document.getElementById("mapTitle");
-  if (t) t.textContent = curMapPage === 0 ? "🌌 Galaksen" : "🎓 Ord-akademiet";
+  if (t) t.textContent = p.title;
   const hint = document.querySelector(".map-swipe-hint");
-  if (hint) hint.textContent = curMapPage === 0 ? "Swipe til venstre for Ord-akademiet 🎓" : "Swipe til højre for Galaksen 🌌";
+  if (hint) hint.textContent = p.hint;
   const dots = document.getElementById("mapDots");
-  if (dots) dots.innerHTML = [0, 1].map(i => `<span class="map-dot${i === curMapPage ? " on" : ""}" onclick="setMapPage(${i}, true)"></span>`).join("");
+  if (dots) dots.innerHTML = MAP_PAGES.map((q, i) => `<span class="map-dot${i === curMapPage ? " on" : ""}" onclick="setMapPage(${i}, true)"></span>`).join("");
 }
 bindMapSwipe();
 function travelToWorld(i) {
   // Ingen verdenslaas mere (Kenneth: "fra start skal man selv kunne vælge den
   // verden man vil"). canEnterWorld siger nej til ugyldige indeks — intet andet.
   if (!canEnterWorld(i)) return;
-  const hero = document.getElementById(i >= 12 ? "mapHeroB" : "mapHeroA");
+  const hero = document.getElementById("mapHero" + mapLetterForWorld(i));
   if (hero) {
     const p = MAP_POS[i];
     hero.style.left = p.x + "%";

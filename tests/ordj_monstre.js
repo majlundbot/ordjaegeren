@@ -22,15 +22,19 @@ let F = 0;
 const check = (l, c, e) => { if (!c) F++; console.log((c ? 'OK   ' : 'FEJL ') + l + (e !== undefined && !c ? ' :: ' + e : '')); };
 
 console.log('--- 1. Antal og grunddata ---');
-check('24 bosser', BOSSES.length === 24, BOSSES.length);
-check('24 verdener', WORLDS.length === 24, WORLDS.length);
+check('26 bosser', BOSSES.length === 26, BOSSES.length);
+check('26 verdener', WORLDS.length === 26, WORLDS.length);
 check('hver boss har navn, emoji, kraft og to farver',
   BOSSES.every(b => b.name && b.emoji && Number.isFinite(b.power) && /^#[0-9a-f]{6}$/i.test(b.c1) && /^#[0-9a-f]{6}$/i.test(b.c2)),
   JSON.stringify(BOSSES.find(b => !(b.name && b.emoji && b.power && b.c1 && b.c2)) || null));
-check('ingen boss hedder noget med "drage"', !BOSSES.some(b => /drage/i.test(b.name)),
-  JSON.stringify(BOSSES.filter(b => /drage/i.test(b.name)).map(b => b.name)));
-check('alle navne er unikke', new Set(BOSSES.map(b => b.name)).size === 24);
-check('alle emoji er unikke', new Set(BOSSES.map(b => b.emoji)).size === 24,
+/* UNDTAGELSE: de første 24 må ikke hedde noget med "drage" — de er ikke drager.
+   Verden 26 er FINAL BOSS og hedder med vilje "Mester-dragen": den vender tilbage
+   som den sidste, men er ikke som de andre (se Docs/nye-verdener-og-asegard.md). */
+check('ingen af de 24 første bosser hedder noget med "drage"', !BOSSES.slice(0, 24).some(b => /drage/i.test(b.name)),
+  JSON.stringify(BOSSES.slice(0, 24).filter(b => /drage/i.test(b.name)).map(b => b.name)));
+check('final boss i verden 26 ER en drage (Mester-dragen)', BOSSES[25].name === 'Mester-dragen');
+check('alle navne er unikke', new Set(BOSSES.map(b => b.name)).size === 26);
+check('alle emoji er unikke', new Set(BOSSES.map(b => b.emoji)).size === 26,
   JSON.stringify(BOSSES.map(b => b.emoji)));
 
 console.log('--- 2. Svaerhedsgraden stiger jaevnt ---');
@@ -39,7 +43,8 @@ let rising = true;
 for (let i = 1; i < pw.length; i++) if (pw[i] <= pw[i-1]) rising = false;
 check('kraften stiger for hver verden', rising, JSON.stringify(pw));
 check('foerste boss er let (kraft <= 10)', pw[0] <= 10, pw[0]);
-check('sidste boss er svaerest (kraft = maks)', pw[23] === Math.max(...pw), pw[23]);
+check('sidste boss er svaerest (kraft = maks)', pw[25] === Math.max(...pw), pw[25]);
+check('verden 26 er den staerkeste i spillet', BOSSES[25].power === Math.max(...BOSSES.map(b => b.power)), BOSSES[25].power);
 
 console.log('--- 3. Monsteret matcher VERDENENS tema ---');
 // Verden -> forventet monster. Denne tabel er aftalen med Kenneth.
@@ -68,6 +73,8 @@ const VENTET = {
   21: 'Hurtigløberen',      // Handle-hallen
   22: 'Urmonstret',         // Tids-uret
   23: 'Følelsernes Kejser', // Foelses-skoven
+  24: 'Stavelses-trolden',  // Den svære skov (verden 25) — staver anderledes end det lyder
+  25: 'Mester-dragen',      // Mesterskabet (verden 26) — FINAL BOSS
 };
 let fejl = [];
 Object.keys(VENTET).forEach(i => {
@@ -82,6 +89,8 @@ const tema = [
   [20, 'Frøen', /natur|have/i, 'natur-verdenen skal have et naturvaesen'],
   [18, 'Sokkemonstret', /tøj|tøj|kammer/i, 'tøj-verdenen skal handle om tøj'],
   [22, 'Urmonstret', /tid|ur/i, 'tid-verdenen skal handle om tid'],
+  [24, 'Stavelses-trolden', /skov/i, 'den svære skov skal have et væsen der driller med stavelser'],
+  [25, 'Mester-dragen', /mester|skab/i, 'mesterskabet skal have en final boss'],
 ];
 tema.forEach(([i, navn, re, forklaring]) => {
   check(forklaring + ' (verden ' + i + ')', re.test(WORLDS[i].name) && BOSSES[i].name === navn,
@@ -89,7 +98,7 @@ tema.forEach(([i, navn, re, forklaring]) => {
 });
 
 console.log('--- 5. Monsteret bruges i kampen ---');
-check('bossState kan startes for alle 24', WORLDS.every((w, i) => typeof startBoss === 'function' && !!BOSSES[i]));
+check('bossState kan startes for alle 26', WORLDS.every((w, i) => typeof startBoss === 'function' && !!BOSSES[i]));
 check('kamp-slutteksten naevner ikke drager',
   !/drage/i.test(String(WORLDS[0].name)) , true);
 
