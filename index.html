@@ -595,6 +595,17 @@
     background: linear-gradient(170deg, rgba(251,191,36,.14), rgba(255,255,255,.04));
     border: 2px solid rgba(251,191,36,.5); text-align: left;
   }
+  /* Skjult element: bruges naar Mester-prøven ikke har ord endnu. En synlig men
+     deaktiveret guld-knap er en DØD KNAP — den ser ud som skærmens vigtigste
+     handling og gør ingenting naar man trykker. Teksten i panelet forklarer
+     allerede hvad barnet skal gøre, saa knappen behøves ikke. (Samme fejl som
+     "Fedt!"-knappen der blev fjernet tidligere i projektet.) */
+  .skjult { display: none !important; }
+  /* Tom prøve = daempet kort. Et stort kort med guldramme skal ikke fylde
+     skaermen for at sige "der er ingenting" — det maa ikke konkurrere med
+     verdenskortet om opmaerksomheden foer det har noget at vise. */
+  .mester-panel.mp-tom { opacity: .72; box-shadow: none; }
+  .mester-panel.mp-tom .mp-head b { font-weight: 600; }
   .mester-panel .mp-head { font-size: 15px; font-weight: 900; color: #ffd76a; margin-bottom: 8px; }
   .mester-panel .mp-icon { margin-right: 4px; }
   .mp-words { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
@@ -1328,7 +1339,7 @@
     <div class="map-dots" id="mapDots"></div>
     <button class="btn ghost small-map-btn" onclick="swipeMap(1)">▶</button>
   </div>
-  <div class="ta map-swipe-hint">Swipe til venstre for Ord-akademiet 🎓</div>
+  <div class="ta map-swipe-hint">Skift kort med ◀ ▶ — næste: Ord-akademiet 🎓</div>
   <!-- MESTER-PRØVEN: belønningen for at øve sine EGNE svage ord. Den staar paa
        kortet, fordi det er her barnet vælger hvad det vil lave — en belønning man
        ikke kan se, vælger man ikke (samme fejl som XP-systemet havde). -->
@@ -5524,14 +5535,37 @@ function mesterRenderPanel() {
   const p = mesterProve();
   const erobret = mesterErobretIProve();
   const total = p.words.length;
+  // Tom prøve = daempet kort. Et stort kort med guldramme skal ikke fylde
+  // skaermen for at sige "der er ingenting" — det skal ikke konkurrere med
+  // verdenskortet om opmaerksomheden foer det har noget at vise.
+  // DEFENSIVT: samme grund som knappen nedenfor — test-stubben har ikke
+  // noedvendigvis classList.toggle.
+  if (panel.classList && typeof panel.classList.toggle === "function")
+    panel.classList.toggle("mp-tom", total === 0);
   const t = document.getElementById("mesterTitle");
-  if (t) t.textContent = "Mester-prøven — " + erobret + " af " + total + " svære ord erobrede";
+  // Ved 0 ord maa titlen IKKE vise "0 af 0" — det er en nul-vaerdi vist som
+  // fremgang og ser i stedet ud som om noget er i stykker.
+  if (t) t.textContent = total
+    ? "Mester-prøven — " + erobret + " af " + total + " svære ord erobrede"
+    : "Mester-prøven";
   const list = document.getElementById("mesterList");
   if (list) list.innerHTML = mesterRowsHtml();
   const btn = document.getElementById("mesterBtn");
   if (btn) {
-    btn.textContent = total ? (erobret ? "Fortsæt Mester-prøven 💪" : "Start Mester-prøven 🏆") : "Ingen ord endnu";
-    btn.disabled = !total;
+    // Er der ingen ord, SKJULES knappen. En deaktiveret guld-knap i den mest
+    // fremtrædende position er en død knap: den ser ud som skaermens vigtigste
+    // handling og goer ingenting naar man trykker. Teksten i panelet forklarer
+    // allerede hvad barnet skal goere, saa knappen behoeves ikke.
+    // DEFENSIVT: test-stubben har hverken classList.toggle eller setAttribute
+    // (samme fælde som classList.toggle tidligere). Vi retter det HER i spillet
+    // og ikke i testen, saa spillet ogsaa virker i et fattigt DOM-miljoe.
+    const harOrd = total > 0;
+    if (btn.classList && typeof btn.classList.toggle === "function")
+      btn.classList.toggle("skjult", !harOrd);
+    btn.disabled = !harOrd;
+    if (typeof btn.setAttribute === "function")
+      btn.setAttribute("aria-hidden", harOrd ? "false" : "true");
+    if (harOrd) btn.textContent = erobret ? "Fortsæt Mester-prøven 💪" : "Start Mester-prøven 🏆";
   }
 }
 function mesterRenderStats() {
@@ -6339,9 +6373,9 @@ function terrainMarkup(biome, x, y) {
    sine EGNE 12 positioner (se MAP_POS), så verden 25-36 ikke lægges oveni verden 1-12.
    Alle tre sider har nu 12 verdener; siden ≥ 24 hører til side 2. */
 const MAP_PAGES = [
-  { title: "🌌 Galaksen",      start: 0,  end: 12, letter: "A", hint: "Swipe til venstre for Ord-akademiet 🎓" },
-  { title: "🎓 Ord-akademiet", start: 12, end: 24, letter: "B", hint: "Swipe videre til Mester-riget 🏆" },
-  { title: "🏆 Mester-riget",  start: 24, end: 36, letter: "C", hint: "Swipe til højre for Ord-akademiet 🎓" }
+  { title: "🌌 Galaksen",      start: 0,  end: 12, letter: "A", hint: "Skift kort med ◀ ▶ — næste: Ord-akademiet 🎓" },
+  { title: "🎓 Ord-akademiet", start: 12, end: 24, letter: "B", hint: "Skift kort med ◀ ▶ — næste: Mester-riget 🏆" },
+  { title: "🏆 Mester-riget",  start: 24, end: 36, letter: "C", hint: "Skift kort med ◀ ▶ — tilbage: Ord-akademiet 🎓" }
 ];
 // Hvilket kort hører en verden til? (verden 25-36 ligger på den tredje side)
 function mapPageForWorld(i) { return i >= 24 ? 2 : i >= 12 ? 1 : 0; }
