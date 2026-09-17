@@ -530,26 +530,60 @@
   }
   .wheel-x:hover { transform: scale(1.1); border-color: #f87171; }
   .wheel-x:active { transform: scale(.95); }
+  /* .wheel-box er rammen OM skiven. Nålen hører til HER — uden for det roterende
+     element (#wheelSpin) — så den står stille mens skiven drejer. Det er hele
+     referencepunktet: uden en fast nål kan man ikke se HVOR hjulet lander. */
   .wheel-box { position: relative; width: min(720px, 92vw, 78vh); height: min(720px, 92vw, 78vh); margin: 4px auto 8px; }
+  /* Nålen: fast viser i toppen, pegende ned over skivens kant. Ryster et hak
+     hver gang et nyt felt rammer den (.hit) — se wheelNeedleHit() i JS. */
   .wheel-needle {
-    position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 5;
-    font-size: 34px; color: #ffd76a; text-shadow: 0 0 12px rgba(255,215,106,.9); filter: drop-shadow(0 2px 4px rgba(0,0,0,.6));
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%); z-index: 5;
+    font-size: 40px; line-height: 1; color: #ffd76a; pointer-events: none;
+    transform-origin: 50% 25%;
+    text-shadow: 0 0 12px rgba(255,215,106,.9);
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,.7));
   }
+  .wheel-needle.hit { animation: needleHit .13s ease-out; }
+  @keyframes needleHit {
+    0%   { transform: translateX(-50%) rotate(-10deg); }
+    60%  { transform: translateX(-50%) rotate(4deg); }
+    100% { transform: translateX(-50%) rotate(0deg); }
+  }
+  /* Skiven roteres nu af requestAnimationFrame (ikke af en CSS-animation), fordi
+     vi selv skal regne vinklen for at kunne klikke pr. felt og for at ramme det
+     uddelte felt præcist. Ingen overflow:hidden her — den ville klippe glow'et
+     på vinder-feltet af. */
   .wheel {
     width: 100%; height: 100%; border-radius: 50%; position: relative;
     border: 4px solid #ffd76a; box-shadow: 0 0 30px rgba(255,215,106,.35), inset 0 0 24px rgba(0,0,0,.4);
-    overflow: hidden;
+    transform: rotate(0deg); will-change: transform;
+    transition: box-shadow .45s ease;
   }
-  .wheel.spinning { animation: wheelSpinAnim 4.2s cubic-bezier(.12,.8,.18,1) forwards; }
-  @keyframes wheelSpinAnim { from { transform: rotate(0deg); } to { transform: rotate(var(--wheel-deg, 1440deg)); } }
+  /* Vinder-øjeblikket: kanten lyser op og skiven får et varmt skær */
+  .wheel.won { box-shadow: 0 0 56px rgba(255,215,106,.85), 0 0 120px rgba(255,215,106,.35), inset 0 0 30px rgba(0,0,0,.4); }
   .wheel svg { width: 100%; height: 100%; display: block; }
+  .wheel-seg { transition: opacity .35s ease; }
+  /* Feltet under nålen vinder: det pulserer, de øvrige dæmpes. Så kommer svaret
+     FRA hjulet i stedet for fra en tekst nedenunder. */
+  .wheel.won .wheel-seg:not(.win) { opacity: .3; }
+  .wheel-seg.win { animation: segWinPulse 1s ease-in-out infinite; }
+  @keyframes segWinPulse {
+    0%, 100% { filter: brightness(1.5) drop-shadow(0 0 7px rgba(255,255,255,.9)); }
+    50%      { filter: brightness(2.2) drop-shadow(0 0 16px rgba(255,255,255,.95)); }
+  }
+  /* Resultatet folder ud EFTER hjulet er stoppet — først spænding, så svar */
   .wheel-result {
     margin: 10px auto; padding: 12px 20px; border-radius: 14px; background: rgba(255,255,255,.08);
-    border: 2px solid rgba(255,255,255,.2); font-weight: 900; font-size: 17px; animation: crPop .35s ease-out;
+    border: 2px solid rgba(255,255,255,.2); font-weight: 900; font-size: 17px;
+    animation: wheelUnfold .5s cubic-bezier(.2,1.5,.4,1);
+  }
+  @keyframes wheelUnfold {
+    0%   { transform: translateY(16px) scale(.85); opacity: 0; }
+    100% { transform: none; opacity: 1; }
   }
   .wheel-result .wr-icon { font-size: 34px; display: block; margin-bottom: 2px; }
   .wheel-result .wr-rarity { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
-  .wheel-result.mythic { border-color: #ffd700; box-shadow: 0 0 24px rgba(255,215,0,.6); animation: crPop .35s ease-out, mythicGlow 2s ease-in-out infinite; }
+  .wheel-result.mythic { border-color: #ffd700; box-shadow: 0 0 24px rgba(255,215,0,.6); animation: wheelUnfold .5s cubic-bezier(.2,1.5,.4,1), mythicGlow 2s ease-in-out infinite; }
   .gear-panel { flex: 1 1 280px; min-width: 0; }
   .gear-panel h3 { font-size: 13px; color: #9fb0e8; text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 5px; }
   .gear-slots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
@@ -967,8 +1001,10 @@
   <div class="co-content">
     <div class="co-title">👾 Monster besejret! Snur lykkehjulet!</div>
     <div class="wheel-box">
-      <div class="wheel-needle">▼</div>
       <div class="wheel" id="wheelSpin"></div>
+      <!-- Nålen ligger UDEN om #wheelSpin. Lå den inde i det roterende element,
+           drejede den med skiven og var intet referencepunkt. -->
+      <div class="wheel-needle" id="wheelNeedle" aria-hidden="true">▼</div>
     </div>
     <button class="btn" id="wheelBtn" onclick="spinLootWheel()">🎰 Snur!</button>
     <div class="wheel-result hidden" id="wheelResult"></div>
@@ -3630,27 +3666,167 @@ function wheelSegs() {
     { key: "magic",     label: "Magisk",       icon: "🔵", color: "#60a5fa", pct: .50 }
   ];
 }
-let wheelPending = null; // { rk, item } der blev rullet
+let wheelPending = null; // { rk, item, landDeg } — præmien trækkes FØR rotationen regnes
+let wheelAnim = null;    // { token, raf } mens skiven drejer (rAF-løbet)
+let wheelToken = 0;      // hvert spin får sit eget token, så et gammelt rAF-løb ikke kan afslutte et nyt
+// De tre faser fra designdokumentet + tilbagesvinget, i millisekunder.
+// rAF i stedet for én CSS-animation, fordi vi selv skal regne vinklen: kun sådan
+// kan vi affyre klik i PRÆCIS det øjeblik et nyt felt står under nålen — og ramme
+// det felt der faktisk blev uddelt.
+const WHEEL_T_UP = 520, WHEEL_T_CRUISE = 1500, WHEEL_T_DOWN = 2500, WHEEL_T_SETTLE = 420;
+const WHEEL_T_TOTAL = WHEEL_T_UP + WHEEL_T_CRUISE + WHEEL_T_DOWN + WHEEL_T_SETTLE;
+const WHEEL_BACKSWING = 5; // grader; hjulet vipper ~3° tilbage og falder så på plads
+
+function wheelClock() {
+  return (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+}
+
+/* ---- HJULETS MATEMATIK (ren, uden DOM — så den kan testes direkte) ----
+   Nålen sidder FAST i toppen og peger ned på vinklen -90° i SVG-koordinater
+   (hvor y peger ned, så +grader = med uret). Når skiven er drejet R grader,
+   ligger det oprindelige felt i vinklen θ = -90 - R under nålen. Regner vi i
+   "felt-rum" — hvor felt 0 starter i 0° — bliver nålevinklen derfor (-R) mod 360.
+   Hele matematikken holder sig til det rum, og så kan den efterprøves uden
+   at animere noget. */
+function wheelSegRanges(segs) {
+  let acc = 0;
+  return segs.map(s => {
+    const r = { key: s.key, from: acc * 360, to: (acc + s.pct) * 360, mid: (acc + s.pct / 2) * 360 };
+    acc += s.pct;
+    return r;
+  });
+}
+// Hvilket felt ligger under nålen når skiven er roteret `deg`? (deg må gerne være negativ)
+function wheelKeyAtDeg(segs, deg) {
+  const ranges = wheelSegRanges(segs);
+  let p = (-deg) % 360;
+  if (p < 0) p += 360;
+  for (const r of ranges) if (p >= r.from && p < r.to) return r.key;
+  return ranges[ranges.length - 1].key; // kun float-præcision helt ude på kanten
+}
+// Den rotation der lander nålen MIDT i feltet med `key` — ikke på kanten.
+// turns er antal hele omgange oveni; (-R) mod 360 = mid, altså R = turns*360 - mid.
+function wheelAngleFor(segs, key, turns) {
+  const ranges = wheelSegRanges(segs);
+  const hit = ranges.find(r => r.key === key) || ranges[ranges.length - 1];
+  const t = Math.max(1, Math.round(turns || 1));
+  return t * 360 - hit.mid;
+}
+// Omgangstallet følger hjulets opbygning i stedet for et fast tal: de gamle
+// 1440° = præcis fire omgange var et RUNDT tal, så hjulet landede "på et tal".
+function wheelSpinTurns() {
+  return 4 + wheelSegs().length + Math.floor(Math.random() * 3);
+}
+// Topfarten vælges så den samlede vinkel bliver præcis finalDeg over de tre faser.
+function wheelSpeedFor(finalDeg) {
+  return finalDeg / ((WHEEL_T_UP / 3 + WHEEL_T_CRUISE + WHEEL_T_DOWN / 3) / 1000);
+}
+// Fartprofilen: opkørsel (v starter i 0 og vokser), fri rotation (jævn høj fart),
+// nedbremsning (v → 0) og til sidst tilbagesvinget. Tilbagesvinget er lagt som et
+// offset der er 0 både ved start og slut, så slutvinklen er PRÆCIS finalDeg —
+// den vinkel matematikken har lovet, med nålen midt i det uddelte felt.
+function wheelPosAt(ms, finalDeg) {
+  const V = wheelSpeedFor(finalDeg);
+  const aUp = V * (WHEEL_T_UP / 1000) / 3;
+  const aCruise = V * (WHEEL_T_CRUISE / 1000);
+  const aDown = V * (WHEEL_T_DOWN / 1000) / 3;
+  if (ms <= 0) return { deg: 0, v: 0 };
+  if (ms < WHEEL_T_UP) {
+    const u = ms / WHEEL_T_UP;
+    return { deg: aUp * u * u * u, v: 3 * aUp * u * u / (WHEEL_T_UP / 1000) };
+  }
+  if (ms < WHEEL_T_UP + WHEEL_T_CRUISE) return { deg: aUp + V * (ms - WHEEL_T_UP) / 1000, v: V };
+  const td = ms - WHEEL_T_UP - WHEEL_T_CRUISE;
+  if (td < WHEEL_T_DOWN) {
+    const u = td / WHEEL_T_DOWN;
+    return { deg: aUp + aCruise + aDown * (1 - Math.pow(1 - u, 3)), v: 3 * aDown * Math.pow(1 - u, 2) / (WHEEL_T_DOWN / 1000) };
+  }
+  const u = Math.min(1, (td - WHEEL_T_DOWN) / WHEEL_T_SETTLE);
+  return { deg: finalDeg - WHEEL_BACKSWING * Math.sin(Math.PI * u) * (1 - u), v: 0 };
+}
+// Klik-tonen falder med farten: høj fart = lyse, tætte klik — lav fart = dybe,
+// sjældne. Det er forskellen mellem "et hjul der bremser" og "en lyd der stopper".
+function wheelClickFreq(speed, vmax) {
+  const f = Math.max(0, Math.min(1, vmax ? speed / vmax : 0));
+  return 480 + f * 1020;
+}
+
+/* ---- NÅLEN OG VINDER-FELTET ---- */
+function wheelNeedleHit() {
+  const n = document.getElementById("wheelNeedle");
+  if (!n || !n.classList || typeof n.classList.add !== "function") return; // test-stub uden classList
+  try { n.classList.remove("hit"); void n.offsetWidth; n.classList.add("hit"); } catch(e) {}
+}
+function wheelSegPathEls() {
+  const wheel = document.getElementById("wheelSpin");
+  if (!wheel || typeof wheel.querySelectorAll !== "function") return [];
+  try { return Array.prototype.slice.call(wheel.querySelectorAll(".wheel-seg")); } catch(e) { return []; }
+}
+function wheelClearWinner() {
+  const wheel = document.getElementById("wheelSpin");
+  if (!wheel) return;
+  if (wheel.classList && typeof wheel.classList.remove === "function") wheel.classList.remove("won");
+  wheelSegPathEls().forEach(p => {
+    if (p.classList && typeof p.classList.remove === "function") { p.classList.remove("win"); p.classList.remove("dim"); }
+  });
+}
+function wheelSetWinner(key) {
+  const wheel = document.getElementById("wheelSpin");
+  if (!wheel) return;
+  if (wheel.classList && typeof wheel.classList.add === "function") wheel.classList.add("won");
+  wheelSegPathEls().forEach(p => {
+    if (!p.classList || typeof p.classList.add !== "function") return;
+    const k = p.getAttribute ? p.getAttribute("data-seg") : null;
+    if (k === key) { p.classList.add("win"); p.classList.remove("dim"); }
+    else { p.classList.add("dim"); p.classList.remove("win"); }
+  });
+}
+function wheelStopSpin() {
+  if (!wheelAnim) return;
+  const id = wheelAnim.raf;
+  wheelAnim = null;
+  if (id != null && typeof cancelAnimationFrame === "function") { try { cancelAnimationFrame(id); } catch(e) {} }
+}
+
 function wheelSvgMarkup() {
   const cx = 100, cy = 100, r = 92;
   let acc = 0, parts = "";
-  wheelSegs().forEach((s, i) => {
+  wheelSegs().forEach((s) => {
     const a0 = acc * 360 - 90, a1 = (acc + s.pct) * 360 - 90; // start øverst
     acc += s.pct;
     const x0 = cx + r * Math.cos(a0 * Math.PI / 180), y0 = cy + r * Math.sin(a0 * Math.PI / 180);
     const x1 = cx + r * Math.cos(a1 * Math.PI / 180), y1 = cy + r * Math.sin(a1 * Math.PI / 180);
     const large = s.pct > .5 ? 1 : 0;
-    parts += `<path d="M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1} Z" fill="${s.color}" stroke="#1a1035" stroke-width="2"/>`;
-    // Tekst midt i segmentet
-    const ma = ((acc - s.pct / 2) * 360 - 90) * Math.PI / 180;
-    const tx = cx + (r * .58) * Math.cos(ma), ty = cy + (r * .58) * Math.sin(ma);
-    parts += `<text x="${tx}" y="${ty - 6}" text-anchor="middle" font-size="20">${s.icon}</text>`;
-    parts += `<text x="${tx}" y="${ty + 14}" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">${s.label}</text>`;
+    // class + data-seg gør at vinder-feltet kan findes og lyse op bagefter (wheelSetWinner)
+    parts += `<path class="wheel-seg" data-seg="${s.key}" d="M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1} Z" fill="${s.color}" stroke="#1a1035" stroke-width="2"/>`;
+    // Etiketten lægges RADIALT ud ad midtervinklen (som på et rigtigt hjul) og
+    // vendes, så den aldrig står på hovedet. Den klemmes til den ledige plads
+    // med textLength, så et langt ord ikke stikker ud over nabofeltet — skiven
+    // kan jo stoppe i alle vinkler, og skæv/overlappende tekst ser billigt ud.
+    const mid = (acc - s.pct / 2) * 360 - 90;
+    const mr = mid * Math.PI / 180;
+    const rot = (mid + (Math.cos(mr) < 0 ? 180 : 0)).toFixed(2);
+    const at = (dist) => ({ x: cx + dist * Math.cos(mr), y: cy + dist * Math.sin(mr) });
+    const rotAt = (p) => `transform="rotate(${rot},${p.x.toFixed(2)},${p.y.toFixed(2)})"`;
+    const ip = at(r * .46), lp = at(r * .74);
+    const labelRoom = (r * .94 - r * .52); // plads til teksten målt ud ad radius
+    parts += `<text x="${ip.x.toFixed(1)}" y="${ip.y.toFixed(1)}" ${rotAt(ip)} text-anchor="middle" dominant-baseline="middle" font-size="17" fill="#1a1035">${s.icon}</text>`;
+    parts += `<text x="${lp.x.toFixed(1)}" y="${lp.y.toFixed(1)}" ${rotAt(lp)} text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="bold" fill="#1a1035" textLength="${labelRoom.toFixed(0)}" lengthAdjust="spacingAndGlyphs">${s.label}</text>`;
   });
-  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${parts}<circle cx="${cx}" cy="${cy}" r="22" fill="#1a1035" stroke="#ffd76a" stroke-width="3"/></svg>`;
+  // Inder-ring + hub, så skiven ser ud som et hjul og ikke som et tærtediagram
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${parts}` +
+    `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#ffd76a" stroke-width="4"/>` +
+    `<circle cx="${cx}" cy="${cy}" r="26" fill="#1a1035" stroke="#ffd76a" stroke-width="3"/>` +
+    `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="rgba(255,215,106,.45)" stroke-width="2"/></svg>`;
 }
 function showLootWheel() {
-  // Rul resultatet NU (akademi: 10/20/20/50 · ellers 25/25/50), loot uddeles når hjulet lander
+  // Rul resultatet NU (akademi: 10/20/20/50 · ellers 25/25/50). Præmien trækkes
+  // FØRST — rotationen regnes bagefter baglæns fra det felt, der blev uddelt,
+  // så nålen ikke kan pege på noget andet end den præmie barnet får.
+  wheelStopSpin();
+  wheelClearWinner();
+  const needle = document.getElementById("wheelNeedle");
+  if (needle && needle.classList && typeof needle.classList.remove === "function") needle.classList.remove("hit");
   const segs = wheelSegs();
   const roll = Math.random();
   let acc = 0, rk = segs[segs.length - 1].key;
@@ -3675,9 +3851,8 @@ function showLootWheel() {
   // Byg hjulet
   const wheel = document.getElementById("wheelSpin");
   wheel.innerHTML = wheelSvgMarkup();
-  // Annullér eventuelle gamle spin-animationer og nulstil position
-  if (wheel.getAnimations) wheel.getAnimations().forEach(a => a.cancel());
-  wheel.style.transform = "rotate(0deg)";
+  // Nulstil positionen — et nyt hjul starter altid øverst
+  if (wheel.style) wheel.style.transform = "rotate(0deg)";
   document.getElementById("wheelOverlay").classList.remove("hidden");
   document.getElementById("wheelResult").classList.add("hidden");
   document.getElementById("wheelClose").classList.add("hidden");
@@ -3690,60 +3865,95 @@ function spinLootWheel() {
   if (!wheelPending) return;
   const wheel = document.getElementById("wheelSpin");
   const btn = document.getElementById("wheelBtn");
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
   sfxCard();
-  // Uddel loot MED DET SAMME — hjulet er kun show, loot er sikret uanset hvad
+  // Uddel loot MED DET SAMME — hjulet er kun show, loot er sikret uanset hvad.
+  // (Et barn der lukker overlayet midt i spinnet skal ikke miste sin præmie.)
   state.bag.push(wheelPending.item);
   save();
-  // Find segmentets midtervinkel → roter så nålen (top) lander på det
-  let acc = 0, target = 0;
-  wheelSegs().forEach(s => {
-    if (s.key === wheelPending.rk) target = (acc + s.pct / 2) * 360;
-    acc += s.pct;
-  });
-  const fullTurns = 4 + Math.floor(Math.random() * 3); // 4-6 fulde omgange
-  const finalDeg = fullTurns * 360 + (360 - target); // nålen peger op = 0°
-  // Web Animations API — virker på ALLE browsere (også Safari/iPad).
-  // Annullér ALTID gamle animationer først — ellers holder den forrige
-  // fill:forwards-animation fast i transform og næste spin starter forkert.
-  if (wheel.getAnimations) wheel.getAnimations().forEach(a => a.cancel());
-  wheel.style.transform = "rotate(0deg)";
-  void wheel.offsetWidth; // reflow: sikr at nulstillingen er malet
-  wheel.animate(
-    [{ transform: "rotate(0deg)" }, { transform: "rotate(" + finalDeg + "deg)" }],
-    { duration: 4200, easing: "cubic-bezier(.12,.8,.18,1)", fill: "forwards" }
-  );
-  btn.textContent = "…";
-  setTimeout(() => {
-    // UI-resultat — try/catch så "Fedt!"-knappen ALTID dukker op
-    try {
-      const r = rarityOf(wheelPending.rk);
-      const slot = GEAR_SLOTS.find(s => s.key === wheelPending.item.slot);
-      const res = document.getElementById("wheelResult");
-      res.classList.remove("hidden");
-      res.className = "wheel-result" + (wheelPending.rk === "mythic" ? " mythic" : "") + (wheelPending.rk === "secret" ? " secret" : "");
-      res.innerHTML = `<span class="wr-icon">${slot ? slot.icon : "🎒"}</span><div class="wr-rarity rarity-${wheelPending.rk}">${r ? r.label : ""}</div><div>${wheelPending.item.name}</div>`;
-      if (wheelPending.rk === "mythic") {
-        const m = mythicForSlot(wheelPending.item.slot);
-        res.innerHTML += `<div style="font-size:13px;color:#9fb0e8;margin-top:4px">⚡ Unikt angreb: ${m ? m.attack.name + " ×" + m.attack.mult : "?"} · Kraft +${r ? r.power : "?"}</div>`;
-        fxConfetti();
-        sfxWin();
-      } else if (wheelPending.rk === "secret") {
-        const m = secretForSlot(wheelPending.item.slot);
-        res.innerHTML += `<div style="font-size:13px;color:#ff9ad8;margin-top:4px">🔮 MEGA-angreb: ${m ? m.attack.name + " ×" + m.attack.mult : "?"} · Kraft +${r ? r.power : "?"}</div>`;
-        fxConfetti();
-        sfxWin();
-      } else {
-        res.innerHTML += `<div style="font-size:12px;color:#9fb0e8;margin-top:4px">Kraft +${r ? r.power : "?"} — udstyr den i helteskærmen!</div>`;
-        setTimeout(() => sfxRight(), 250);
-      }
-    } catch(e) {}
-    btn.classList.add("hidden");
-    document.getElementById("wheelClose").classList.remove("hidden");
-    wheelPending = null;
-  }, 4300); // efter spin-animationen (4.2s)
+  const segs = wheelSegs();
+  const key = wheelPending.rk;
+  // Præmien er trukket i showLootWheel(); her regnes rotationen BAGLÆNS fra
+  // midten af det felt der blev uddelt, så nålen lander PRÆCIS der — ikke på
+  // kanten, og ikke et andet sted. Det er hele troværdigheden.
+  const finalDeg = wheelAngleFor(segs, key, wheelSpinTurns());
+  wheelPending.landDeg = finalDeg; // gemt, så en test kan efterprøve at nålen passer
+  wheelClearWinner();
+  wheelStopSpin();
+  const token = ++wheelToken;
+  wheelAnim = { token, raf: null };
+  if (wheel && wheel.style) wheel.style.transform = "rotate(0deg)";
+  const V = wheelSpeedFor(finalDeg);
+  const t0 = wheelClock();
+  let lastKey = wheelKeyAtDeg(segs, 0), lastClick = -1e9;
+  const apply = (deg, speed) => {
+    if (wheel && wheel.style) wheel.style.transform = "rotate(" + deg.toFixed(3) + "deg)";
+    // Klik hver gang et NYT felt står under nålen. Tonen falder med farten, så
+    // det lyder som et hjul der bremser — og vi kvitterer højst ~30 gange/s,
+    // ellers bliver klikkene til én summen ved fuld fart.
+    const k = wheelKeyAtDeg(segs, deg);
+    if (k === lastKey) return;
+    lastKey = k;
+    const now = wheelClock();
+    if (speed < 12) { lastClick = now; return; } // ved stilstand: ingen klik
+    if (now - lastClick < 32) return;
+    lastClick = now;
+    beep(wheelClickFreq(speed, V), .045, "square", .06 + .05 * Math.min(1, speed / V));
+    wheelNeedleHit();
+  };
+  const frame = () => {
+    if (!wheelAnim || wheelAnim.token !== token) return; // et nyt spin har overtaget
+    const ms = wheelClock() - t0;
+    if (ms >= WHEEL_T_TOTAL) { apply(finalDeg, 0); wheelFinish(token); return; }
+    const p = wheelPosAt(ms, finalDeg);
+    apply(p.deg, p.v);
+    wheelAnim.raf = requestAnimationFrame(frame);
+  };
+  if (btn) btn.textContent = "…";
+  // Sikkerhedsnet: hvis rAF ikke løber (baggrunds-faneblad eller en test-stub),
+  // skal resultatet ALLIGEVEL komme — ellers dukker "Fedt!"-knappen aldrig op.
+  setTimeout(() => wheelFinish(token), WHEEL_T_TOTAL + 240);
+  if (typeof requestAnimationFrame === "function") wheelAnim.raf = requestAnimationFrame(frame);
+}
+// Kaldes når skiven er stoppet — fra rAF-løbet ELLER fra sikkerhedsnettet.
+// Idempotent: kun det aktive spin må afslutte, og kun én gang.
+function wheelFinish(token) {
+  if (wheelAnim && token != null && wheelAnim.token !== token) return;
+  wheelStopSpin();
+  if (!wheelPending) return;
+  const pending = wheelPending;
+  // Feltet under nålen lyser op, de øvrige dæmpes: svaret kommer FRA hjulet
+  wheelSetWinner(pending.rk);
+  try {
+    const r = rarityOf(pending.rk);
+    const slot = GEAR_SLOTS.find(s => s.key === pending.item.slot);
+    const res = document.getElementById("wheelResult");
+    res.classList.remove("hidden");
+    res.className = "wheel-result" + (pending.rk === "mythic" ? " mythic" : "") + (pending.rk === "secret" ? " secret" : "");
+    res.innerHTML = `<span class="wr-icon">${slot ? slot.icon : "🎒"}</span><div class="wr-rarity rarity-${pending.rk}">${r ? r.label : ""}</div><div>${pending.item.name}</div>`;
+    if (pending.rk === "mythic") {
+      const m = mythicForSlot(pending.item.slot);
+      res.innerHTML += `<div style="font-size:13px;color:#9fb0e8;margin-top:4px">⚡ Unikt angreb: ${m ? m.attack.name + " ×" + m.attack.mult : "?"} · Kraft +${r ? r.power : "?"}</div>`;
+      fxConfetti();
+      sfxWin();
+    } else if (pending.rk === "secret") {
+      const m = secretForSlot(pending.item.slot);
+      res.innerHTML += `<div style="font-size:13px;color:#ff9ad8;margin-top:4px">🔮 MEGA-angreb: ${m ? m.attack.name + " ×" + m.attack.mult : "?"} · Kraft +${r ? r.power : "?"}</div>`;
+      fxConfetti();
+      sfxWin();
+    } else {
+      res.innerHTML += `<div style="font-size:12px;color:#9fb0e8;margin-top:4px">Kraft +${r ? r.power : "?"} — udstyr den i helteskærmen!</div>`;
+      setTimeout(() => sfxRight(), 250);
+    }
+  } catch(e) {}
+  const btn = document.getElementById("wheelBtn");
+  if (btn && btn.classList && typeof btn.classList.add === "function") btn.classList.add("hidden");
+  const closeBtn = document.getElementById("wheelClose");
+  if (closeBtn && closeBtn.classList && typeof closeBtn.classList.remove === "function") closeBtn.classList.remove("hidden");
+  wheelPending = null;
 }
 function closeLootWheel() {
+  wheelStopSpin();
   document.getElementById("wheelOverlay").classList.add("hidden");
 }
 function bossLose() {

@@ -4,19 +4,34 @@ Kenneth skal teste spillet med **hele Robins klasse**. Nedenstående er hans lis
 i den rækkefølge han gav den. Status: `[ ]` = ikke begyndt, `[~]` = i gang, `[x]` = færdig.
 
 ## 1. Flere verdener — 3-4 nye med sværere ord
-`[ ]`
-Spillet har 24 verdener (12 funktionsord + 12 temaer) med 240 ord.
-Kenneth vil have **3-4 nye verdener med sværere ord**.
+`[x] AFKLARET` — Kenneth: *"Verden 3 og 4 så 2 nye"* → **2 nye verdener**. Design i
+`Docs/nye-verdener-og-asegard.md`. **De 20 ord + 260 lydfiler er lavet** (`Docs/nye-ord.json`
++ `audio/v2/`). Mangler: ind i `index.html` (WORDS, WORLDS, MAP_POS, BOSSES, kort, tests)
+— **blokeret indtil beslutning om tredje kort-side** (se nedenfor).
 
-**Åbne spørgsmål der skal afklares før arbejdet begynder:**
-- "3+4" kan betyde *"3 og 4"* (verdensnumre) eller *"3-4 nye"*. Antaget: 3-4 NYE verdener.
-- Hvor svære? Længere ord (4-6 stavelser), sammensatte ord, ord med stumme bogstaver,
-  ord der staves anderledes end de lyder (`meget`, `skønt`, `specielt`)?
-- Skal de ligge i en **tredje verden-gruppe** ("Svær" / "Mester-akademiet") med eget kort?
-  Det passer med den eksisterende to-korts-struktur (Galaksen + Ord-akademiet).
-- **Konsekvens:** 24 verdener er bygget ind i kort, monstre, achievements, tests og
-  "Fang de 240 vigtigste ord"-fortællingen. Nye verdener kræver: WORDS + WORLDS + MAP_POS
-  + nye BOSSES/monstre + nyt kort (eller tredje side) + 480 nye lydfiler + test-opdatering.
+**Verden 25 "Den svære skov" 🌲** — ord der staves anderledes end de lyder:
+dejligt · skønt · specielt · sikkert · ellers · næsten · sjovt · farligt · rigtigt · færdig
+
+**Verden 26 "Mesterskabet" 🏆** — lange sammensatte ord:
+sommerfugl · fødselsdag · jordbær · skolegård · bibliotek · sommerferie · computer ·
+telefon · fodboldbane · aftensmad
+
+**Spillet bliver 260 ord, ikke 240.** Det tal står i titel, fortælling og fem testpakker
+(ordj_maps, ordj_monstre, ordj_data, ordj_smoke_all, ordj_trappestige). Find ALLE steder.
+
+**ÅBENT SPØRGSMÅL:** skal de 2 nye verdener have deres **egen tredje kort-side**? Kenneth har
+insisteret på at de to eksisterende kort skal være identiske i layout — så en tredje side bør
+følge samme mønster. Assistenten hælder klart til det. **Afventer svar.**
+
+## 1b. Nyt item-niveau over SECRET: ASEGÅRD 🏔️
+`[ ]` Design i `Docs/nye-verdener-og-asegard.md`. Seks items, én pr. slot, alle rigtige
+nordiske mytologi-genstande: Ægishjálmr (hjelm), Mjölnir (våben), Svalin (skjold),
+Megingjörð (rustning), Vidars jernsko (støvler), Draupnir (amulet). Kraft ×45-60,
+lille styrke-spænd (5 %), **lysende guld-hvidt** i stedet for en ny mærket farve.
+
+**Nøglen:** man får dem ved at **besejre de to nye verdener** — ikke fra kuben. Kuben
+belønner tålmodighed; de nye verdener belønner at man gjorde noget svært. Det er den
+kobling der holder en 10-årig i gang.
 
 ## 2. Vælg verden frit fra starten
 `[ ]`
