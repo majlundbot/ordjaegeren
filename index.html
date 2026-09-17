@@ -53,7 +53,12 @@
      uanset flexbox-quirks. Panelet centreres vandret med margin:auto. */
   .screen.tall { display: none; }
   .screen.tall.active { display: block; padding: 18px 16px 40px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .screen.tall > .panel { margin: 0 auto; }
+  /* Tall-skærmene (helten, bedrifter, statistik, lektion) har MEGET indhold oven på den
+     animerede stjernehimmel bag canvas'en. Den halvgennemsigtige glas-flade lod himlen
+     skinne igennem selve teksten — på skærmbilleder lå et gult glimt oven på ordet
+     'KRIGER' i headerlinjen. De får derfor en fastere bund: stadig glas, men uden at
+     stjernerne forstyrrer læsningen. */
+  .screen.tall > .panel { margin: 0 auto; background: linear-gradient(160deg, rgba(30,38,80,.94), rgba(13,17,40,.97)); }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
   .title { font-size: clamp(40px, 10vw, 72px); font-weight: 900; letter-spacing: 2px;
@@ -111,13 +116,20 @@
   .map-dot.on { background: var(--accent); box-shadow: 0 0 10px rgba(255,210,63,.7); transform: scale(1.25); }
   .map-swipe-hint { margin-top: 8px; font-size: 12px; }
   .map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* Verdenskortenes størrelse styres af CSS-variablen --ws (sat i JS ud fra panelets
+     højde). På en telefon er kort-panelet kun ~227 px højt, og et kort på 128x151 px
+     blev derfor klippet af panelets kanter (målt: 16 px over "Mesterskabet", 7 px under
+     "Den svære skov"). --ws skalerer HELE kortet (boks + indhold) ned, så det kan være
+     der; teksten har dog et gulv, så navnet altid kan læses. */
   .world-card {
     position: absolute; transform: translate(-50%, -50%);
     background: linear-gradient(160deg, rgba(20,26,58,.92), rgba(20,26,58,.75));
     border: 1px solid rgba(255,255,255,.2);
-    border-radius: 18px; padding: 10px 10px 8px; text-align: center; cursor: pointer;
+    border-radius: calc(18px * var(--ws, 1));
+    padding: calc(10px * var(--ws, 1)) calc(10px * var(--ws, 1)) calc(8px * var(--ws, 1));
+    text-align: center; cursor: pointer;
     transition: transform .12s, border-color .12s, box-shadow .12s;
-    box-shadow: 0 8px 20px rgba(0,0,0,.45); width: 128px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.45); width: calc(128px * var(--ws, 1));
   }
   .world-card:hover { transform: translate(-50%, -56%) scale(1.06); border-color: var(--accent); box-shadow: 0 12px 28px rgba(0,0,0,.5), 0 0 18px rgba(255,210,63,.25); z-index: 5; }
   .world-card:active { transform: translate(-50%, -50%) scale(.95); }
@@ -128,9 +140,11 @@
      Et kort uden begge klasser er en aaben udfordring laengere fremme. */
   .world-card.reached { border-color: rgba(255,255,255,.28); }
   .world-card.cleared { border-color: rgba(74,222,128,.5); box-shadow: 0 8px 20px rgba(0,0,0,.45), 0 0 14px rgba(74,222,128,.16); }
-  .world-card .emoji { font-size: 30px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
-  .world-card .wname { font-weight: 800; font-size: 12.5px; margin-top: 4px; }
-  .world-card .wstars { font-size: 13px; margin-top: 5px; letter-spacing: 2px; color: var(--accent); }
+  .world-card .emoji { font-size: calc(30px * var(--ws, 1)); filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+  /* Navnet må ALDRIG blive ulæseligt, selv når kortet skaleres ned på en telefon:
+     derfor et gulv på 10.5 px (og 10 px for stjernerne) */
+  .world-card .wname { font-weight: 800; font-size: max(10.5px, calc(12.5px * var(--ws, 1))); margin-top: calc(4px * var(--ws, 1)); }
+  .world-card .wstars { font-size: max(10px, calc(13px * var(--ws, 1))); margin-top: calc(5px * var(--ws, 1)); letter-spacing: 2px; color: var(--accent); }
   .world-card .wstars .ws.none { color: rgba(255,255,255,.16); }
   .world-card .wstars .ws.part { color: rgba(255,210,63,.45); }
   /* Helt der rejser på kortet */
@@ -143,8 +157,9 @@
   @keyframes heroBob { 0%, 100% { margin-top: 0; } 50% { margin-top: -6px; } }
   /* Status-badges på verdenskortet */
   .w-badge {
-    display: inline-block; margin: 6px auto 2px; padding: 4px 10px; border-radius: 999px;
-    font-size: 11px; font-weight: 900; letter-spacing: .5px; width: fit-content;
+    display: inline-block; margin: calc(6px * var(--ws, 1)) auto calc(2px * var(--ws, 1));
+    padding: calc(4px * var(--ws, 1)) calc(10px * var(--ws, 1)); border-radius: 999px;
+    font-size: max(9px, calc(11px * var(--ws, 1))); font-weight: 900; letter-spacing: .5px; width: fit-content;
   }
   .b-open { background: rgba(167,139,250,.16); color: #c4b5fd; border: 1px solid rgba(167,139,250,.4); }
   .b-new { background: rgba(96,165,250,.2); color: #93c5fd; border: 1px solid rgba(96,165,250,.4); }
@@ -153,8 +168,8 @@
   .b-done { background: rgba(74,222,128,.18); color: #86efac; border: 1px solid rgba(74,222,128,.45); }
   @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 rgba(248,113,113,0); } 50% { box-shadow: 0 0 12px rgba(248,113,113,.5); } }
   /* Progress-bar pr. verden: 3 missioner + monster */
-  .w-progress { display: flex; gap: 4px; justify-content: center; margin-top: 8px; padding: 0 10px; }
-  .w-seg { flex: 1; height: 8px; border-radius: 4px; transition: background .3s; }
+  .w-progress { display: flex; gap: 4px; justify-content: center; margin-top: calc(8px * var(--ws, 1)); padding: 0 calc(10px * var(--ws, 1)); }
+  .w-seg { flex: 1; height: max(6px, calc(8px * var(--ws, 1))); border-radius: 4px; transition: background .3s; }
   .w-seg.on { background: linear-gradient(90deg, #4ade80, #22c55e); box-shadow: 0 0 6px rgba(74,222,128,.5); }
   .w-seg.off { background: rgba(255,255,255,.14); }
   /* Status i verdens-menuen */
@@ -181,13 +196,45 @@
     background: rgba(10,14,35,.8); color: #fff; font-size: 16px; font-family: inherit; font-weight: 700; outline: none;
   }
   .new-profile-box input:focus { border-color: var(--blue); }
-  /* Mytisk spor i helteskærmen */
-  /* 18 pladser (6 mythic + 6 secret + 6 asgard) kan ikke være på én række i et
-     panel på 560 px. Vi lader rækken bryde, så de 12 gamle står som før og de 6
-     ASEGÅRD-pladser danner deres egen række nedenunder. */
-  .mythic-track { display: flex; gap: 5px; margin: 3px auto 6px; flex-wrap: wrap; max-width: 463px; }
+  /* ============ SKATTE-TAVLEN: TRE GRUPPER Á 6 ============
+     Tavlen har 18 pladser: 6 mytiske + 6 secret + 6 ASEGÅRD. Den skal vise dem som
+     TRE rækker — én pr. gruppe. Det KAN ikke løses med flex-wrap: et flex-række-brud
+     lægger bare 10+8, så ASEGÅRD begyndte midt i en række efter 2 secret-felter, og
+     grupperingen forsvandt på smalle skærme (målt: 10+8 på iPad, 8+8+2 på telefon).
+     Løsningen er et GRID med præcis 6 pladskolonner: så følger rækkerne grupperne
+     uanset hvor bredt panelet er. Kolonne 1 er gruppens NAVN (så barnet kan se hvad
+     det er — ikke kun et ikon), og de 6 pladser fylder kolonne 2-7.
+     #mythicTrack har display:contents, så de 18 pladser (som renderHero bygger) selv
+     bliver celler i dette grid — rækkefølgen er mytisk, secret, ASEGÅRD. */
+  .mythic-board {
+    display: grid; grid-template-columns: minmax(58px, auto) repeat(6, minmax(24px, 34px));
+    gap: 7px 5px; justify-content: start; align-items: center; margin: 4px 0 8px;
+  }
+  .mythic-track { display: contents; }
+  /* Gruppens synlige navn + den korte linje om hvor man får dem. Ligger i kolonne 1,
+     på sin EGEN række, og læses uden mus/hover (der findes ingen hover på en iPad). */
+  .mb-label {
+    grid-column: 1; display: flex; flex-direction: column; justify-content: center;
+    text-align: left; font-size: 10.5px; font-weight: 900; letter-spacing: .4px;
+    line-height: 1.15; min-width: 0;
+  }
+  .mb-label small { font-weight: 700; font-size: 9.5px; color: #9fb0e8; letter-spacing: 0; line-height: 1.2; }
+  .mb-mythic { grid-row: 1; color: #ffd700; }
+  .mb-secret { grid-row: 2; color: #ff4ecd; }
+  /* ASEGÅRD-rækken: guld-HVID og lysende — samme sprog som .rarity-asgard */
+  .mb-asgard { grid-row: 3; color: #fffbe8; text-shadow: 0 0 10px rgba(255,215,106,.65); }
+  .mb-asgard small { color: #ffe9a8; }
+  /* Forklarings-linjen under tavlen: et TRYK på en plads skriver her. Virker uden mus. */
+  .mythic-info {
+    grid-column: 1 / -1; grid-row: 4; font-size: 11.5px; line-height: 1.35; color: #c9d4f5;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.13);
+    border-radius: 9px; padding: 6px 9px; min-height: 32px; text-align: left;
+  }
+  .mythic-info b { color: #fff; }
+  .mb-mythic, .mb-secret, .mb-asgard { cursor: help; }
   .mythic-slot {
-    width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    width: 100%; max-width: 34px; aspect-ratio: 1 / 1; height: auto; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
     font-size: 17px; background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.14); color: rgba(255,255,255,.3);
   }
   .mythic-slot.owned {
@@ -202,8 +249,21 @@
     animation: secretGlow 1.4s ease-in-out infinite;
   }
   /* Silhuetterne af ASEGÅRD-items står i tavlen fra starten: barnet skal kunne SE
-     hvad det jager, uden at få at vide hvor svært det er at få fat i. */
-  .mythic-slot.asgard:not(.owned) { border-color: rgba(255,248,216,.45); color: rgba(255,248,216,.75); }
+     hvad det jager, uden at få at vide hvor svært det er at få fat i.
+     Pladsen viser et '?' — samme sprog som de mytiske — men den er en DIAMANT i
+     guld-hvidt (spillets "premium-form"), og de to andre grupper er firkanter og runde.
+     Det er nødvendigt med en FORM-forskel: en gul '?'-firkant lignede de mytiske så
+     meget, at et skærmbillede ikke kunne skelne rækkerne. Bjerg-ikonet (🏔️) der stod
+     her før læste som landskab/niveau, ikke som "en sjælden skat du mangler". */
+  .mythic-slot.asgard:not(.owned) {
+    transform: rotate(45deg) scale(.8); border-radius: 7px;
+    border-color: rgba(255,248,216,.85); background: rgba(255,248,216,.1);
+    box-shadow: 0 0 12px rgba(255,215,106,.55);
+  }
+  .mythic-slot.asgard:not(.owned) .asg-glyph {
+    display: block; transform: rotate(-45deg); color: #fffbe8;
+    text-shadow: 0 0 8px rgba(255,215,106,.95), 0 0 16px rgba(255,248,216,.6);
+  }
   .mythic-slot.asgard.owned {
     border-color: #fffbe8; color: #1a1035;
     box-shadow: 0 0 16px rgba(255,248,216,.85), 0 0 34px rgba(255,215,106,.5);
@@ -546,8 +606,18 @@
   .wheel-x:active { transform: scale(.95); }
   /* .wheel-box er rammen OM skiven. Nålen hører til HER — uden for det roterende
      element (#wheelSpin) — så den står stille mens skiven drejer. Det er hele
-     referencepunktet: uden en fast nål kan man ikke se HVOR hjulet lander. */
-  .wheel-box { position: relative; width: min(720px, 92vw, 78vh); height: min(720px, 92vw, 78vh); margin: 4px auto 8px; }
+     referencepunktet: uden en fast nål kan man ikke se HVOR hjulet lander.
+     STØRRELSEN er responsiv og målt i forhold til SKÆRMEN, ikke i faste px:
+       - 100vw - 40px  → skiven kan aldrig røre skærmkanten (390-bred telefon)
+       - 64vh          → hjulet dominerer ikke en iPad, hvor højden er den knappe side
+       - 560px tag     → før var taget 720px = 61 % af skærmhøjden på en iPad-portrait;
+                         det så for stort ud ved siden af resten af skærmen. */
+  .wheel-box {
+    position: relative;
+    width: min(560px, calc(100vw - 40px), 64vh);
+    height: min(560px, calc(100vw - 40px), 64vh);
+    margin: 4px auto 8px;
+  }
   /* Nålen: fast viser i toppen, pegende ned over skivens kant. Ryster et hak
      hver gang et nyt felt rammer den (.hit) — se wheelNeedleHit() i JS. */
   .wheel-needle {
@@ -646,7 +716,7 @@
   #spUnequip.hidden { display: none; }
   .sp-list { display: flex; flex-direction: column; gap: 6px; }
   .sp-item {
-    display: flex; align-items: center; gap: 7px; min-width: 0;
+    display: flex; align-items: center; gap: 7px; min-width: 0; flex-wrap: wrap;
     background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.1);
     border-radius: 11px; padding: 6px 8px; cursor: pointer; text-align: left;
   }
@@ -1276,7 +1346,17 @@
         <div class="bag-list" id="heroBag"></div>
         <div class="ta" id="heroHint">Tryk på en plads for at se hvad du har på — og for at tage det af igen.</div>
         <h3>👑 Skatte-tavlen <span id="mythicCount" style="color:#ffd700"></span></h3>
-        <div class="mythic-track" id="mythicTrack"></div>
+        <!-- TRE grupper, hver med sin EGEN synlige række og sit EGET navn.
+             Grupperne er: mytiske (?), hemmelige (🔮) og ASEGÅRD — den sidste står
+             i guld-hvidt. Navnet står på skærmen (ikke i en title-tooltip: en iPad
+             har ingen hover). #mythicTrack fyldes af renderHero med 18 pladser. -->
+        <div class="mythic-board" id="mythicBoard">
+          <div class="mb-label mb-mythic" id="mbMythic">❓ MYTISKE<small>10 % fra monstre</small></div>
+          <div class="mythic-track" id="mythicTrack"></div>
+          <div class="mb-label mb-secret" id="mbSecret">🔮 HEMMELIGE<small>7 % fra akademi-monstre</small></div>
+          <div class="mb-label mb-asgard" id="mbAsgard">❓ ASEGÅRD<small>Besejr bossen i Den svære skov og Mesterskabet</small></div>
+          <div class="mythic-info" id="mythicInfo" onclick="mythicInfoReset()">Tryk på en plads i tavlen — så står der hvad det er, og hvordan man får den.</div>
+        </div>
         <h3>⭐ Talent-træ <span id="talentPoints" style="color:#fbbf24"></span></h3>
         <div class="talent-row" id="talentRow"></div>
         <h3>🏆 Bedrifter <span id="achieveCount" style="color:#fbbf24"></span></h3>
@@ -2223,6 +2303,32 @@ function showHero() {
   document.getElementById("hud").classList.remove("hidden");
   renderHero();
 }
+/* ============ SKATTE-TAVLENS FORKLARING (virker uden mus) ============
+   På en iPad findes der ingen hover: en title-tooltip kan et barn ikke læse. Derfor
+   står grupperne med synligt navn i tavlen, og et TRYK på en plads skriver forklaringen
+   herunder. Så kan man både se HVAD man mangler og HVORDAN man får det. */
+const TREASURE_HOW = {
+  mythic: "10 % chance når du besejrer et monster",
+  secret: "7 % chance fra akademi-monstre (verden 13-24)",
+  asgard: "besejr bossen i Den svære skov (verden 25) eller Mesterskabet (verden 26)"
+};
+const TREASURE_LABEL = { mythic: "MYTISK", secret: "HEMMELIG", asgard: "ASEGÅRD" };
+function mythicInfoReset() {
+  const el = document.getElementById("mythicInfo");
+  if (el) el.innerHTML = "Tryk på en plads i tavlen — så står der hvad det er, og hvordan man får den.";
+}
+function showTreasureInfo(kind, m, has) {
+  const el = document.getElementById("mythicInfo");
+  if (!el || !m) return;
+  const label = TREASURE_LABEL[kind] || "SKAT";
+  const color = kind === "asgard" ? "#fffbe8" : kind === "secret" ? "#ff4ecd" : "#ffd700";
+  const cls = kind === "asgard" ? "rarity-asgard" : "";
+  const icon = has ? (m.attack && m.attack.icon ? m.attack.icon : "🏆") : "❓";
+  const state = has ? "<b>Du har den ✅</b>" : "<b>Du mangler den</b>";
+  el.innerHTML = icon + " <span class=\"" + cls + "\" style=\"color:" + color + ";font-weight:900\">" +
+    label + "</span> · " + m.name + " — " + m.attack.name + " ×" + m.attack.mult +
+    "<br>" + state + " · " + (TREASURE_HOW[kind] || "");
+}
 function renderHero() {
   const skinIdx = Math.min(state.skin, HERO_SKIN.length - 1);
   document.getElementById("heroName").textContent = HERO_SKIN[skinIdx];
@@ -2249,6 +2355,8 @@ function renderHero() {
     d.className = "mythic-slot" + (has ? " owned" : "");
     d.title = m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (10% chance fra monstere-sejr)");
     d.innerHTML = has ? m.attack.icon : "❓";
+    // Tryk = vis forklaringen i #mythicInfo. På en iPad virker en title-tooltip ikke.
+    d.onclick = () => showTreasureInfo("mythic", m, has);
     track.appendChild(d);
   });
   SECRET_ITEMS.forEach(m => {
@@ -2257,16 +2365,20 @@ function renderHero() {
     d.className = "mythic-slot secret" + (has ? " owned" : "");
     d.title = "🔮 " + m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (7% chance fra akademi-monstre!)");
     d.innerHTML = has ? m.attack.icon : "🔮";
+    d.onclick = () => showTreasureInfo("secret", m, has);
     track.appendChild(d);
   });
-  // ASEGÅRD: gudernes udstyr — står som silhuetter til man har besejret de to svære
+  // ASEGÅRD: gudernes udstyr — står som silhuetter til man har besejret de to svære.
+  // Pladsen er en guld-hvid DIAMANT med '?' (ikke 🏔️): et bjerg læses som landskab/
+  // niveau, ikke som "en sjælden skat du mangler". Formen gør de tre grupper tydelige.
   ASGARD_ITEMS.forEach(m => {
     const d = document.createElement("div");
     const has = owned["a_" + m.slot];
     d.className = "mythic-slot asgard" + (has ? " owned" : "");
-    d.title = "🏔️ " + m.name + " — " + m.attack.name + " ×" + m.attack.mult +
+    d.title = "ASEGÅRD · " + m.name + " — " + m.attack.name + " ×" + m.attack.mult +
       (has ? "" : " (besejr bossen i verden 25 eller 26!)");
-    d.innerHTML = has ? m.attack.icon : "🏔️";
+    d.innerHTML = has ? m.attack.icon : '<span class="asg-glyph">❓</span>';
+    d.onclick = () => showTreasureInfo("asgard", m, has);
     track.appendChild(d);
   });
   // Talent-træ: vis point + 3 knapper
@@ -4034,8 +4146,18 @@ function wheelSvgMarkup() {
     const rotAt = (p) => `transform="rotate(${rot},${p.x.toFixed(2)},${p.y.toFixed(2)})"`;
     const ip = at(r * .46), lp = at(r * .74);
     const labelRoom = (r * .94 - r * .52); // plads til teksten målt ud ad radius
+    /* Skriftstørrelsen regnes ud fra den plads der ER på radius (i viewBox-enheder).
+       Før blev HVER etiket klemt/strakt til præcis den samme bredde med textLength —
+       et langt ord som "Legendarisk" blev mast sammen, så det på et skærmbillede lignede
+       et afskåret ord ("…isk"). Nu får ordet den størrelse der passer til pladsen, og
+       textLength sætter kun bredden til ordets EGEN bredde (aldrig ud over pladsen).
+       Fordi alt her er viewBox-enheder, følger skriften automatisk skivens størrelse —
+       den er derfor lige læsbar på en telefon (350 px) og på en iPad (560 px). */
+    const natural = s.label.length * 0.6;
+    const lfs = Math.max(6.5, Math.min(11, labelRoom / natural));
+    const ltl = Math.min(labelRoom, natural * lfs);
     parts += `<text x="${ip.x.toFixed(1)}" y="${ip.y.toFixed(1)}" ${rotAt(ip)} text-anchor="middle" dominant-baseline="middle" font-size="17" fill="#1a1035">${s.icon}</text>`;
-    parts += `<text x="${lp.x.toFixed(1)}" y="${lp.y.toFixed(1)}" ${rotAt(lp)} text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="bold" fill="#1a1035" textLength="${labelRoom.toFixed(0)}" lengthAdjust="spacingAndGlyphs">${s.label}</text>`;
+    parts += `<text x="${lp.x.toFixed(1)}" y="${lp.y.toFixed(1)}" ${rotAt(lp)} text-anchor="middle" dominant-baseline="middle" font-size="${lfs.toFixed(1)}" font-weight="bold" fill="#1a1035" textLength="${ltl.toFixed(1)}" lengthAdjust="spacingAndGlyphs">${s.label}</text>`;
   });
   // Inder-ring + hub, så skiven ser ud som et hjul og ikke som et tærtediagram
   return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">${parts}` +
@@ -5107,6 +5229,49 @@ function renderWorldMap() {
   MAP_PAGES.forEach(p => renderMapPanel("worldMap" + p.letter, p.start, p.end, p.title));
   // Vis det kort hvor helten er
   setMapPage(mapPageForWorld(state.mapAt || 0), false);
+  // Kortene er bygget — og nu skal ingen af dem klippes af panelets kanter
+  fitWorldCards();
+}
+/* ============ KORTENE MÅ IKKE KLIPPES ============
+   Et verdens-kort er 128 px bredt og placeres med sin MIDTE i en % af kortet. På en
+   telefon er kort-panelet kun ~227 px højt, så et kort nær overkanten blev klippet af
+   panelets overkant (målt på skærmbillede: "Mesterskabet" 16 px over, "Den svære skov"
+   7 px under — og på side A op til 46 px uden for panelet). Vi løser det i to trin, så
+   INGEN kort-kant ligger uden for panelet på nogen af de tre kort-sider:
+     1) kortene skaleres ned når panelet er lavt (CSS-variablen --ws, gulv 78 %)
+     2) hvert korts midte klemmes ind, så hele kortet er inde i panelet (4 px luft)
+   Funktionen regner ALTID ud fra MAP_POS (ikke fra de klemte værdier), så den er
+   idempotent og giver det rigtige resultat igen når skærmen skifter størrelse
+   (fx en iPad der vendes). */
+function fitWorldCards() {
+  MAP_PAGES.forEach(p => {
+    const map = document.getElementById("worldMap" + p.letter);
+    if (!map || typeof map.getBoundingClientRect !== "function") return; // test-dom: ingen layout
+    let mr;
+    try { mr = map.getBoundingClientRect(); } catch (e) { return; }
+    if (!mr || !mr.width || !mr.height) return;
+    // 1) skalering: kortene skal kunne være der — men aldrig under 78 %, så navnet kan læses
+    const ws = Math.max(.78, Math.min(1, mr.height / 430));
+    if (map.style && typeof map.style.setProperty === "function") map.style.setProperty("--ws", ws.toFixed(3));
+    // 2) klem hvert korts midte ind i panelet
+    if (typeof map.querySelectorAll !== "function") return;
+    const cards = map.querySelectorAll(".world-card");
+    for (let i = 0; i < cards.length; i++) {
+      const c = cards[i];
+      const pos = MAP_POS[p.start + i];
+      if (!pos || !c.style) continue;
+      const cw = c.offsetWidth || 128 * ws, ch = c.offsetHeight || 151 * ws;
+      const halfW = cw / 2 + 4, halfH = ch / 2 + 4;
+      const x = Math.max(halfW, Math.min(mr.width - halfW, (pos.x / 100) * mr.width));
+      const y = Math.max(halfH, Math.min(mr.height - halfH, (pos.y / 100) * mr.height));
+      c.style.left = ((x / mr.width) * 100).toFixed(2) + "%";
+      c.style.top = ((y / mr.height) * 100).toFixed(2) + "%";
+    }
+  });
+}
+// Skifter skærmen størrelse (iPad vendes, vinduet trækkes), skal kortene lægges ind igen
+if (typeof addEventListener === "function") {
+  addEventListener("resize", () => { try { fitWorldCards(); } catch (e) { /* layout ikke klar */ } });
 }
 let curMapPage = 0;
 function renderMapPanel(elId, start, end, title) {
