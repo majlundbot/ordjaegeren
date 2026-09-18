@@ -133,8 +133,23 @@ setTimeout(function(){
   } catch(e) {}
 }, 500);
 </script>`;
+  const startProbe = `<script>
+setTimeout(function(){
+  try {
+    var knapper = document.querySelectorAll('#screen-start .btn');
+    var ud = [];
+    knapper.forEach(function(k){ var b = k.getBoundingClientRect();
+      ud.push({ tekst: k.textContent.trim().slice(0,30), x: Math.round(b.left), y: Math.round(b.top),
+                b: Math.round(b.width), h: Math.round(b.height) }); });
+    var p = document.createElement('pre'); p.id = 'probestart';
+    p.textContent = JSON.stringify({ vindue: [window.innerWidth, window.innerHeight],
+      synlige: document.querySelectorAll('#screen-start.active').length, knapper: ud });
+    document.body.appendChild(p);
+  } catch(e) { var p = document.createElement('pre'); p.id = 'probestart'; p.textContent = 'FEJL: ' + e.message; document.body.appendChild(p); }
+}, 900);
+</script>`;
   const kopi = path.join(os.tmpdir(), 'ordj_layout_probe.html');
-  fs.writeFileSync(kopi, html.replace('</body>', bagFill + probe));
+  fs.writeFileSync(kopi, html.replace('</body>', bagFill + probe + startProbe));
 
   const kør = (url) => {
     const res = spawnSync(chrome, ['--headless', '--disable-gpu', '--allow-file-access-from-files',
@@ -156,6 +171,52 @@ setTimeout(function(){
   });
   linje(alleOk, 'BROWSER-MÅLING: HUD’en dækker intet indhold, og ingen navne er klippet (1280x617)',
     detaljer.join(' · '));
+
+  /* ---- STARTSKÆRMEN: er der adgang til statistik, og kan et barn ramme knapperne? ----
+     Statistik-knappen kom til 18. sep pa Kenneths onske. Den skal ligge ved siden af
+     "Skift spiller" — de to sekundaere valg — uden at dække hinanden eller ryge uden for
+     skærmen, og være stor nok til en finger pa en iPad. */
+  const kørStart = (stoerrelse) => {
+    const res = spawnSync(chrome, ['--headless', '--disable-gpu', '--allow-file-access-from-files',
+      '--window-size=' + stoerrelse, '--virtual-time-budget=4000', '--dump-dom', 'file://' + kopi],
+      { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
+    const m = (res.stdout || '').match(/<pre id="probestart">([\s\S]*?)<\/pre>/);
+    if (!m) return null;
+    const txt = m[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    try { return JSON.parse(txt); } catch (e) { return null; }
+  };
+  const maal = ['390,844', '820,1180', '1280,800'].map(st => [st, kørStart(st)]);
+  const mangler = maal.filter(([, j]) => !j || j.synlige !== 1 || !j.knapper.length).map(([st]) => st);
+  linje(mangler.length === 0, 'BROWSER-MÅLING: startskærmen kan måles i 3 vinduesstørrelser', mangler.join(', '));
+
+  const medStatistik = maal.filter(([, j]) => j && j.knapper.some(k => k.tekst.indexOf('Statistik') > -1));
+  linje(medStatistik.length === maal.length,
+    'BROWSER-MÅLING: statistik-knappen er synlig på startskærmen i alle 3 størrelser',
+    maal.filter(x => !medStatistik.includes(x)).map(([st]) => st).join(', '));
+
+  let alleIndenfor = true, ingenOverlap = true, sammeLinje = true, storeNok = true, tætPaa = true;
+  const detaljerStart = [];
+  maal.forEach(([st, j]) => {
+    if (!j || j.synlige !== 1) return;
+    const rad = j.knapper.filter(k => k.y > 0);
+    rad.forEach(k => {
+      if (k.x < 0 || k.x + k.b > j.vindue[0]) { alleIndenfor = false; detaljerStart.push(st + ': "' + k.tekst + '" ude af skærmen'); }
+      if (k.h < 40) { storeNok = false; detaljerStart.push(st + ': "' + k.tekst + '" kun ' + k.h + 'px høj'); }
+    });
+    const skift = rad.find(k => k.tekst.indexOf('Skift spiller') > -1);
+    const stat = rad.find(k => k.tekst.indexOf('Statistik') > -1);
+    if (skift && stat) {
+      const overlap = Math.min(skift.x + skift.b, stat.x + stat.b) - Math.max(skift.x, stat.x);
+      const lodret = Math.min(skift.y + skift.h, stat.y + stat.h) - Math.max(skift.y, stat.y);
+      if (overlap > 0 && lodret > 0) { ingenOverlap = false; detaljerStart.push(st + ': knapperne overlapper'); }
+      if (Math.abs(skift.y - stat.y) > 2) { sammeLinje = false; detaljerStart.push(st + ': knapperne staar ikke pa samme linje'); }
+      const luft = stat.x - (skift.x + skift.b);
+      if (luft < 6) { tætPaa = false; detaljerStart.push(st + ': kun ' + Math.round(luft) + 'px mellem knapperne'); }
+    }
+  });
+  linje(ingenOverlap && sammeLinje && alleIndenfor && storeNok && tætPaa,
+    'BROWSER-MÅLING: skift-spiller og statistik staar pa samme linje, uden overlap, med luft og stor nok til en finger',
+    detaljerStart.join(' · '));
 
   const j = kør('file://' + kopi + '?still=1&screen=hero');
   linje(!!j && j.navne >= 8, 'BROWSER-MÅLING: rygsæk/udstyr er fyldt med navne at måle på', j ? j.navne : 'ingen måling');

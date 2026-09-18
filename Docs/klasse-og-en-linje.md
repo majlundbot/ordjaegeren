@@ -49,3 +49,30 @@ Nye kontroller (i `tests/ordj_class.js` + `tests/ordj_start.js` hvis den findes)
 4. Valgskærmens intro nævner det ultimative angreb
 5. Startskærmen har én-linjen, den er under 60 tegn
 6. Og den indeholder alle tre verber: fang · slå · bliv
+
+## 3. Startskærmen får adgang til statistik (Kenneth, 18. sep)
+
+Kenneth: *"Jeg vil gerne have adgang til statestik i startskærmen også"* — statistikken kunne
+kun nås fra verdenskortet.
+
+**A. Knappen.** De to sekundære valg står nu side om side under "Start eventyret":
+
+```
+[ 👥 Skift spiller ]   [ 📊 Statistik ]
+```
+
+Den primære handling står stadig alene og tydelig — statistik er noget man *kigger på*, ikke
+noget man starter med. Målt i headless Chrome i tre størrelser (390×844, 820×1180, 1280×800):
+174 px brede, 10 px luft, 50 px høje, samme linje, intet uden for skærmen.
+
+**B. "Tilbage" var en død-ende.** Statistik-skærmens tilbage-knap gik ALTID til verdenskortet.
+Åbnede man statistikken fra startskærmen, landede man altså på kortet — et sted man ikke kom
+fra. Nu husker `showStats(fra)` hvor den blev åbnet, og `lukStats()` fører tilbage dertil.
+Oprindelsen gives **eksplicit** (`showStats('start')`) frem for at snuse til DOM'en: enklere
+at læse, og til at teste.
+
+**C. Testene.** 4 kontroller i `tests/ordj_profiles.js` (bl.a. med spioner på begge
+destinationer: fra startskærmen må den IKKE lande på kortet, og omvendt) og 3 browser-målinger
+i `tests/ordj_hudplads.js`. Mutationer bevist fanget: knappen fjernet · tilbage-knappen går
+direkte til kortet · `showStats` ignorerer oprindelsen · knapperne oven på hinanden · knapperne
+for små at ramme.

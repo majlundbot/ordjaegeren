@@ -84,6 +84,11 @@
     50% { filter: drop-shadow(0 0 34px rgba(255,210,63,.65)) drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
   }
   .subtitle { font-size: clamp(14px, 3.5vw, 18px); color: #9fb0e8; margin-top: 6px; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+  /* To sekundaere valg side om side pa startskarmen (skift spiller + statistik), sa den
+     primaere handling — Start eventyret — star alene og tydelig. */
+  .start-row { display: flex; gap: 10px; width: 100%; max-width: 360px; margin: 10px auto 0; }
+  .start-row .btn { flex: 1 1 0; min-width: 0; margin: 0; padding-left: 8px; padding-right: 8px;
+    font-size: clamp(12px, 3.4vw, 15px); white-space: nowrap; }
 
   .btn {
     font-family: inherit; font-weight: 800; font-size: clamp(16px, 4vw, 22px);
@@ -1502,7 +1507,10 @@
   <div class="subtitle">360 ord i dansk — 36 verdener, 144 missioner. Til 1.-4. klasse.</div>
   <button class="btn" onclick="showClassSelect()">🚀 Start eventyret</button>
   <button class="btn ghost" onclick="showWorldMap()">🗺️ Vælg verden (alle 36)</button>
-  <button class="btn ghost" style="margin-top:10px" onclick="showProfiles()">👥 Skift spiller</button>
+  <div class="start-row">
+    <button class="btn ghost" onclick="showProfiles()">👥 Skift spiller</button>
+    <button class="btn ghost" onclick="showStats('start')">📊 Statistik</button>
+  </div>
   <div class="ta" id="startMeta"></div>
 </div>
 
@@ -1860,7 +1868,7 @@
     </div>
     <div class="flex-row" style="margin-top:14px">
       <button class="btn blue" onclick="exportStats()">⬇️ Eksportér (JSON)</button>
-      <button class="btn ghost" onclick="showWorldMap()">← Tilbage</button>
+      <button class="btn ghost" onclick="lukStats()">← Tilbage</button>
     </div>
   </div>
 </div>
@@ -3555,12 +3563,19 @@ function toast(msg, ms) {
 
 /* ============ STATISTIK (forældre) ============ */
 const GAME_LABELS = { hear: "👂 Hør & Slå", type: "⌨️ Fang ordet", fill: "🧩 Sætnings-gåden", read: "📖 Forstå det!" };
-function showStats() {
+// Hvor statistikken blev aabnet fra — sa "Tilbage" forer tilbage til det rigtige sted
+// (startskarmen har ogsa en statistik-knap, og man skal ikke lande pa verdenskortet).
+let statsFra = "kort";
+function showStats(fra) {
   sfxClick();
+  statsFra = fra === "start" ? "start" : "kort";
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("screen-stats").classList.add("active");
   document.getElementById("hud").classList.remove("hidden");
   renderStats();
+}
+function lukStats() {
+  if (statsFra === "start") goHome(); else showWorldMap();
 }
 function renderStats() {
   // Oversigtskort

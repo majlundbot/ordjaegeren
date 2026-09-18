@@ -49,6 +49,7 @@ global.addEventListener = () => {};
 global.navigator = {};
 global.Audio = class { play() { return Promise.resolve(); } };
 global.fakeCanvas = { getContext: () => ({ clearRect(){}, beginPath(){}, arc(){}, fill(){}, fillRect(){}, fillStyle:'', createRadialGradient(){ return { addColorStop(){} }; }, ellipse(){}, stroke(){}, strokeStyle:'', lineWidth:0 }), width:0, height:0 };
+global.__srcHtml = fs.readFileSync(__dirname + '/../index.html', 'utf-8');
 const patched = src.replace('const cv = document.getElementById("bg")', 'var cv = fakeCanvas');
 
 const tests = `
@@ -95,6 +96,48 @@ t('profil-kort vises i grid (Robin + Joey + ny-knap)', () => {
   showProfiles();
   const cards = els['profileGrid'].children;
   if (cards.length !== 3) throw new Error('forventet 3 kort (2 spillere + ny), fik ' + cards.length);
+});
+
+t('startskærmen har adgang til statistik', () => {
+  const h = global.__srcHtml;
+  const start = h.slice(h.indexOf('id="screen-start"'), h.indexOf('id="screen-profiles"'));
+  if (!start.includes("showStats('start')")) throw new Error('startskærmen mangler en statistik-knap');
+  if (!start.includes('Statistik')) throw new Error('knappen har ikke et læsbart navn');
+  // og den skal ikke ligge i vejen for det primære valg
+  if (start.indexOf('Start eventyret') > start.indexOf("showStats('start')")) throw new Error('statistik-knappen staar foer Start eventyret');
+});
+
+t('statistik aabnet fra startskærmen: Tilbage gaar til startskærmen', () => {
+  const gammelHjem = goHome, gammelKort = showWorldMap;
+  let hjem = 0, kort = 0;
+  goHome = () => { hjem++; };
+  showWorldMap = () => { kort++; };
+  try {
+    showStats('start');
+    lukStats();
+    if (hjem !== 1) throw new Error('Tilbage foerte ikke til startskærmen (hjem=' + hjem + ')');
+    if (kort !== 0) throw new Error('Tilbage foerte til verdenskortet i stedet (kort=' + kort + ')');
+  } finally { goHome = gammelHjem; showWorldMap = gammelKort; }
+});
+
+t('statistik aabnet fra verdenskortet: Tilbage gaar til kortet (uændret)', () => {
+  const gammelHjem = goHome, gammelKort = showWorldMap;
+  let hjem = 0, kort = 0;
+  goHome = () => { hjem++; };
+  showWorldMap = () => { kort++; };
+  try {
+    showStats();
+    lukStats();
+    if (kort !== 1) throw new Error('Tilbage foerte ikke til kortet (kort=' + kort + ')');
+    if (hjem !== 0) throw new Error('Tilbage foerte til startskærmen i stedet');
+  } finally { goHome = gammelHjem; showWorldMap = gammelKort; }
+});
+
+t('statistik-skærmens Tilbage-knap kalder lukStats (ikke kortet direkte)', () => {
+  const h = global.__srcHtml;
+  const i = h.indexOf('id="screen-stats"');
+  const skaerm = h.slice(i, i + 3000);
+  if (!skaerm.includes('onclick="lukStats()"')) throw new Error('Tilbage-knappen gaar stadig direkte til kortet');
 });
 
 console.log(fails.length === 0 ? 'ALLE PROFIL-TESTS GRØNNE' : 'FEJL: ' + fails.length);
