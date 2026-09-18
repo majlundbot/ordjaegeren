@@ -40,10 +40,21 @@
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
   }
+  /* ===== HUD'EN MÅ IKKE DÆKKE INDHOLDET (Kenneth 18. sep) =====
+     "Det er jo ikke ordentligt, toppen går igennem skriften Den forbudte skov ... det her
+     skal være et premium produkt, så detaljer betyder meget."
+     HUD'en ligger FAST i toppen (position: fixed, z-index 5), og skærmene starter i samme
+     højde — så overskriften på kortet, kampen, helten, statistik og bedrifter blev dækket
+     (målt: 39 px på h2 på fire skærme, og HELE kortets titel + temalinje). På iPad'en ser
+     det ikke forkert ud, fordi panelet så er højt nok til at blive centreret nedad; på en
+     computer med lavt vindue starter indholdet i toppen og forsvinder bag bjælken.
+     Løsningen: JS måler HUD'ens underkant og lægger den i --hud-h (0 når HUD'en er skjult),
+     og skærmene lægger den oveni deres top-padding. */
   .screen {
     position: fixed; inset: 0; z-index: 2; display: none;
     flex-direction: column; align-items: center; justify-content: flex-start;
-    padding: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 16px; padding-top: calc(var(--hud-h, 0px) + 16px);
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
   }
   .screen.active { display: flex; animation: fadeIn .25s ease; }
   /* Centrér indholdet lodret KUN når der er plads — ellers kan man scrolle hele vejen.
@@ -52,7 +63,8 @@
   /* HØJE SKÆRME (statistik, helt): almindeligt blok-layout — så kan ALT altid scrolles,
      uanset flexbox-quirks. Panelet centreres vandret med margin:auto. */
   .screen.tall { display: none; }
-  .screen.tall.active { display: block; padding: 18px 16px 40px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .screen.tall.active { display: block; padding: 18px 16px 40px;
+    padding-top: calc(var(--hud-h, 0px) + 18px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
   /* Tall-skærmene (helten, bedrifter, statistik, lektion) har MEGET indhold oven på den
      animerede stjernehimmel bag canvas'en. Den halvgennemsigtige glas-flade lod himlen
      skinne igennem selve teksten — på skærmbilleder lå et gult glimt oven på ordet
@@ -925,7 +937,10 @@
   }
   .bag-item:active { transform: scale(.98); }
   .bag-item .bi-icon { font-size: 15px; flex: 0 0 auto; }
-  .bag-item .bi-name { font-weight: 700; font-size: 11.5px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bag-item .bi-info { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+  .bag-item .bi-name { font-weight: 700; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bag-item .bi-sub { display: flex; gap: 6px; align-items: baseline; font-size: 10.5px; }
+  .bag-item .bi-sub .bi-grade { margin-left: 0; }
   .bag-item .bi-bonus { font-size: 10.5px; color: var(--accent); font-weight: 800; flex: 0 0 auto; }
   .bag-item.equipped { border-color: var(--accent); }
   .loot-card {
@@ -2313,6 +2328,7 @@ function renderXpBar() {
       " · ⚔️ +1 kraft · ⭐ +1 talent-point";
   }
   renderTalentBadge();   // ⭐ mærket på bjælken følger XP'en
+  syncHudHeight();       // bjælken kan være blevet højere/kortere
 }
 /* XP DER FLYVER OP. Samme princip som skade-tallet i kampen: kobler handling og
    belønning sammen i tid og sted, så barnet ser HVORFOR det fik noget. */
@@ -2417,6 +2433,37 @@ function talentKanBruges() {
   if (typeof TALENTS === "undefined" || !TALENTS.length) return true;
   return TALENTS.some(t => talentLevel(t.key) < t.max);
 }
+/* HUD'ENS HØJDE SOM CSS-VARIABEL — se forklaringen ved .screen i CSS'en.
+   Kaldes når HUD'en vises/skjules (MutationObserver), når XP-bjælken eller talent-mærket
+   ændrer højde, og når vinduet skifter størrelse. Defensiv, fordi test-harnesset kører
+   koden med DOM-stubs uden layout. */
+function syncHudHeight() {
+  const hud = document.getElementById("hud");
+  const root = document.documentElement;
+  if (!hud || !root || !root.style || typeof root.style.setProperty !== "function") return 0;
+  const skjult = !!(hud.classList && typeof hud.classList.contains === "function" && hud.classList.contains("hidden"));
+  let underkant = 0;
+  if (!skjult) {
+    if (typeof hud.getBoundingClientRect === "function") {
+      const r = hud.getBoundingClientRect();
+      underkant = (r && r.bottom) || 0;
+    }
+    if (!underkant) underkant = hud.offsetHeight || 0;
+  }
+  root.style.setProperty("--hud-h", Math.round(underkant) + "px");
+  return underkant;
+}
+function bindHudHeight() {
+  if (typeof MutationObserver === "function") {
+    try {
+      const hud = document.getElementById("hud");
+      if (hud) new MutationObserver(syncHudHeight).observe(hud, { attributes: true, attributeFilter: ["class"] });
+    } catch (e) {}
+  }
+  if (typeof window !== "undefined" && window.addEventListener) window.addEventListener("resize", syncHudHeight);
+  syncHudHeight();
+}
+bindHudHeight();
 function renderTalentBadge() {
   const n = (typeof state !== "undefined" && state && state.talentPoints) || 0;
   const vis = (typeof talentKanBruges === "function") ? talentKanBruges() : n > 0;
@@ -2430,6 +2477,7 @@ function renderTalentBadge() {
     el.classList.toggle("hidden", !vis);
   });
   if (btn && btn.classList && typeof btn.classList.toggle === "function") btn.classList.toggle("has-points", vis);
+  if (typeof syncHudHeight === "function") syncHudHeight();   // +mærket gør bjælken højere
   if (pill && typeof pill.setAttribute === "function") pill.setAttribute("aria-hidden", vis ? "false" : "true");
   return vis;
 }
@@ -3433,10 +3481,16 @@ function renderHero() {
       const div = document.createElement("div");
       div.className = "bag-item";
       const g = itemGrade(item);
+      /* NAVNET PÅ SIN EGEN LINJE (Kenneth 18. sep: "det her skal være et premium produkt,
+         så detaljer betyder meget"). Målt: rygsæk-panelet er 400 px med to kolonner, og
+         navnet blev klemt ned til 23 px fordi grad + kraft stod på samme linje — 16 af 22
+         navne var klippet af ("Kronen af Ord" viste 9 px af 81 px). Nu får navnet hele
+         bredden, og grad + kraft står på linjen under. */
       div.innerHTML = `<span class="bi-icon">${slot.icon}</span>
-        <span class="bi-name ${'rarity-' + r.key}">${item.name}</span>
-        <span class="bi-grade ${g.key}">+${item.roll || 0} %${g.stars ? " " + g.stars : ""}</span>
-        <span class="bi-bonus">${itemPower(item)} kraft</span>`;
+        <span class="bi-info">
+          <span class="bi-name ${'rarity-' + r.key}">${item.name}</span>
+          <span class="bi-sub"><span class="bi-grade ${g.key}">+${item.roll || 0} %${g.stars ? " " + g.stars : ""}</span><span class="bi-bonus">${itemPower(item)} kraft</span></span>
+        </span>`;
       div.onclick = () => { // læg i kuben (altid synlig) — ellers udstyr
         if (bagToCube(item)) return; // flyttet til kuben
         // Ét sted til udrustning: equipItem laegger ALTID det gamle item tilbage i tasken
@@ -7481,7 +7535,7 @@ function renderWorldMap() {
   // Tre separate kort: A = Galaksen (0-11), B = Den forbudte skov (12-23), C = Mester-riget (24-35)
   MAP_PAGES.forEach(p => renderMapPanel("worldMap" + p.letter, p.start, p.end, p.title));
   // Vis det kort hvor helten er
-  setMapPage(mapPageForWorld(state.mapAt || 0), false);
+  setMapPage(mapViewPage === null ? mapPageForWorld(state.mapAt || 0) : mapViewPage, false);
   // Kortene er bygget — og nu skal ingen af dem klippes af panelets kanter
   fitWorldCards();
   // MESTER-PRØVEN staar paa kortet: en beloenning man ikke kan se, vaelger man ikke
@@ -7530,6 +7584,12 @@ if (typeof addEventListener === "function") {
   addEventListener("resize", () => { try { fitWorldCards(); } catch (e) { /* layout ikke klar */ } });
 }
 let curMapPage = 0;
+/* KENNETH 18. sep: "skifter kort på pilene. Går man tilbage er det til Galaksen og ikke skoven."
+   Fejlen: renderWorldMap() satte ALTID visningen til heltens side, så ethvert gensyn med
+   kortet (fx "← Tilbage til kortet") sprang tilbage til Galaksen. Nu huskes den side
+   barnet selv har bladret til — indtil det rejser ind i en verden, hvor kortet skal følge
+   helten igen (derfor null = følg helten). */
+let mapViewPage = null;
 function renderMapPanel(elId, start, end, title) {
   const map = document.getElementById(elId);
   map.innerHTML = "";
@@ -7619,9 +7679,10 @@ function renderMapPanel(elId, start, end, title) {
   hero.textContent = classOf().icon;
   if (heroHere) map.appendChild(hero);
 }
-function setMapPage(page, animate) {
+function setMapPage(page, animate, fraBruger) {
   // Tre sider nu — siden klem/mes til 0..2, så et gammelt kald med "1" stadig virker
   curMapPage = Math.max(0, Math.min(MAP_PAGES.length - 1, page || 0));
+  if (fraBruger) mapViewPage = curMapPage;   // barnets bladring skal kunne ses igen
   const car = document.getElementById("mapCarousel");
   if (car) {
     // Native scroll — virker på ALLE browsers (inkl. iPad) uden transform-tricks.
@@ -7634,7 +7695,7 @@ function setMapPage(page, animate) {
 }
 function swipeMap(dir) {
   const next = Math.max(0, Math.min(MAP_PAGES.length - 1, curMapPage + dir));
-  if (next !== curMapPage) { sfxClick(); setMapPage(next, true); }
+  if (next !== curMapPage) { sfxClick(); setMapPage(next, true, true); }
 }
 // Touch-swipe på kortet (iPad) — native scroll håndterer selve swipe, vi opdaterer kun titel/prikker
 let swipeStartX = null, swipeStartY = null;
@@ -7655,7 +7716,7 @@ function bindMapSwipe() {
     if (scrollT) clearTimeout(scrollT);
     scrollT = setTimeout(() => {
       const page = Math.max(0, Math.min(MAP_PAGES.length - 1, Math.round(car.scrollLeft / (car.clientWidth || 1))));
-      if (page !== curMapPage) { curMapPage = page; updateMapChrome(); }
+      if (page !== curMapPage) { curMapPage = page; mapViewPage = page; updateMapChrome(); }
     }, 120);
   }, { passive: true });
 }
@@ -7673,7 +7734,7 @@ function updateMapChrome() {
   const hint = document.querySelector(".map-swipe-hint");
   if (hint) hint.textContent = p.hint;
   const dots = document.getElementById("mapDots");
-  if (dots) dots.innerHTML = MAP_PAGES.map((q, i) => `<span class="map-dot${i === curMapPage ? " on" : ""}" onclick="setMapPage(${i}, true)"></span>`).join("");
+  if (dots) dots.innerHTML = MAP_PAGES.map((q, i) => `<span class="map-dot${i === curMapPage ? " on" : ""}" onclick="setMapPage(${i}, true, true)"></span>`).join("");
 }
 bindMapSwipe();
 function travelToWorld(i) {
@@ -7687,6 +7748,7 @@ function travelToWorld(i) {
     hero.style.top = p.y + "%";
   }
   state.mapAt = i; save();
+  mapViewPage = null;   // kortet skal følge helten næste gang det vises
   setTimeout(() => showWorld(i), 550); // rejse-animation før verdenen åbnes
 }
 

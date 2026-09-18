@@ -142,6 +142,33 @@ check('side C har PRÆCIS side A+Bs layout (identiske kort)', JSON.stringify(sid
 check('alle 12 positioner ligger inde i kortet (0-100%)',
   MAP_POS.every(p => p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100));
 
+// 8) KORTSIDEN SKAL HUSKES (Kenneth 18. sep: "skifter kort på pilene. Går man tilbage er
+//    det til Galaksen og ikke skoven"). Fejlen: renderWorldMap() satte ALTID visningen til
+//    HELTENS side — så snart kortet blev tegnet igen (fx via "← Tilbage til kortet"), sprang
+//    det tilbage til Galaksen. Nu huskes den side barnet selv har bladret til.
+state.mapAt = 0;                       // helten står i Galaksen
+curMapPage = 0; mapViewPage = null;
+renderWorldMap();
+check('uden bladring følger kortet helten (Galaksen)', els['mapTitle'].textContent.includes('Galaksen'), els['mapTitle'].textContent);
+swipeMap(1);                           // barnet trykker på pilen og ser skoven
+check('efter et tryk på pilen står visningen på skoven', els['mapTitle'].textContent.includes('Den forbudte skov'), els['mapTitle'].textContent);
+check('den bladrede side huskes (mapViewPage = 1)', mapViewPage === 1, mapViewPage);
+renderWorldMap();                      // fx fordi man kommer tilbage fra en verden
+check('gensyn med kortet bliver på skoven — ikke tilbage til Galaksen', els['mapTitle'].textContent.includes('Den forbudte skov'), els['mapTitle'].textContent);
+renderWorldMap();
+check('og den bliver der, hver gang kortet tegnes', els['mapTitle'].textContent.includes('Den forbudte skov'), els['mapTitle'].textContent);
+check('helten står stadig i Galaksen (visningen flytter ikke helten)', state.mapAt === 0, state.mapAt);
+// Prikkerne under kortet skal også huske valget
+setMapPage(2, true, true);
+renderWorldMap();
+check('prik/side 2 (Mester-riget) huskes på samme måde', els['mapTitle'].textContent.includes('Mester-riget'), els['mapTitle'].textContent);
+// Rejser barnet ind i en verden, skal kortet følge helten igen
+travelToWorld(26);
+check('efter en rejse følger kortet helten igen (mapViewPage nulstilles)', mapViewPage === null, mapViewPage);
+renderWorldMap();
+check('og visningen står på heltens kort (Mester-riget)', els['mapTitle'].textContent.includes('Mester-riget'), els['mapTitle'].textContent);
+state.mapAt = 0; curMapPage = 0; mapViewPage = null;
+
 // 7) Kilden: der er faktisk tre worldmap-divs i HTML, og tre sider i MAP_PAGES
 const html = fs.readFileSync(__dirname + '/../index.html', 'utf-8');
 check('HTML har worldMapA, worldMapB og worldMapC',
