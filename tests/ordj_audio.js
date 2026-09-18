@@ -48,12 +48,15 @@ made[0].end();
 check('når ordet slutter, spilles SÆTNINGEN', made.length === 2 && made[1].src.includes('/sentences/der.mp3'),
   made.map(m=>m.src).join(','));
 
+/* Test-ordet er "kat" og ikke "at": ord på højst 2 bogstaver får SÆTNINGEN først
+   (se Docs/lyd-og-udtale.md), og kæde-kontrakten skal kunne testes uden at blande
+   den regel ind. Selve reglen er pinnet fast i afsnit 10 nedenfor. */
 // 2) KERNEN I FEJLEN: nyt spørgsmål før det gamle er færdigt
 reset();
 playWordAndSentence('der', () => {});          // spørgsmål N-1 ("der")
 const oldWord = made[0];
-playWordAndSentence('at', () => {});           // spørgsmål N ("at") starter
-check('nyt spørgsmål starter sin egen ORD-fil', made.length === 2 && made[1].src.includes('/words/at.mp3'),
+playWordAndSentence('kat', () => {});         // spørgsmål N ("kat") starter
+check('nyt spørgsmål starter sin egen ORD-fil', made.length === 2 && made[1].src.includes('/words/kat.mp3'),
   made.map(m=>m.src).join(','));
 check('den gamle lyd blev stoppet', oldWord.paused === true);
 const before = made.length;
@@ -62,33 +65,33 @@ check('den gamle kæde må IKKE fortsætte til sin sætning',
   made.length === before && !made.some(m => m.src.includes('/sentences/der.mp3')),
   made.map(m=>m.src).join(','));
 made[1].end();                                  // den NYE lyd slutter
-check('den nye kæde fortsætter til SIN sætning (at)',
-  made.length === before + 1 && made[made.length-1].src.includes('/sentences/at.mp3'),
+check('den nye kæde fortsætter til SIN sætning (kat)',
+  made.length === before + 1 && made[made.length-1].src.includes('/sentences/kat.mp3'),
   made.map(m=>m.src).join(','));
 // Rækkefølgen må ikke give "der"-sætningen til "at"-spørgsmålet
 const sentences = made.filter(m => m.src.includes('/sentences/')).map(m => m.src.split('/').pop().split('?')[0]);
-check('kun ÉN sætning blev spillet, og det er den rigtige', JSON.stringify(sentences) === JSON.stringify(['at.mp3']),
+check('kun ÉN sætning blev spillet, og det er den rigtige', JSON.stringify(sentences) === JSON.stringify(['kat.mp3']),
   JSON.stringify(sentences));
 
 // 3) Tre hurtige spørgsmål i træk — kun det sidste må lyde
 reset();
 playWordAndSentence('der', () => {});
 playWordAndSentence('jeg', () => {});
-playWordAndSentence('at', () => {});
+playWordAndSentence('kat', () => {});
 made.forEach(a => a.end());
 const sents = made.filter(m => m.src.includes('/sentences/')).map(m => m.src.split('/').pop().split('?')[0]);
-check('3 hurtige spørgsmål giver kun ÉN sætning (den sidste)', sents.length === 1 && sents[0] === 'at.mp3', JSON.stringify(sents));
+check('3 hurtige spørgsmål giver kun ÉN sætning (den sidste)', sents.length === 1 && sents[0] === 'kat.mp3', JSON.stringify(sents));
 
 // 4) Enkelt-afspilning (sætningsknappen) stopper også det der kører
 reset();
-playWordAndSentence('at', () => {});
+playWordAndSentence('kat', () => {});
 const w = made[0];
 playSentenceAudio('der', () => {});
 check('sætnings-knappen stopper den kørende lyd', w.paused === true);
 
 // 5) stopAudio rydder alt
 reset();
-playWordAndSentence('at', () => {});
+playWordAndSentence('kat', () => {});
 stopAudio();
 const n = made.length;
 made[0].end();
@@ -99,7 +102,7 @@ const spoken = global.__spoken;
 reset();
 spoken.length = 0;
 let done = 0;
-playWordAndSentence('at', () => { done++; });
+playWordAndSentence('kat', () => { done++; });
 check('ord-filen blev oprettet', made.length === 1, made.length);
 made[0].onerror();                       // simuler at MP3 ikke kan afspilles
 /* RETTET KONTRAKT (Kenneth: "den siger AT men saetningen er DER"):
@@ -107,7 +110,7 @@ made[0].onerror();                       // simuler at MP3 ikke kan afspilles
    oveni — to stemmer samtidigt, saa barnet kunne hoere det forkerte ord.
    Nu: fejler filen, taler reservestemmen ordet ALENE, og kaeden stopper der. */
 check('MP3-fejl starter IKKE naeste led i kaeden (ingen to stemmer samtidigt)',
-  !made.some(m => m.src.includes('/sentences/at.mp3')), made.map(m=>m.src).join(','));
+  !made.some(m => m.src.includes('/sentences/kat.mp3')), made.map(m=>m.src).join(','));
 
 /* Der oprettes IKKE noget made[1] mere: fejler ord-filen, fortsætter kæden ikke.
    Det er hele pointen med rettelsen — derfor testes der ikke på en sætning her. */
@@ -119,7 +122,7 @@ check('tale-syntese blev brugt som fallback da MP3 fejlede', spoken.includes('SP
 const sp = { _s:new Set(['speaking']), classList:{ remove(c){ sp._s.delete(c); }, add(c){ sp._s.add(c); }, contains(c){ return sp._s.has(c); } } };
 document.querySelectorAll = (sel) => (sel === '.speaking' ? [sp] : []);
 playWordAndSentence('der', () => {});
-playWordAndSentence('at', () => {});       // afbryder den første
+playWordAndSentence('kat', () => {});       // afbryder den første
 check('"spiller nu"-animationen blev ryddet da kaeden blev afbrudt', !sp._s.has('speaking'), JSON.stringify([...sp._s]));
 document.querySelectorAll = () => [];
 
@@ -131,7 +134,7 @@ spoken.length = 0;
 made.length = 0;
 playWordAndSentence('der', () => {});
 const afbrudt = made[0];
-playWordAndSentence('at', () => {});        // overtager — den foerste stoppes
+playWordAndSentence('kat', () => {});        // overtager — den foerste stoppes
 const antalEfter = made.length;
 if (afbrudt && afbrudt.onerror) afbrudt.onerror();     // simuler afbrydelsen
 if (afbrudt && afbrudt.play) afbrudt.play = () => Promise.reject(new Error('AbortError'));
@@ -164,6 +167,23 @@ check('speak uden dansk stemme giver en besked i stedet for tavshed',
 check('og den taler ikke med en stemme den ikke har', !spoken.includes('SPEAK'),
   JSON.stringify(spoken));
 pickVoice = rigtigPick;
+
+console.log('--- 10. Ord på 2 bogstaver: konteksten skal høres først ---');
+/* Kenneth 18. sep: "den siger 'Er, jeg elsker AT spise is'". Et isoleret dansk
+   funktionsord er én kort vokal — målt 0,15 s lyd — så barnet gætter forkert.
+   Derfor spilles sætningen først for ord på højst 2 bogstaver. */
+reset();
+playWordAndSentence('at', () => {});
+check('2-bogstavs ord: SÆTNINGEN spilles først (konteksten)', made.length === 1 && made[0].src.includes('/sentences/at.mp3'),
+  made.map(m=>m.src).join(','));
+made[0].end();
+check('og bagefter ordet alene som bekræftelse', made.length === 2 && made[1].src.includes('/words/at.mp3'),
+  made.map(m=>m.src).join(','));
+reset();
+playWordAndSentence('kat', () => {});
+check('3-bogstavs ord (og længere): ordet spilles først, som før', made.length === 1 && made[0].src.includes('/words/kat.mp3'),
+  made.map(m=>m.src).join(','));
+
 
 console.log(F === 0 ? '\\nALLE LYD-TESTS GRØNNE' : '\\n' + F + ' FEJL');
 process.exit(F ? 1 : 0);

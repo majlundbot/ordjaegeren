@@ -558,6 +558,30 @@
   .xp-next { font-size: 12.5px; font-weight: 800; color: #9fb0e8; margin-top: 4px; letter-spacing: .2px; }
   .xp-next b { color: #ffd76a; }
 
+  /* ⭐ UBRUGTE TALENT-POINT SKAL KUNNE SES (Kenneth 18. sep):
+     "når man har ubrugte talent-point skal det være en Plus på bjælken ... så man ved
+     der er ubrugte point." Før stod tallet KUN inde på helteskærmen — altså efter at man
+     selv havde fundet derind. Nu står der "+N" på selve XP-bjælken og som lille "+" på
+     Helt-knappen. Begge kan trykkes og åbner helteskærmen (ingen døde knapper). */
+  .tp-pill { pointer-events: auto; flex: 0 0 auto; font-family: inherit; font-weight: 900;
+    font-size: 12px; color: #2a1c00; cursor: pointer; padding: 3px 9px; border-radius: 99px;
+    border: 2px solid #ffd76a; background: linear-gradient(180deg, #ffe9a8, #fbbf24); }
+  .tp-pill.hidden { display: none; }
+  .hud-btn.has-points { border-color: #fbbf24; box-shadow: 0 0 10px rgba(251,191,36,.55); }
+  .plus-badge { margin-left: 4px; font-weight: 900; color: #fbbf24; }
+  .plus-badge.hidden { display: none; }
+  /* Gløden er slukket når barnet har bedt om rolige bevægelser. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tp-pill { animation: tpPulse 1.7s ease-in-out infinite; }
+    @keyframes tpPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  }
+  /* Banneret øverst på helteskærmen når man kommer direkte fra en sejr */
+  .hero-welcome { margin: 8px 0 2px; padding: 10px 12px; border-radius: 12px; text-align: center;
+    font-weight: 800; font-size: 14.5px; color: #fff8e1;
+    background: linear-gradient(180deg, rgba(251,191,36,.22), rgba(251,191,36,.07));
+    border: 1px solid rgba(251,191,36,.55); }
+  .hero-welcome.hidden { display: none; }
+
   /* XP DER FLYVER OP: samme princip som skade-tallet i kampen — kobl handling og
      belønning sammen i tid og sted. */
   .fx-xp { position: fixed; z-index: 70; font-weight: 900; font-size: 22px; color: #ffd76a;
@@ -1415,7 +1439,7 @@
     <button class="hud-btn" onclick="goHome()">🏠 Hjem</button>
     <div class="progress" id="hudProgress"></div>
     <button class="hud-btn" id="muteBtn" onclick="toggleMute()" title="Slå lyd til/fra">🔊</button>
-    <button class="hud-btn" onclick="showHero()">⚔️ Helt</button>
+    <button class="hud-btn" id="heroBtn" onclick="showHero()">⚔️ Helt<span class="plus-badge hidden" id="heroPlus">+</span></button>
   </div>
   <!-- XP-BJÆLKEN: ALTID synlig mens man spiller. Foer stod XP kun paa resultat-
        skaermen EFTER missionen — saa incitamentet virkede ikke mens det skulle.
@@ -1427,6 +1451,7 @@
       <span class="xp-lvl" id="xpText">Niveau 1</span>
       <span class="xp-track"><span class="xp-fill" id="xpFill"></span></span>
       <span class="xp-num" id="xpNum">0 / 120 XP</span>
+      <button class="tp-pill hidden" id="tpPill" onclick="goSpendPoints()" title="Du har ubrugte talent-point — tryk for at bruge dem">⭐ +<span id="tpPillNum">1</span></button>
     </div>
     <div class="xp-next" id="xpToNext"></div>
   </div>
@@ -1670,6 +1695,7 @@
 <div class="screen tall" id="screen-hero">
   <div class="panel" style="max-width:660px">
     <h2>⚔️ Din ordjæger-helt</h2>
+    <div class="hero-welcome hidden" id="heroWelcome"></div>
     <div class="hero-wrap">
       <div class="hero-fig">
         <svg id="heroSvg" viewBox="0 0 160 220" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -2286,6 +2312,7 @@ function renderXpBar() {
     next.innerHTML = "<b>" + ord + (ord === 1 ? " ord" : " ord") + "</b> til niveau " + (lvl + 1) +
       " · ⚔️ +1 kraft · ⭐ +1 talent-point";
   }
+  renderTalentBadge();   // ⭐ mærket på bjælken følger XP'en
 }
 /* XP DER FLYVER OP. Samme princip som skade-tallet i kampen: kobler handling og
    belønning sammen i tid og sted, så barnet ser HVORFOR det fik noget. */
@@ -2379,6 +2406,48 @@ function critChance() {
   c += talentLevel("crit") * 0.05;
   if (classOf().bonus === "crit" || classOf().bonus === "stars") c += 0.10; // paladin: +10% kritisk
   return Math.min(0.50, c);
+}
+/* ⭐ UBRUGTE TALENT-POINT: ét sted der bestemmer om mærket kan ses.
+   Kaldes fra renderXpBar (XP ændrer sig), renderHero (point brugt/ændret) og efter
+   indlæsning af en gemt profil. */
+function renderTalentBadge() {
+  const n = (typeof state !== "undefined" && state && state.talentPoints) || 0;
+  const vis = n > 0;
+  const pill = document.getElementById("tpPill");
+  const num = document.getElementById("tpPillNum");
+  const plus = document.getElementById("heroPlus");
+  const btn = document.getElementById("heroBtn");
+  if (num) num.textContent = String(n);
+  [pill, plus].forEach(el => {
+    if (!el || !el.classList || typeof el.classList.toggle !== "function") return;
+    el.classList.toggle("hidden", !vis);
+  });
+  if (btn && btn.classList && typeof btn.classList.toggle === "function") btn.classList.toggle("has-points", vis);
+  if (pill && typeof pill.setAttribute === "function") pill.setAttribute("aria-hidden", vis ? "false" : "true");
+  return vis;
+}
+// Pilla på bjælken: gå direkte til skærmen hvor pointene bruges
+function goSpendPoints() { sfxClick(); showHero(); }
+// Banneret må ikke hænge ved når man åbner helteskærmen normalt
+function heroWelcomeHide() {
+  const b = document.getElementById("heroWelcome");
+  if (b && b.classList && typeof b.classList.add === "function") b.classList.add("hidden");
+  return b;
+}
+/* SEJREN FØRER TIL HELTESKÆRMEN (Kenneth 18. sep): "skal komme op når man har vundet
+   over bossen, så man ved at det eksisterer". Skærmen venter til barnet har taget imod
+   sin belønning (lykkehjulet) — hjulet ER lootet, og det må ikke skjules bag skærmen. */
+let heroAfterWin = false;
+function heroWelcomeAfterWin() {
+  showHero();
+  const b = document.getElementById("heroWelcome");
+  if (!b || !b.classList || typeof b.classList.remove !== "function") return;
+  const n = (state && state.talentPoints) || 0;
+  b.classList.remove("hidden");
+  b.innerHTML = n > 0
+    ? "🏆 <b>Sejr!</b> Du har ⭐ " + n + (n === 1 ? " talent-point" : " talent-point") +
+      " — tryk på en gren nedenfor og gør helten stærkere."
+    : "🏆 <b>Sejr!</b> Ingen ubrugte point lige nu — du får ⭐ 1 for hvert niveau.";
 }
 function spendTalent(key) {
   const t = TALENTS.find(t => t.key === key);
@@ -2883,6 +2952,7 @@ function loadState() {
   // RPG: potions, talenter, achievements (gamle saves)
   if (state.potions === undefined) state.potions = 2;
   if (state.talentPoints === undefined) state.talentPoints = 0;
+  if (typeof renderTalentBadge === "function") renderTalentBadge();   // ⭐ mærket fra første sekund
   if (!state.talents) state.talents = { hp: 0, power: 0, crit: 0 };
   if (state.talents.hp === undefined) state.talents.hp = 0;
   if (state.talents.power === undefined) state.talents.power = 0;
@@ -3216,6 +3286,7 @@ function renderSlotPanel() {
 }
 function showHero() {
   sfxClick();
+  heroWelcomeHide();   // banneret hører kun til sejrs-flowet
   closeSlotPanel();
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("screen-hero").classList.add("active");
@@ -3252,6 +3323,7 @@ function showTreasureInfo(kind, m, has) {
 function renderHero() {
   // NAVNET FØLGER LEVEL (HERO_SKIN), ikke antal besejrede monstre — se Docs/xp-og-levels.md
   syncHeroSkin();
+  renderTalentBadge();   // ⭐ point brugt → mærket skal forsvinde med det samme
   document.getElementById("heroName").textContent = heroSkinName();
   renderXpBar();
   document.getElementById("heroPower").textContent = "Kraft: " + heroPower();
@@ -3666,14 +3738,26 @@ function playWordAudio(word, onend) {
 function playSentenceAudio(word, onend) {
   _playClip("audio/v2/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, true);
 }
-// "Fang ordet" / "Hør & Slå": ordet alene, derefter sætningen — men kun hvis intet nyt er startet
+/* RÆKKEFØLGEN PÅ LYDEN (Kenneth 18. sep: "den siger 'Er, jeg elsker AT spise is'").
+   For de ALLERKORTESTE ord — 2 bogstaver: at, er, i, en, og, du, vi, på ... — er det
+   isolerede ord talt alene bare en kort vokal. Målt: klip-filen for "at" havde 0,14 s
+   lyd, og whisper hørte "Ja?" hvor et helt klip af samme ord blev hørt som "at". Barnet
+   hørte "er" og skrev "er" — og fik at vide at det var forkert.
+   Derfor kommer SÆTNINGEN først for dem: konteksten siger ordet tydeligt ("jeg elsker
+   at spise is"), og bagefter bekræfter vi det alene. Ord på 3+ bogstaver har en tydelig
+   konsonantramme (kat, sol, mor) og kører som før: ordet først, så sætningen. */
+const LYD_KORT_ORD = 2;   // ord på højst så mange bogstaver får sætningen først
 function playWordAndSentence(word, onend) {
   _clearPlayback();                      // stands alt der kører — og ugyldiggør den forrige kæde
   const myGen = audioGen;                // denne kæde ejer lyden nu
-  _playClip("audio/v2/words/" + encodeURIComponent(word) + ".mp3", word, () => {
-    if (myGen !== audioGen) return;      // et nyt spørgsmål har overtaget — afbryd kæden
-    _playClip("audio/v2/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], onend, false);
-  }, false);
+  const ord = (cb) => _playClip("audio/v2/words/" + encodeURIComponent(word) + ".mp3", word, cb, false);
+  const saetning = (cb) => _playClip("audio/v2/sentences/" + encodeURIComponent(word) + ".mp3", WORDS[word], cb, false);
+  const videre = (cb) => () => { if (myGen !== audioGen) return; cb(); };   // nyt spørgsmål har overtaget → afbryd
+  if (word.length <= LYD_KORT_ORD) {
+    saetning(videre(() => ord(onend)));   // først i kontekst, så alene
+  } else {
+    ord(videre(() => saetning(onend)));   // ordet først, så i kontekst
+  }
 }
 
 /* ============ AUDIO FX ============ */
@@ -5652,7 +5736,8 @@ function bossWin() {
       : "25% Mytisk · 25% Legendarisk · 50% Magisk";
     renderAttacks();
     checkAchievements();
-    showLootWheel(); // lykkehjul med loot-chancer
+    heroAfterWin = true;   // ⚔️ efter hjulet: helteskærmen (Kenneth 18. sep)
+    showLootWheel(); // lykkehjulet med loot-chancer
   }, 400);
 }
 
@@ -5971,6 +6056,11 @@ function wheelFinish(token) {
 function closeLootWheel() {
   wheelStopSpin();
   document.getElementById("wheelOverlay").classList.add("hidden");
+  // Efter en vundet kamp lander barnet på helteskærmen — så det ved at den findes
+  if (heroAfterWin) {
+    heroAfterWin = false;
+    setTimeout(() => heroWelcomeAfterWin(), 250);
+  }
 }
 function bossLose() {
   if (bossState.over) return;

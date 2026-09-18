@@ -27,7 +27,8 @@ global.performance = { now:()=>0 }; global.requestAnimationFrame = () => {};
 global.innerWidth=1000; global.innerHeight=800; global.addEventListener=()=>{}; global.navigator={};
 global.window.__els = els;
 global.window.__klip = [];
-global.Audio = function(u){ this.src = u; global.window.__klip.push(u); this.play = () => Promise.resolve(); };
+global.window.__audio = [];
+global.Audio = function(u){ this.src = u; global.window.__klip.push(u); global.window.__audio.push(this); this.play = () => Promise.resolve(); };
 
 // De 47 sætninger der stod bøjet 18. sep. De må ikke komme tilbage.
 const GAMLE_BOEJEDE = [
@@ -138,6 +139,27 @@ const knapper = E['fillChoices'].children.map(c => c.textContent);
 check('sætnings-gåden viser hullet hvor "and" står, og facit er blandt knapperne',
   fs2.indexOf('En <span class="blank">____</span> svømmer i søen.') === 0 && knapper.includes('and'),
   fs2 + ' | ' + knapper.join(','));
+
+/* 10-11) RÆKKEFØLGEN PÅ LYDEN (Kenneth 18. sep: "den siger 'Er, jeg elsker AT spise is'").
+   De 2-bogstavs ord (at, er, i ...) er bare en kort vokal når de siges alene — barnet
+   hørte "er". For dem skal SÆTNINGEN komme først; for længere ord som før: ordet først. */
+function kæde(word) {
+  K.length = 0; window.__audio.length = 0;
+  playWordAndSentence(word, () => {});
+  const første = K[K.length - 1];
+  const inst = window.__audio[window.__audio.length - 1];
+  if (inst && typeof inst.onended === 'function') inst.onended();   // spol til ende → næste klip
+  const anden = K[K.length - 1];
+  return [første, anden];
+}
+const kortKæde = kæde('at');
+check('for "at" hører barnet SÆTNINGEN først (konteksten), derefter ordet alene',
+  (kortKæde[0] || '').endsWith('sentences/at.mp3') && (kortKæde[1] || '').endsWith('words/at.mp3'),
+  kortKæde.join(' -> '));
+const langKæde = kæde('hund');
+check('for "hund" (3+ bogstaver) hører barnet ordet først, som før',
+  (langKæde[0] || '').endsWith('words/hund.mp3') && (langKæde[1] || '').endsWith('sentences/hund.mp3'),
+  langKæde.join(' -> '));
 
 console.log(F === 0 ? '\\\\nHINTSÆTNINGER OK' : '\\\\n' + F + ' FEJL');
 process.exit(F ? 1 : 0);
