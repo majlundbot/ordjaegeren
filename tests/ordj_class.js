@@ -38,6 +38,7 @@ screens.forEach(id => els[id] = makeEl(id));
 ].forEach(id => { if (!els[id]) els[id] = makeEl(id); });
 els['classConfirm']._btn = makeBtn();
 global.__els = els;
+global.__htmlStart = fs.readFileSync(require('path').join(__dirname, '..', 'index.html'), 'utf-8');
 global.document = {
   createElement: (tag) => makeEl(tag),
   getElementById: (id) => els[id] || (els[id] = makeEl(id)),
@@ -105,6 +106,54 @@ t('confirmClass → kortet åbnes', () => {
   els['classGrid'].children[0].onclick();
   confirmClass();
   if (!els['screen-map'].classList.contains('active')) throw new Error('kortet skal åbne efter confirm');
+});
+
+/* KLASSE-FANTASI (Kenneth 18. sep, fra r/rpg-tråden): det sjoveste ved klassen — dens
+   ULTIMATIVE angreb — var usynligt på valgskærmen. Nu står det på kortet, taget fra
+   SIGNATURES, så skærm og kamp ikke kan komme ud af trit. */
+t('hvert klasse-kort viser sit ultimative angreb', () => {
+  showClassSelect();
+  const cards = els['classGrid'].children;
+  ['kriger', 'troldmand', 'jæger', 'paladin'].forEach(k => {
+    const sg = SIGNATURES[k];
+    const kort = cards.find(c => c.innerHTML.includes(sg.name));
+    if (!kort) throw new Error('kortet for ' + k + ' viser ikke ' + sg.name);
+    if (!kort.innerHTML.includes(sg.text)) throw new Error('kortet viser ikke forklaringen: ' + sg.text);
+    if (!kort.innerHTML.includes(sg.icon)) throw new Error('kortet viser ikke ikonet for ' + k);
+  });
+});
+
+t('signaturen kommer fra SIGNATURES — ikke en kopi', () => {
+  const gemt = SIGNATURES.kriger.name;
+  SIGNATURES.kriger.name = 'TEST-ULTIMATIV';
+  showClassSelect();
+  const fundet = els['classGrid'].children.some(c => c.innerHTML.includes('TEST-ULTIMATIV'));
+  SIGNATURES.kriger.name = gemt;
+  if (!fundet) throw new Error('skærmen læser ikke fra SIGNATURES');
+});
+
+t('én sætning et barn kan gentage står på startskærmen', () => {
+  const htmlStart = global.__htmlStart || '';
+  if (!htmlStart.includes('Fang ordet · slå monsteret · bliv stærkere'))
+    throw new Error('én-linjen mangler i HTML');
+});
+
+t('én-linjen er kort nok til at kunne siges højt', () => {
+  const h = global.__htmlStart || '';
+  const AABNER = '<div class="oneliner">';
+  const a = h.indexOf(AABNER);
+  const b = h.indexOf('</div>', a);
+  if (a < 0) throw new Error('kunne ikke finde én-linjen');
+  const linje = h.slice(a + AABNER.length, b).trim();
+  if (linje.length > 60) throw new Error('for lang: ' + linje.length + ' tegn');
+  ['Fang', 'slå', 'bliv'].forEach(v => { if (!linje.includes(v)) throw new Error('mangler verbet "' + v + '"'); });
+});
+
+t('valgskærmens intro nævner det ultimative angreb', () => {
+  const h = global.__htmlStart || '';
+  const start = h.indexOf('id="screen-class"');
+  const blok = start >= 0 ? h.slice(start, start + 900) : '';
+  if (!blok.includes('ultimative angreb')) throw new Error('introen på klasse-skærmen nævner ikke det ultimative angreb');
 });
 
 console.log(fails.length === 0 ? 'ALLE KLASSE-TESTS GRØNNE' : 'FEJL: ' + fails.length);
