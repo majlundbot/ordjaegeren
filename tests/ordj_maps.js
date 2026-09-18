@@ -169,6 +169,67 @@ renderWorldMap();
 check('og visningen står på heltens kort (Mester-riget)', els['mapTitle'].textContent.includes('Mester-riget'), els['mapTitle'].textContent);
 state.mapAt = 0; curMapPage = 0; mapViewPage = null;
 
+// 9) NÆSTE SKRIDT (Docs/naeste-skridt.md): kortet skal sige ÉN ting at gøre nu.
+//    Idéen kommer fra r/rpg-tråden om hvorfor folk vælger D&D: "you always know what
+//    you're supposed to be doing". Spioner viser hvor knappen FAKTISK fører hen.
+let tilHero = 0, tilMester = 0, tilVerden = -1;
+const _showHero = showHero, _mesterStart = mesterStart, _showWorld = showWorld;
+showHero = () => { tilHero++; };
+mesterStart = () => { tilMester++; };
+showWorld = (i) => { tilVerden = i; };
+// guardet, saa en manglende tegning giver en pæn FEJL-linje i stedet for et crash
+const nsTekst = () => (els['nsTekst'] && els['nsTekst'].textContent) || '(intet banner)';
+
+// Hjaelper: byg KOMPLETTE verdens-states (ellers mangler done[] og renderMapPanel fejler)
+function saetVerdener(spec) {
+  state.worlds = {};
+  Object.keys(spec).forEach(k => { state.worlds[k] = worldState(Number(k)); Object.assign(state.worlds[k], spec[k]); });
+}
+saetVerdener({}); state.talentPoints = 0;
+renderWorldMap();
+check('ny profil: banneret peger på verden 1', nsTekst() === 'Start Start-planeten', nsTekst());
+const htmlNs = fs.readFileSync(__dirname + '/../index.html', 'utf-8');   // 'html' erklæres først i afsnit 7
+check('banneret er en KNAP med onclick (ikke død tekst)',
+  htmlNs.includes('id="naesteSkridt"') && htmlNs.includes('onclick="naesteSkridtGa()"'));
+naesteSkridtGa();
+check('tryk på banneret rejser ind i den verden det pegede på', tilVerden === 0, tilVerden);
+
+saetVerdener({ 0: { boss: true } });
+renderWorldMap();
+check('verden 1 besejret: banneret peger på verden 2', nsTekst() === 'Start Ord-bjergene', nsTekst());
+check('underskriften siger hvilken verden og hvorfor', ((els['nsHvorfor'] && els['nsHvorfor'].textContent) || '(ingen underskrift)').indexOf('Verden 2') === 0 && ((els['nsHvorfor'] && els['nsHvorfor'].textContent) || '(ingen underskrift)').indexOf('monsteret venter') > 0, ((els['nsHvorfor'] && els['nsHvorfor'].textContent) || '(ingen underskrift)'));
+
+saetVerdener({ 0: { boss: true }, 1: { hear: 2 } });
+renderWorldMap();
+check('en verden der er startet men ikke færdig: "Færdiggør …"', nsTekst() === 'Færdiggør Ord-bjergene', nsTekst());
+
+state.talentPoints = 2;
+renderWorldMap();
+check('ubrugte talent-point vinder over verdenerne', nsTekst() === 'Brug dit talent-point', nsTekst());
+check('underskriften siger hvor mange point', ((els['nsHvorfor'] && els['nsHvorfor'].textContent) || '(ingen underskrift)').startsWith('2 point'), ((els['nsHvorfor'] && els['nsHvorfor'].textContent) || '(ingen underskrift)'));
+tilHero = 0; naesteSkridtGa();
+check('og tryk fører til helteskærmen', tilHero === 1, tilHero);
+
+state.talentPoints = 0;
+const _mesterProve = mesterProve;
+mesterProve = () => ({ words: ['et', 'at'] });     // prøven er klar
+renderWorldMap();
+check('Mester-prøven med ord klar peger på prøven', nsTekst() === 'Prøv Mester-prøven', nsTekst());
+tilMester = 0; naesteSkridtGa();
+check('og tryk starter prøven', tilMester === 1, tilMester);
+mesterProve = () => ({ words: [] });
+
+const alleKlaret = {};
+for (let i = 0; i < 36; i++) alleKlaret[i] = { boss: true };
+saetVerdener(alleKlaret);
+renderWorldMap();
+check('alle 36 besejret: banneret siger det højt', nsTekst() === 'Alle monstre er besejret!', nsTekst());
+tilMester = 0; naesteSkridtGa();
+check('og tryk fører til Mester-prøven', tilMester === 1, tilMester);
+mesterProve = _mesterProve;
+showHero = _showHero; mesterStart = _mesterStart; showWorld = _showWorld;
+saetVerdener({}); state.mapAt = 0; curMapPage = 0; mapViewPage = null;
+
 // 7) Kilden: der er faktisk tre worldmap-divs i HTML, og tre sider i MAP_PAGES
 const html = fs.readFileSync(__dirname + '/../index.html', 'utf-8');
 check('HTML har worldMapA, worldMapB og worldMapC',
