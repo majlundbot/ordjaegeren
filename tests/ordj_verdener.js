@@ -58,20 +58,21 @@ check('hver side har sin egen baggrunds-type',
   new Set(MAP_PAGES.map(p => p.sky)).size === 3, JSON.stringify(MAP_PAGES.map(p => p.sky)));
 check('galaksen er uændret (Kenneth: den er rigtig god)',
   MAP_PAGES[0].title.includes('Galaksen') && MAP_PAGES[0].theme.includes('Galaksen'));
-check('de to andre sider har fået en fortælling: den levende hverdag + underverdenen',
-  MAP_PAGES[1].theme.includes('hverdag') && MAP_PAGES[2].theme.includes('Underverden'), JSON.stringify(MAP_PAGES.map(p => p.theme)));
-check('titlen (aftalen med Kenneth) staar stadig',
-  MAP_PAGES[0].title.includes('Galaksen') && MAP_PAGES[1].title.includes('Ord-akademiet') && MAP_PAGES[2].title.includes('Mester-riget'));
+check('de to andre sider har fået en fortælling: den forbudte skov + underverdenen',
+  MAP_PAGES[1].theme.includes('forbudt') && MAP_PAGES[2].theme.includes('Underverden'), JSON.stringify(MAP_PAGES.map(p => p.theme)));
+check('titlerne staar: Galaksen · Den forbudte skov · Mester-riget',
+  MAP_PAGES[0].title.includes('Galaksen') && MAP_PAGES[1].title.includes('Den forbudte skov') && MAP_PAGES[2].title.includes('Mester-riget'));
 
 // Baggrunden pr. side tegnes forskelligt, og kan ses i DOM'en
 state.worlds = {}; state.mapAt = 0;
 renderWorldMap();
 const svgA = String(els['worldMapA'].innerHTML), svgB = String(els['worldMapB'].innerHTML), svgC = String(els['worldMapC'].innerHTML);
 check('kort A tegnes som rummet', svgA.includes('data-page="rum"'));
-check('kort B tegnes som den levende hverdag', svgB.includes('data-page="hverdag"'));
+check('kort B tegnes som den forbudte skov', svgB.includes('data-page="forbudtSkov"'));
 check('kort C tegnes som underverdenen', svgC.includes('data-page="underverden"'));
-check('hverdags-kortet har sit eget landskab (sol, huse, gadelygter)',
-  svgB.includes('#ffcf7a') && svgB.includes('#ffe9a8') && (svgB.match(/<polygon/g) || []).length >= 9);
+check('skov-kortet har sit eget landskab (stammer, tåge, brudt hegn, øjne i mørket)',
+  svgB.includes('#08160f') && svgB.includes('#2a1c10') && svgB.includes('#eaffb0') && svgB.includes('#9fd6b0')
+  && (svgB.match(/<polygon/g) || []).length >= 9);
 check('underverdens-kortet har lava og stalagmitter',
   svgC.includes('#ff6a3a') && (svgC.match(/<polygon/g) || []).length >= 8);
 // Alle tre sider skal have PRÆCIS de samme 12 kort-omraader (Kenneths krav), men forskellig baggrund
@@ -82,12 +83,12 @@ check('baggrunden er FAST (ingen tilfældige tal = ingen kort der skifter udseen
 
 console.log('--- 2. Monstrene passer til sidens tema ---');
 // Den levende hverdag (side B): monsteret ER tingen. Underverdenen (side C): underverdenens skabninger.
-const HVERDAG = ['bog', 'troldHus', 'troldFamilie', 'raev', 'ballon', 'mad', 'sok', 'muskel', 'froe', 'loeber', 'ur', 'foelseskejser'];
+const SKOV = ['bog', 'troldHus', 'troldFamilie', 'raev', 'spindel', 'vildsvin', 'natmoel', 'mangeoeje', 'froe', 'skyggeloeb', 'ur', 'foelseskejser'];
 const UNDERVERDEN = ['troldStavelse', 'drage', 'tvilling', 'stilhedsaand', 'trafik', 'spoegelse', 'ulveflok', 'skygge', 'troldSpejl', 'vogter', 'troldmand', 'droemme'];
 const bForms = WORLDS.slice(12, 24).map((w, i) => BOSSES[12 + i].form);
 const cForms = WORLDS.slice(24, 36).map((w, i) => BOSSES[24 + i].form);
-check('side B (den levende hverdag) har hverdagsting der er blevet levende',
-  bForms.every(f => HVERDAG.includes(f)), JSON.stringify(bForms.filter(f => !HVERDAG.includes(f))));
+check('side B (den forbudte skov) har skovvæsner — ikke hverdagsting',
+  bForms.every(f => SKOV.includes(f)), JSON.stringify(bForms.filter(f => !SKOV.includes(f))));
 check('side C (underverdenen) har underverdenens skabninger',
   cForms.every(f => UNDERVERDEN.includes(f)), JSON.stringify(cForms.filter(f => !UNDERVERDEN.includes(f))));
 check('underverdenen har de mørke skabninger: trolde, ånder og dragen',
@@ -96,14 +97,33 @@ check('ingen side låner den anden sides skabninger',
   bForms.every(f => !cForms.includes(f)) && cForms.every(f => !bForms.includes(f)));
 check('dragen hører til underverdenen (den sidste verden)',
   BOSSES[25].form === 'drage' && mapPageForWorld(25) === 2);
+/* KENNETH 18. sep: "Ord akademiet er svagt. Det skal være Den forbudte skov, men farlige
+   skov væsner." Derfor: hvert sted paa side B skal vaere et STED I SKOVEN (ikke et
+   skoleemne), og hvert monster en farlig skovskabning. */
+const GAMLE_EMNER = /ord-akademiet|skrive-værksted|tøj-kammer|krop-værksted|handle-hallen|lege-pladsen|mad-markedet/i;
+check('ingen af side Bs steder er et skoleemne fra foer',
+  WORLDS.slice(12, 24).every(w => !GAMLE_EMNER.test(w.name)),
+  JSON.stringify(WORLDS.slice(12, 24).filter(w => GAMLE_EMNER.test(w.name)).map(w => w.name)));
+check('hvert sted paa side B er et sted i skoven (skov-ord i navnet)',
+  WORLDS.slice(12, 24).filter(w => /skov|trold|sti|hytte|skole|hule|marked|natur|træ|jagt|knogle|glemte|bad|hule/i.test(w.name)).length >= 10,
+  JSON.stringify(WORLDS.slice(12, 24).map(w => w.name)));
+check('de 5 nye skabninger er alle i skov-familien',
+  ['spindel', 'vildsvin', 'natmoel', 'mangeoeje', 'skyggeloeb'].every(f => MONSTER_FAMILIES[f] === 'skov'));
+check('de gamle hverdags-monstre findes ikke mere',
+  !BOSSES.some(b => ['Ballonmonstret', 'Madmonstret', 'Sokkemonstret', 'Muskelmonstret', 'Hurtigløberen'].includes(b.name)),
+  JSON.stringify(BOSSES.filter(b => ['Ballonmonstret', 'Madmonstret', 'Sokkemonstret', 'Muskelmonstret', 'Hurtigløberen'].includes(b.name)).map(b => b.name)));
+check('de farlige skovvaesner ser farlige ud (taender eller kløer i tegningen)',
+  ['spindel', 'vildsvin', 'natmoel', 'mangeoeje', 'skyggeloeb'].every(f => f !== undefined)
+  && ['vildsvin', 'mangeoeje', 'skyggeloeb', 'spindel'].every(f => /fill="#fff"/.test(monsterSvgMarkup({ form: f, c1: '#111111', c2: '#222222' }))),
+  'taender');
 /* Verdens navn skal passe til VERDENS EGNE ORD. Verden 14 hed "Skrive-værkstedet",
    men ordene er hus-ord (hus, køkken, stue …) og bossen er "Hustrolden" — et navn der
    ikke passer til indholdet er praecis det der faar et kort til at virke ugennemtaenkt. */
-check('verden 14 hedder noget med hjem/hus — fordi dens ord ER hus-ord',
-  /hjem|hus/i.test(WORLDS[13].name) && WORLDS[13].words.includes('køkken') && WORLDS[13].words.includes('vindue'),
+check('verden 14 hedder noget med hytte/hus — fordi dens ord ER hus-ord',
+  /hytte|hus|hjem/i.test(WORLDS[13].name) && WORLDS[13].words.includes('køkken') && WORLDS[13].words.includes('vindue'),
   WORLDS[13].name + ' / ' + WORLDS[13].words.join(','));
 check('hver verdens navn har noget til fælles med dens ord (stikproeve paa 6)',
-  [[0, /plan|start/i], [12, /bog|klasse/i], [13, /hjem|hus/i], [17, /mad|marked/i], [23, /følelse|skov/i], [30, /vildt|reservat/i]]
+  [[0, /plan|start/i], [12, /skole|glemte/i], [13, /hytte|hus/i], [17, /svampe|marked/i], [23, /følelse|skov/i], [30, /vildt|reservat/i]]
     .every(([i, re]) => re.test(WORLDS[i].name)), 'navn/ord-par');
 
 console.log('--- 3. Temaet kan SES paa skærmen ---');
@@ -117,7 +137,7 @@ for (let p = 0; p < 3; p++) {
 check('de tre sider viser tre FORSKELLIGE temaer', new Set(pageThemes).size === 3, JSON.stringify(pageThemes));
 check('tema-linjen (historien) vises ogsaa', /class="mt-line">[^<]{20,}</.test(String(els['mapTheme'].innerHTML)));
 check('swipe-hintet peger paa næste TEMA (ikke bare et sidetal)',
-  MAP_PAGES.every(p => /hverdag|Underverden|Galaksen/.test(p.hint)), JSON.stringify(MAP_PAGES.map(p => p.hint)));
+  MAP_PAGES.every(p => /forbudt|Underverden|Galaksen/.test(p.hint)), JSON.stringify(MAP_PAGES.map(p => p.hint)));
 
 console.log('--- 4. QOL: barnet ser HVEM der venter, foer det kaemper ---');
 state.worlds = {};

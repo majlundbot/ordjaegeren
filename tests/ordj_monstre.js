@@ -77,12 +77,12 @@ const VENTET = {
   13: 'Hustrolden',         // Skrive-vaerkstedet (hus-ord)
   14: 'Troldefamilien',     // Familiens hus
   15: 'Ræven',              // Dyre-parken  <- dyreverdenen
-  16: 'Ballonmonstret',     // Lege-pladsen
-  17: 'Madmonstret',        // Mad-markedet
-  18: 'Sokkemonstret',      // Toej-kammeret
-  19: 'Muskelmonstret',     // Krop-vaerkstedet
+  16: 'Spindelvæveren',     // Den glemte legeplads — spinder den ind
+  17: 'Vildsvinet',         // Svampe-markedet
+  18: 'Natsværmeren',       // Toej-hulen
+  19: 'Mangeøjet',          // Knogleskoven
   20: 'Frøen',              // Natur-haven <- haven
-  21: 'Hurtigløberen',      // Handle-hallen
+  21: 'Skyggeløberen',      // Jagt-stien
   22: 'Urmonstret',         // Tids-uret
   23: 'Følelsernes Kejser', // Foelses-skoven
   24: 'Stavelses-trolden',  // Den svære skov (verden 25) — staver anderledes end det lyder
@@ -110,7 +110,7 @@ console.log('--- 4. Verden og monster passer tematisk ---');
 const tema = [
   [15, 'Ræven', /dyr|park/i, 'dyreverdenen skal have et dyr'],
   [20, 'Frøen', /natur|have/i, 'natur-verdenen skal have et naturvaesen'],
-  [18, 'Sokkemonstret', /tøj|tøj|kammer/i, 'tøj-verdenen skal handle om tøj'],
+  [18, 'Natsværmeren', /tøj|tøj|kammer/i, 'tøj-verdenen skal handle om tøj'],
   [22, 'Urmonstret', /tid|ur/i, 'tid-verdenen skal handle om tid'],
   [24, 'Stavelses-trolden', /skov/i, 'den svære skov skal have et væsen der driller med stavelser'],
   [25, 'Mester-dragen', /mester|skab/i, 'mesterskabet skal have en final boss'],

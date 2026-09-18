@@ -131,6 +131,11 @@ ikon) eller `—` (var i forvejen rigtigt). Kolonne **Familie** er skabnings-fam
 
 ### Side B — Ord-akademiet (12–23)
 
+> **OPDATERET 18. sep:** siden hedder nu **🌲 Den forbudte skov**, og 5 af monstrene er nye
+> skovvæsner (Spindelvæveren, Vildsvinet, Natsværmeren, Mangeøjet, Skyggeløberen) sammen med
+> 7 nye steds-navne. Tabellen nedenfor er den første beslutning (ikon-reglen og begrundelsen
+> for ikonerne gælder stadig); den nye beslutning står i **Docs/den-forbudte-skov.md**.
+
 | # | Verden | Ikon før | Boss (navn låst) | Boss-ikon før | Valg | Skabning efter | Familie |
 |---|---|---|---|---|---|---|---|
 | 13 | Bog-klassen | 📚 | Bogsnapperen | 📚 | — | Bog-monster 📚 | Objekt |

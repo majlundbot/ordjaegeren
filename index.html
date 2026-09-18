@@ -100,7 +100,7 @@
     border: 1px solid rgba(255,255,255,.15); box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 0 80px rgba(0,0,0,.35);
     background: #1a1035;
   }
-  /* ===== KORT-CAROUSEL: 2 separate verdener (Galaksen + Ord-akademiet) ===== */
+  /* ===== KORT-CAROUSEL: 3 separate verdener (Galaksen · Den forbudte skov · Mester-riget) ===== */
   .map-carousel {
     display: flex; width: 100%; max-width: 1100px; margin-top: 8px;
     overflow-x: auto; overflow-y: hidden; border-radius: 22px;
@@ -1302,7 +1302,8 @@
 
   /* ===== TEMA + QOL =====
      Temaet under kort-titlen: hvilken verden barnet er i (ikke bare hvilken "side").
-     Titlen er aftalen ("Ord-akademiet"), temaet er historien ("Den levende hverdag"). */
+     Titlen er stedet ("Den forbudte skov"), temaet er historien ("Den forbudte skov").
+     Se Docs/den-forbudte-skov.md. */
   .map-theme { text-align: center; margin-top: -4px; }
   .map-theme .mt-theme { display: block; font-size: 14px; font-weight: 900; color: #ffd76a; letter-spacing: .3px; }
   .map-theme .mt-line { display: block; font-size: 11.5px; font-weight: 600; color: #b9c4d0; margin-top: 2px; }
@@ -1485,7 +1486,7 @@
     <div class="map-dots" id="mapDots"></div>
     <button class="btn ghost small-map-btn" onclick="swipeMap(1)">▶</button>
   </div>
-  <div class="ta map-swipe-hint">Skift kort med ◀ ▶ — næste: Ord-akademiet 🎓</div>
+  <div class="ta map-swipe-hint">Skift kort med ◀ ▶ · næste: Den forbudte skov 🌲</div>
   <!-- MESTER-PRØVEN: belønningen for at øve sine EGNE svage ord. Den staar paa
        kortet, fordi det er her barnet vælger hvad det vil lave — en belønning man
        ikke kan se, vælger man ikke (samme fejl som XP-systemet havde). -->
@@ -2413,7 +2414,7 @@ const ACHIEVEMENTS = [
   { key: "five_dragons",  icon: "👾", name: "Monster-mester",     desc: "Besejr 5 monstre" },
   { key: "ten_dragons",   icon: "🛡️", name: "Monster-helt",     desc: "Besejr 10 monstre" },
   { key: "all_v1",        icon: "🚀", name: "Galakse-vinder",   desc: "Besejr alle 12 monstre i Verden 1" },
-  { key: "all_v2",        icon: "🎓", name: "Akademi-mester",   desc: "Besejr alle 12 monstre i Ord-akademiet" },
+  { key: "all_v2",        icon: "🌲", name: "Skov-mester",      desc: "Besejr alle 12 skovvæsner i Den forbudte skov" },
   { key: "perfect_game",  icon: "🏆", name: "Fejlfri",          desc: "Gennemfør en mission uden fejl" },
   { key: "level5",        icon: "🌟", name: "Stjerne-kriger",   desc: "Nå level 5" },
   { key: "level10",       icon: "💫", name: "Ord-kejser",       desc: "Nå level 10" },
@@ -2495,17 +2496,17 @@ const BOSSES = [
   { name: "Månemanden",           emoji: "🌝", form: "maanemand",        power:  32, c1: "#e9d5ff", c2: "#6b21a8" },
   { name: "Raketkraken",          emoji: "🦑", form: "blaeksprutte",     power:  35, c1: "#fca5a5", c2: "#b91c1c" },
   { name: "Galakse-kejseren",     emoji: "👾", form: "alien",            power:  40, c1: "#a5b4fc", c2: "#3730a3" },
-/* ============ VERDEN 2 (Ord-akademiet) — tema-monstre ============ */
+/* ============ SIDE B: DEN FORBUDTE SKOV — skovvaesner (se Docs/den-forbudte-skov.md) ============ */
   { name: "Bogsnapperen",         emoji: "📚", form: "bog",              power:  44, c1: "#fcd34d", c2: "#92400e" },
   { name: "Hustrolden",           emoji: "🏠", form: "troldHus",         power:  48, c1: "#86efac", c2: "#166534" },
   { name: "Troldefamilien",       emoji: "👪", form: "troldFamilie",     power:  52, c1: "#f9a8d4", c2: "#9d174d" },
   { name: "Ræven",                emoji: "🦊", form: "raev",             power:  56, c1: "#fdba74", c2: "#9a3412" },
-  { name: "Ballonmonstret",       emoji: "🎈", form: "ballon",           power:  60, c1: "#fde047", c2: "#a16207" },
-  { name: "Madmonstret",          emoji: "🍎", form: "mad",              power:  64, c1: "#fca5a5", c2: "#b91c1c" },
-  { name: "Sokkemonstret",        emoji: "🧦", form: "sok",              power:  68, c1: "#c4b5fd", c2: "#6d28d9" },
-  { name: "Muskelmonstret",       emoji: "💪", form: "muskel",           power:  72, c1: "#f9a8d4", c2: "#be185d" },
+  { name: "Spindelvæveren",       emoji: "🕷️", form: "spindel",          power:  60, c1: "#fde047", c2: "#a16207" },
+  { name: "Vildsvinet",           emoji: "🐗", form: "vildsvin",         power:  64, c1: "#fca5a5", c2: "#b91c1c" },
+  { name: "Natsværmeren",         emoji: "🦋", form: "natmoel",          power:  68, c1: "#c4b5fd", c2: "#6d28d9" },
+  { name: "Mangeøjet",            emoji: "👁️", form: "mangeoeje",        power:  72, c1: "#f9a8d4", c2: "#be185d" },
   { name: "Frøen",                emoji: "🐸", form: "froe",             power:  76, c1: "#a7f3d0", c2: "#047857" },
-  { name: "Hurtigløberen",        emoji: "🏃", form: "loeber",           power:  80, c1: "#93c5fd", c2: "#1d4ed8" },
+  { name: "Skyggeløberen",        emoji: "🐆", form: "skyggeloeb",       power:  80, c1: "#93c5fd", c2: "#1d4ed8" },
   { name: "Urmonstret",           emoji: "⏰", form: "ur",               power:  85, c1: "#e9d5ff", c2: "#7e22ce" },
   { name: "Følelsernes Kejser",   emoji: "😊", form: "foelseskejser",    power:  90, c1: "#fde68a", c2: "#b45309" },
 /* ============ VERDEN 3 (Mester-riget) — de sværeste ============
@@ -2553,23 +2554,24 @@ const WORLDS = [
   { name:"Måne-byen",           emoji:"🌝", words:["jo","mit","ind","vores","hej","mere","hans","skulle","blev","nogen"] },
   { name:"Raket-havet",         emoji:"🦑", words:["lidt","aldrig","får","siger","selv","far","over","to","kun","sådan"] },
   { name:"Galaksens kerne",     emoji:"👾", words:["ser","dit","jer","igen","mor","sammen","tager","mand","hele","deres"] },
-  /* ============ VERDEN 2: Ord-akademiet (sværere hverdagsord) ============
-     TEMA: 🏡 Den levende hverdag — alt herovre er levende (bogen bider, sokken
-     snapper, uret løber). Alle 12 monstre er hverdagsting der er blevet levende.
-     Verden 14 hed tidligere "Skrive-værkstedet", men dens ord ER hus-ord
-     (hus, køkken, stue …) og bossen er "Hustrolden" — navnet passede ikke til
-     indholdet. Se Docs/verdener-tema-og-qol.md. */
-  { name:"Bog-klassen",         emoji:"📚", words:["skole","bog","læse","skrive","tegne","time","klasse","lærer","lektie","tavle"] },
-  { name:"Hjemmets rum",        emoji:"🏠", words:["hus","køkken","stue","seng","dør","vindue","værelse","gulv","loft","væg"] },
-  { name:"Familiens hus",       emoji:"👪", words:["familie","bror","søster","bedstefar","bedstemor","onkel","moster","fætter","kusine","barn"] },
-  { name:"Dyre-parken",         emoji:"🦊", words:["hund","kat","hest","ko","gris","ræv","and","høne","kanin","mus"] },
-  { name:"Lege-pladsen",        emoji:"🎈", words:["bold","cykel","lege","løbe","hoppe","kaste","fange","spil","dukke","klods"] },
-  { name:"Mad-markedet",        emoji:"🍎", words:["mad","mælk","brød","ost","æble","banan","gulerod","kartoffel","smør","sukker"] },
-  { name:"Tøj-kammeret",        emoji:"🧦", words:["tøj","trøje","bukser","kjole","sko","sokker","jakke","hue","vanter","bælte"] },
-  { name:"Krop-værkstedet",     emoji:"💪", words:["krop","hoved","hår","øje","øre","næse","mund","tand","hånd","fod"] },
-  { name:"Natur-haven",         emoji:"🐸", words:["sol","måne","stjerne","sky","regn","sne","vind","træ","blomst","græs"] },
-  { name:"Handle-hallen",       emoji:"🏃", words:["spise","sove","sidde","stå","sige","give","bygge","male","synge","danse"] },
-  { name:"Tids-uret",           emoji:"⏰", words:["dag","nat","morgen","aften","uge","måned","år","klokken","minut","sekund"] },
+  /* ============ VERDEN 2 / SIDE B: 🌲 DEN FORBUDTE SKOV (sværere hverdagsord) ============
+     Kenneth 18. sep: "Ord akademiet er svagt. Det skal være Den forbudte skov, men farlige
+     skov væsner." Derfor er hvert sted nu et STED I SKOVEN (den glemte skole, den forladte
+     hytte, troldebakken, vilddyrenes sti, den glemte legeplads, svampe-markedet, tøj-hulen,
+     knogleskoven, den vilde natur, jagt-stien, tidens træ, følelses-skoven), og hvert
+     monster er en FARLIG SKOVSKABNING. Ordene er uændrede — de bliver nu lært på et farligt
+     sted. Se Docs/den-forbudte-skov.md. */
+  { name:"Den glemte skole",         emoji:"📚", words:["skole","bog","læse","skrive","tegne","time","klasse","lærer","lektie","tavle"] },
+  { name:"Den forladte hytte",        emoji:"🏠", words:["hus","køkken","stue","seng","dør","vindue","værelse","gulv","loft","væg"] },
+  { name:"Troldebakken",       emoji:"👪", words:["familie","bror","søster","bedstefar","bedstemor","onkel","moster","fætter","kusine","barn"] },
+  { name:"Vilddyrenes sti",         emoji:"🦊", words:["hund","kat","hest","ko","gris","ræv","and","høne","kanin","mus"] },
+  { name:"Den glemte legeplads",        emoji:"🕷️", words:["bold","cykel","lege","løbe","hoppe","kaste","fange","spil","dukke","klods"] },
+  { name:"Svampe-markedet",        emoji:"🐗", words:["mad","mælk","brød","ost","æble","banan","gulerod","kartoffel","smør","sukker"] },
+  { name:"Tøj-hulen",        emoji:"🦋", words:["tøj","trøje","bukser","kjole","sko","sokker","jakke","hue","vanter","bælte"] },
+  { name:"Knogleskoven",     emoji:"👁️", words:["krop","hoved","hår","øje","øre","næse","mund","tand","hånd","fod"] },
+  { name:"Den vilde natur",         emoji:"🐸", words:["sol","måne","stjerne","sky","regn","sne","vind","træ","blomst","græs"] },
+  { name:"Jagt-stien",       emoji:"🐆", words:["spise","sove","sidde","stå","sige","give","bygge","male","synge","danse"] },
+  { name:"Tidens træ",           emoji:"⏰", words:["dag","nat","morgen","aften","uge","måned","år","klokken","minut","sekund"] },
   { name:"Følelses-skoven",     emoji:"😊", words:["glad","trist","bange","vred","træt","sulten","tørstig","sjov","kedelig","modig"] },
   /* ============ VERDEN 3: de to sværeste (eget kort, side C) ============
      Verden 25: ord der staves anderledes end de lyder (stumme bogstaver).
@@ -4566,16 +4568,18 @@ function monsterShadow(rx) {
    Familien findes for at kunne se om en ny boss ligner en der er der i forvejen: to
    bosser i samme familie maa aldrig tegnes ens (testet i tests/ordj_bosser.js). */
 const MONSTER_FAMILIES = {
-  dino: "krybdyr", froe: "krybdyr", muskel: "krybdyr",
+  dino: "krybdyr", froe: "krybdyr",
   vandhest: "pattedyr", bjoern: "pattedyr", raev: "pattedyr", ulveflok: "pattedyr",
   ugle: "luft", flagermus: "luft",
   kraken: "vand", blaeksprutte: "vand",
   troldBjerg: "trold", troldSkov: "trold", troldFamilie: "trold", troldStavelse: "trold", troldSpejl: "trold",
   maanemand: "aand", stilhedsaand: "aand", spoegelse: "aand", skygge: "aand", droemme: "aand",
   alien: "robot", trafik: "robot", vogter: "robot",
-  troldKlokke: "objekt", bog: "objekt", troldHus: "objekt", ballon: "objekt",
-  mad: "objekt", sok: "objekt", ur: "objekt",
-  loeber: "menneske", foelseskejser: "menneske", tvilling: "menneske", troldmand: "menneske",
+  troldKlokke: "objekt", bog: "objekt", troldHus: "objekt", ur: "objekt",
+  foelseskejser: "menneske", tvilling: "menneske", troldmand: "menneske",
+  /* DEN FORBUDTE SKOV (side B): de farlige skovvaesner er deres EGEN familie, saa
+     det kan ses at siden har sin egen slags skabninger. Se Docs/den-forbudte-skov.md */
+  spindel: "skov", vildsvin: "skov", natmoel: "skov", mangeoeje: "skov", skyggeloeb: "skov",
   drage: "drage",
 };
 const MONSTER_FORMS = {
@@ -4594,20 +4598,20 @@ const MONSTER_FORMS = {
     <path d="M166 84 Q174 88 184 86" stroke="${u.c2}" stroke-width="2" fill="none"/>
     <path d="M110 92 L116 78 L124 94 M130 96 L136 82 L142 98 M96 92 L102 80 L108 94" fill="${u.c2}" opacity=".85"/>
     <path d="M96 110 Q100 122 96 126 Q92 122 96 110 M118 104 Q122 116 118 120 Q114 116 118 104 M52 120 Q56 130 52 134 Q48 130 52 120" fill="${u.c1}" opacity=".9"/>`,
-  // Muskelmonster: arme som hovedpersoner, lille hoved, står bredt.
-  muskel: u => monsterShadow(58) + `
-    <ellipse cx="110" cy="128" rx="34" ry="38" fill="url(#${u.g})"/>
-    <path d="M74 108 Q40 96 30 74 Q26 62 36 58 Q48 56 56 68 Q66 86 84 96 Z" fill="url(#${u.g})"/>
-    <path d="M146 108 Q180 96 190 74 Q194 62 184 58 Q172 56 164 68 Q154 86 136 96 Z" fill="url(#${u.g})"/>
-    <ellipse cx="34" cy="70" rx="17" ry="15" fill="${u.c1}"/>
-    <ellipse cx="186" cy="70" rx="17" ry="15" fill="${u.c1}"/>
-    <circle cx="110" cy="76" r="22" fill="url(#${u.g})"/>
-    ${monsterEyes(u, 102, 74, 5)}${monsterEyes(u, 118, 74, 5)}
-    <path d="M102 88 Q110 94 118 88" stroke="#2b2b35" stroke-width="2" fill="none"/>
-    <rect x="84" y="158" width="20" height="18" rx="6" fill="url(#${u.g})"/>
-    <rect x="116" y="158" width="20" height="18" rx="6" fill="url(#${u.g})"/>
-    <path d="M92 124 Q110 136 128 124 M96 138 Q110 148 124 138" stroke="rgba(0,0,0,.22)" stroke-width="2" fill="none"/>`,
-  // Frø: bred mund, øjne PÅ hovedet, lang tunge og lange bagben.
+  // Mangeøjet: kroppen er øjne og knogler — ét øje for hver kropsdel.
+  mangeoeje: u => monsterShadow(56) + `
+    <ellipse cx="110" cy="118" rx="52" ry="46" fill="url(#${u.g})"/>
+    <circle cx="80" cy="80" r="16" fill="${u.c1}"/><circle cx="80" cy="80" r="7" fill="#1f1300"/>
+    <circle cx="140" cy="80" r="16" fill="${u.c1}"/><circle cx="140" cy="80" r="7" fill="#1f1300"/>
+    <circle cx="110" cy="64" r="13" fill="${u.c1}"/><circle cx="110" cy="64" r="6" fill="#1f1300"/>
+    <circle cx="64" cy="120" r="12" fill="${u.c1}"/><circle cx="64" cy="120" r="5" fill="#1f1300"/>
+    <circle cx="156" cy="120" r="12" fill="${u.c1}"/><circle cx="156" cy="120" r="5" fill="#1f1300"/>
+    <circle cx="90" cy="140" r="10" fill="${u.c1}"/><circle cx="90" cy="140" r="4.4" fill="#1f1300"/>
+    <circle cx="130" cy="140" r="10" fill="${u.c1}"/><circle cx="130" cy="140" r="4.4" fill="#1f1300"/>
+    <circle cx="110" cy="112" r="7" fill="#fff" opacity=".85"/><circle cx="110" cy="112" r="3" fill="#1f1300"/>
+    <path d="M96 156 Q110 166 124 156" stroke="rgba(0,0,0,.45)" stroke-width="3" fill="none"/>
+    <path d="M100 156 L98 166 L104 158 M120 156 L122 166 L116 158" fill="#fff"/>
+    <path d="M62 150 Q40 162 30 178 M158 150 Q180 162 190 178 M110 162 Q110 172 110 178" stroke="${u.c2}" stroke-width="6" stroke-linecap="round" fill="none"/>`,
   froe: u => monsterShadow(56) + `
     <ellipse cx="104" cy="126" rx="56" ry="30" fill="url(#${u.g})"/>
     <circle cx="88" cy="88" r="19" fill="url(#${u.g})"/>
@@ -4894,46 +4898,53 @@ const MONSTER_FORMS = {
     <rect x="66" y="164" width="22" height="12" rx="5" fill="url(#${u.g})"/>
     <rect x="134" y="164" width="22" height="12" rx="5" fill="url(#${u.g})"/>
     <path d="M40 100 Q22 108 26 122 M180 100 Q198 108 194 122" stroke="${u.c2}" stroke-width="6" stroke-linecap="round" fill="none"/>`,
-  // Ballonmonstret: ballonkrop, knude-ører, snor-ben.
-  ballon: u => `
-    <ellipse cx="110" cy="176" rx="34" ry="6" fill="rgba(0,0,0,.3)"/>
-    <ellipse cx="110" cy="106" rx="50" ry="56" fill="url(#${u.g})"/>
-    <path d="M96 52 Q88 30 104 28 Q110 42 108 54 Z" fill="${u.c2}"/>
-    <path d="M124 52 Q132 30 116 28 Q110 42 112 54 Z" fill="${u.c2}"/>
-    <path d="M92 60 Q104 44 118 56" stroke="#fff" stroke-width="3" fill="none" opacity=".45"/>
-    <ellipse cx="88" cy="86" rx="12" ry="9" fill="#fff" opacity=".28"/>
-    ${monsterEyes(u, 94, 100, 7)}${monsterEyes(u, 128, 100, 7)}
-    <path d="M96 120 Q110 132 126 120" stroke="rgba(0,0,0,.35)" stroke-width="2.6" fill="none"/>
-    <path d="M108 160 L104 178 M112 160 L120 178 M116 160 L134 176" stroke="${u.c2}" stroke-width="3" fill="none"/>
-    <circle cx="104" cy="180" r="4" fill="${u.c1}"/><circle cx="120" cy="180" r="4" fill="${u.c1}"/><circle cx="136" cy="176" r="4" fill="${u.c1}"/>
-    <path d="M56 116 Q42 124 46 138" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M164 116 Q178 124 174 138" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
-  // Madmonstret: et æble med bid og tænder.
-  mad: u => `
-    <ellipse cx="110" cy="176" rx="52" ry="7" fill="rgba(0,0,0,.32)"/>
-    <path d="M110 62 Q60 62 52 110 Q44 158 110 162 Q176 158 168 110 Q160 62 110 62 Z" fill="url(#${u.g})"/>
-    <path d="M154 96 Q172 88 182 98 Q170 116 152 116 Q148 104 154 96 Z" fill="${u.c1}" opacity=".55"/>
-    <path d="M110 62 Q108 40 122 32 Q112 26 104 34 Q102 50 110 62 Z" fill="#166534"/>
-    <ellipse cx="134" cy="46" rx="20" ry="10" fill="#22c55e" transform="rotate(-20 134 46)"/>
-    ${monsterEyes(u, 88, 100, 7)}${monsterEyes(u, 124, 100, 7)}
-    <path d="M86 126 Q110 142 136 124 Q130 136 110 138 Q92 136 86 126 Z" fill="#7f1d1d"/>
-    <path d="M92 128 L96 138 L102 128 M118 128 L122 138 L128 128" fill="#fff"/>
-    <path d="M60 118 Q56 134 62 148 M158 118 Q162 134 156 148" stroke="rgba(0,0,0,.18)" stroke-width="3" fill="none"/>
-    <path d="M96 74 Q104 66 112 74" stroke="#fff" stroke-width="3" fill="none" opacity=".5"/>`,
-  // Sokkemonstret: sok med striber og knap-øje.
-  sok: u => `
-    <ellipse cx="110" cy="176" rx="46" ry="7" fill="rgba(0,0,0,.32)"/>
-    <path d="M78 44 L132 44 L136 116 Q162 122 164 148 Q166 170 132 172 Q100 172 84 156 Q72 140 74 116 Z" fill="url(#${u.g})"/>
-    <path d="M78 60 L134 60 M76 78 L134 78 M74 96 L134 96" stroke="${u.c1}" stroke-width="7" opacity=".75"/>
-    <path d="M78 44 Q80 30 90 30 L118 30 Q130 30 132 44 Z" fill="${u.c2}"/>
-    <circle cx="108" cy="122" r="8" fill="${u.c1}"/><circle cx="108" cy="122" r="4" fill="#1f1300"/>
-    <circle cx="146" cy="142" r="7" fill="url(#${u.e})"/><circle cx="146" cy="142" r="3.4" fill="#1f1300"/>
-    <path d="M148 156 Q162 160 164 150" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
-    <path d="M92 140 Q104 150 120 144" stroke="rgba(0,0,0,.2)" stroke-width="2" fill="none"/>
-    <path d="M84 156 Q92 168 104 168" stroke="${u.c2}" stroke-width="3" fill="none"/>
-    <path d="M52 96 Q40 84 44 70" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M168 122 Q184 116 190 104" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
-  // Urmonstret: vækkeur med ringeklokker, viser-ben.
+  // Spindelvæveren: kæmpeedderkop med spindelvæv i baggrunden og otte ben.
+  spindel: u => monsterShadow(60) + `
+    <path d="M28 30 Q110 150 192 30 M28 66 Q110 168 192 66 M66 12 Q110 150 154 12" stroke="${u.c1}" stroke-width="1.6" fill="none" opacity=".35"/>
+    <path d="M64 92 Q30 58 24 18 M156 92 Q190 58 196 18" stroke="${u.c2}" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M66 118 Q28 108 14 74 M154 118 Q192 108 206 74" stroke="url(#${u.g})" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M70 138 Q34 146 20 174 M150 138 Q186 146 200 174" stroke="url(#${u.g})" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M86 146 Q68 164 64 178 M134 146 Q152 164 156 178" stroke="${u.c2}" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <ellipse cx="110" cy="126" rx="42" ry="32" fill="url(#${u.g})"/>
+    <circle cx="110" cy="88" r="30" fill="url(#${u.g})"/>
+    <circle cx="110" cy="88" r="18" fill="${u.c1}" opacity=".5"/>
+    ${monsterEyes(u, 96, 80, 6)}${monsterEyes(u, 124, 80, 6)}${monsterEyes(u, 110, 100, 5)}
+    <path d="M98 108 Q110 118 122 108" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <path d="M100 112 L98 122 L104 114 M120 112 L122 122 L116 114" fill="#fff"/>
+    <path d="M74 140 Q110 152 146 140" stroke="rgba(0,0,0,.28)" stroke-width="2" fill="none"/>`,
+  // Vildsvinet: lav, tung krop, tryne, stødtænder og børster paa ryggen.
+  vildsvin: u => monsterShadow(64) + `
+    <ellipse cx="116" cy="122" rx="56" ry="34" fill="url(#${u.g})"/>
+    <path d="M96 92 L104 76 L112 92 L120 74 L128 92 L136 78 L144 94" fill="${u.c2}" opacity=".9"/>
+    <ellipse cx="70" cy="118" rx="38" ry="32" fill="url(#${u.g})"/>
+    <ellipse cx="44" cy="132" rx="22" ry="16" fill="${u.c1}"/>
+    <ellipse cx="33" cy="134" rx="9" ry="7" fill="${u.c2}"/>
+    <circle cx="31" cy="132" r="2.6" fill="#1f1300"/><circle cx="37" cy="138" r="2.6" fill="#1f1300"/>
+    <path d="M40 146 Q52 160 68 156 Q54 150 50 142 Z" fill="#fff"/>
+    <path d="M26 120 Q14 104 12 88 Q26 94 34 108 Z" fill="${u.c1}"/>
+    ${monsterEyes(u, 62, 106, 7)}${monsterEyes(u, 92, 102, 6)}
+    <path d="M74 138 Q94 150 114 138" stroke="rgba(0,0,0,.4)" stroke-width="2.6" fill="none"/>
+    <path d="M80 140 L76 152 L86 144 M106 140 L110 152 L100 144" fill="#fff"/>
+    <path d="M122 154 Q134 166 130 176 L148 176 Q152 164 144 154 Z" fill="url(#${u.g})"/>
+    <path d="M76 158 Q68 168 74 176 L58 178 Q54 166 62 156 Z" fill="url(#${u.g})"/>
+    <path d="M158 110 Q182 100 194 114 Q178 122 156 118 Z" fill="${u.c2}" opacity=".7"/>
+    <path d="M40 96 Q48 74 64 70" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+  // Natsværmeren: kæmpe møl med øjenpletter paa vingerne — spiser tøj om natten.
+  natmoel: u => `
+    <ellipse cx="110" cy="178" rx="40" ry="6" fill="rgba(0,0,0,.3)"/>
+    <path d="M110 60 Q56 24 20 62 Q6 96 40 124 Q78 140 110 116 Z" fill="url(#${u.g})"/>
+    <path d="M110 60 Q164 24 200 62 Q214 96 180 124 Q142 140 110 116 Z" fill="url(#${u.g})"/>
+    <circle cx="62" cy="86" r="13" fill="${u.c1}"/><circle cx="62" cy="86" r="6" fill="#1f1300" opacity=".5"/>
+    <circle cx="158" cy="86" r="13" fill="${u.c1}"/><circle cx="158" cy="86" r="6" fill="#1f1300" opacity=".5"/>
+    <path d="M36 110 Q72 126 106 108" stroke="${u.c2}" stroke-width="3" fill="none" opacity=".6"/>
+    <path d="M184 110 Q148 126 114 108" stroke="${u.c2}" stroke-width="3" fill="none" opacity=".6"/>
+    <ellipse cx="110" cy="106" rx="20" ry="44" fill="url(#${u.g})"/>
+    <path d="M96 74 Q92 44 74 30 M124 74 Q128 44 146 30" stroke="${u.c2}" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="74" cy="30" r="6" fill="${u.c1}"/><circle cx="146" cy="30" r="6" fill="${u.c1}"/>
+    ${monsterEyes(u, 102, 96, 6)}${monsterEyes(u, 118, 96, 6)}
+    <path d="M102 116 Q110 124 118 116" stroke="rgba(0,0,0,.35)" stroke-width="2" fill="none"/>
+    <path d="M108 150 L106 176 M112 150 L120 176" stroke="${u.c2}" stroke-width="4" stroke-linecap="round"/>
+    <path d="M104 128 Q102 146 106 158" stroke="${u.c1}" stroke-width="2" fill="none" opacity=".5"/>`,
   ur: u => `
     <ellipse cx="110" cy="176" rx="44" ry="7" fill="rgba(0,0,0,.32)"/>
     <circle cx="86" cy="52" r="20" fill="url(#${u.g})"/>
@@ -4999,21 +5010,22 @@ const MONSTER_FORMS = {
     <text x="110" y="135" font-size="9" font-weight="900" font-family="Arial, sans-serif" fill="#1f1300" text-anchor="middle">V</text>`,
 
   /* ---------- MENNESKE / MAGISK ---------- */
-  // Hurtigløberen: læner frem, fart-striber, sneakers.
-  loeber: u => `
-    <ellipse cx="112" cy="176" rx="46" ry="6" fill="rgba(0,0,0,.3)"/>
-    <circle cx="120" cy="52" r="22" fill="url(#${u.g})"/>
-    <path d="M100 46 Q120 26 142 40 Q136 30 116 28 Q100 32 100 46 Z" fill="${u.c2}"/>
-    ${monsterEyes(u, 126, 48, 5)}${monsterEyes(u, 110, 50, 4)}
-    <path d="M122 62 Q132 64 138 60" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
-    <path d="M104 74 Q124 68 140 78 Q150 96 142 118 L104 130 Q92 104 104 74 Z" fill="url(#${u.g})"/>
-    <path d="M142 84 Q168 74 182 92" stroke="url(#${u.g})" stroke-width="10" fill="none" stroke-linecap="round"/>
-    <path d="M104 122 Q84 132 72 152" stroke="url(#${u.g})" stroke-width="12" fill="none" stroke-linecap="round"/>
-    <path d="M120 126 Q140 140 146 164" stroke="url(#${u.g})" stroke-width="12" fill="none" stroke-linecap="round"/>
-    <path d="M64 156 Q56 170 44 172 L74 174 Q80 164 78 154 Z" fill="#f8fafc"/>
-    <path d="M140 168 Q136 176 128 178 L156 176 Q160 170 156 164 Z" fill="#ef4444"/>
-    <path d="M22 70 L54 62 M18 92 L48 88 M24 114 L50 110" stroke="${u.c1}" stroke-width="5" stroke-linecap="round" opacity=".85"/>`,
-  // Følelsernes Kejser: TRE ansigter — glad, vred, trist.
+  // Skyggeløberen: rovdyr i lavt jagtspring med fart-striber og lang hale.
+  skyggeloeb: u => monsterShadow(66) + `
+    <path d="M20 96 L54 92 M16 112 L50 110 M24 128 L56 126" stroke="${u.c1}" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+    <ellipse cx="116" cy="118" rx="56" ry="28" fill="url(#${u.g})"/>
+    <path d="M52 128 Q38 104 48 84 Q62 70 84 76 Q100 82 100 100 Q98 118 84 128 Z" fill="url(#${u.g})"/>
+    <path d="M46 92 Q42 76 54 72 Q60 80 58 90 Z" fill="${u.c2}"/>
+    <path d="M78 74 Q76 60 88 58 Q94 66 92 76 Z" fill="${u.c2}"/>
+    ${monsterEyes(u, 66, 102, 7.5)}${monsterEyes(u, 86, 100, 7.5)}
+    <path d="M50 116 Q62 124 76 118" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <path d="M54 118 L50 128 L60 122 M70 118 L74 128 L64 122" fill="#fff"/>
+    <rect x="88" y="142" width="16" height="30" rx="7" fill="url(#${u.g})"/>
+    <rect x="132" y="142" width="16" height="30" rx="7" fill="url(#${u.g})"/>
+    <ellipse cx="96" cy="174" rx="13" ry="6" fill="${u.c2}"/><ellipse cx="140" cy="174" rx="13" ry="6" fill="${u.c2}"/>
+    <path d="M164 112 Q196 96 200 60 Q184 82 156 96 Q150 104 156 114 Z" fill="url(#${u.g})"/>
+    <path d="M112 110 Q136 118 158 112" stroke="rgba(0,0,0,.2)" stroke-width="3" fill="none"/>
+    <path d="M172 96 L182 100 M178 106 L188 110 M180 114 L190 116" stroke="${u.c2}" stroke-width="3" stroke-linecap="round"/>`,
   foelseskejser: u => monsterShadow(56) + `
     <path d="M42 112 Q22 150 30 174 Q74 158 110 160 Q146 158 190 174 Q198 150 178 112 Q146 130 110 130 Q74 130 42 112 Z" fill="${u.c2}" opacity=".6"/>
     <ellipse cx="110" cy="124" rx="34" ry="34" fill="url(#${u.g})"/>
@@ -7183,7 +7195,7 @@ const MAP_POS = [
   { x: 10, y: 80 }, { x: 24, y: 60 }, { x: 18, y: 30 }, { x: 38, y: 16 },
   { x: 58, y: 26 }, { x: 74, y: 16 }, { x: 88, y: 32 }, { x: 80, y: 58 },
   { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 },
-  // ============ VERDEN 2: Ord-akademiet — SAMME layout som Verden 1 (identiske positioner) ============
+  // ============ SIDE B: Den forbudte skov — SAMME layout som side A (identiske positioner) ============
   { x: 10, y: 80 }, { x: 24, y: 60 }, { x: 18, y: 30 }, { x: 38, y: 16 },
   { x: 58, y: 26 }, { x: 74, y: 16 }, { x: 88, y: 32 }, { x: 80, y: 58 },
   { x: 90, y: 80 }, { x: 66, y: 76 }, { x: 48, y: 64 }, { x: 30, y: 84 },
@@ -7250,32 +7262,53 @@ function terrainMarkup(biome, x, y) {
 /* ============ BAGGRUND PR. KORT-SIDE (temaet skal kunne SES) ============
    Foer havde alle tre kort samme terræn og kun forskellig himmel — derfor føltes
    siderne som "mere af det samme" (Kenneth: "alt for AI agtigt"). Nu tegner hver side
-   sin EGEN verden bag kortene: et kvarter i solnedgang (den levende hverdag) og
+   sin EGEN verden bag kortene: den forbudte skov (stammer, tåge, et brudt hegn) og
    underverdenen med lava, stalagmitter og tåge.
    Alle tal er faste (ingen Math.random): et kort der skifter udseende hver gang man
    åbner det, ser ud som en fejl for et barn. */
 function pageBackdropMarkup(kind) {
   const p = [];
-  if (kind === "hverdag") {
-    // Solnedgang over kvarteret: sol, skyer, bakker, huse med tændte vinduer, gadelygter
-    p.push('<circle cx="300" cy="520" r="70" fill="#ffcf7a" opacity=".85"/>');
-    p.push('<circle cx="300" cy="520" r="112" fill="#ffb15a" opacity=".16"/>');
-    p.push('<ellipse cx="820" cy="150" rx="120" ry="30" fill="#ffffff" opacity=".12"/>');
-    p.push('<ellipse cx="960" cy="185" rx="90" ry="22" fill="#ffffff" opacity=".10"/>');
-    p.push('<path d="M0 644 Q220 566 460 636 Q700 702 1200 624 L1200 760 L0 760 Z" fill="#3a2a4a" opacity=".5"/>');
-    // Huse langs bunden (samme formsprog som terrænets "by")
-    [70, 200, 330, 470, 610, 750, 880, 1010, 1130].forEach((x, i) => {
-      const h = 54 + (i % 3) * 22;
-      p.push(`<rect x="${x}" y="${750 - h}" width="86" height="${h}" rx="4" fill="#241a33" opacity=".92"/>`);
-      p.push(`<polygon points="${x-8},${750-h} ${x+43},${750-h-26} ${x+94},${750-h}" fill="#3a2748" opacity=".95"/>`);
-      p.push(`<rect x="${x+14}" y="${762-h}" width="18" height="15" fill="#ffd76a" opacity=".9"/>`);
-      p.push(`<rect x="${x+54}" y="${762-h}" width="18" height="15" fill="#ffd76a" opacity=".7"/>`);
-      if (i % 2 === 0) p.push(`<rect x="${x+38}" y="${728-h}" width="12" height="20" rx="2" fill="#1a1226"/>`);
+  if (kind === "forbudtSkov") {
+    // DEN FORBUDTE SKOV: knitrende stammer, tågebånd, rødder, hængende slyngplanter,
+    // et BRUDT HEGN — og et par lysende øjne mellem stammerne. Lyset kommer ovenfra
+    // gennem kronerne, så midten af kortet er det lyseste (kortene skal kunne læses).
+    // Stammer i silhuet langs kanterne
+    [[36, 150, 46], [150, 210, 38], [520, 130, 46], [700, 200, 40], [980, 170, 48], [1120, 120, 42]]
+      .forEach(([x, h, w]) => {
+        p.push(`<polygon points="${x-w/2},760 ${x-w/3},${760-h} ${x+w/3},${760-h} ${x+w/2},760" fill="#08160f" opacity=".95"/>`);
+        p.push(`<ellipse cx="${x}" cy="${760-h+10}" rx="${w*1.5}" ry="34" fill="#0d2417" opacity=".9"/>`);
+      });
+    // Kroner oppefra (så midten holdes lys)
+    p.push('<path d="M0 0 L1200 0 L1200 70 Q900 130 600 96 Q300 64 0 110 Z" fill="#061109" opacity=".9"/>');
+    p.push('<path d="M0 0 L1200 0 L1200 34 Q940 74 620 44 Q320 18 0 52 Z" fill="#030a06" opacity=".85"/>');
+    // Slyngplanter der hænger ned fra kronerne
+    [240, 430, 760, 990].forEach((x, i) => {
+      const d = 90 + (i % 3) * 40;
+      p.push(`<path d="M${x} 60 q10 ${d/2} -6 ${d} q-8 ${d/3} 4 ${d/2}" stroke="#1d4a2c" stroke-width="3" fill="none" opacity=".8"/>`);
     });
-    // Gadelygter: varme lys i kvarteret
-    [140, 520, 900].forEach(x => {
-      p.push(`<rect x="${x}" y="676" width="5" height="74" fill="#1a1226" opacity=".8"/>`);
-      p.push(`<circle cx="${x+3}" cy="672" r="9" fill="#ffe9a8" opacity=".85"/>`);
+    // Tågebånd (bevæger sig ikke — et kort der skifter udseende ser ud som en fejl)
+    p.push('<ellipse cx="300" cy="600" rx="360" ry="60" fill="#9fd6b0" opacity=".07"/>');
+    p.push('<ellipse cx="880" cy="450" rx="420" ry="70" fill="#9fd6b0" opacity=".06"/>');
+    p.push('<ellipse cx="600" cy="700" rx="520" ry="70" fill="#cfe8d6" opacity=".05"/>');
+    // Det brudte hegn: nogen har brudt ind (eller ud)
+    [420, 470, 520, 570].forEach((x, i) => {
+      const tilt = i === 2 ? 16 : 0;
+      p.push(`<rect x="${x}" y="${i === 2 ? 640 : 620}" width="9" height="${i === 2 ? 120 : 140}" rx="3" fill="#2a1c10" opacity=".9" transform="rotate(${tilt} ${x+4} 690)"/>`);
+    });
+    p.push('<rect x="412" y="656" width="170" height="8" rx="3" fill="#33220f" opacity=".85" transform="rotate(-6 497 660)"/>');
+    p.push('<rect x="560" y="690" width="90" height="8" rx="3" fill="#33220f" opacity=".7" transform="rotate(22 605 694)"/>');
+    // Rødder ved bunden
+    [[180, 120], [340, 90], [640, 110], [860, 96], [1060, 126]].forEach(([x, h]) => {
+      p.push(`<polygon points="${x-40},760 ${x},${760-h} ${x+40},760" fill="#0a1a11" opacity=".85"/>`);
+    });
+    // ØJNE i mørket: par der kigger ud mellem stammerne
+    [[470, 300], [700, 250], [250, 380], [960, 320]].forEach(([x, y], i) => {
+      const r = i % 2 ? 4.5 : 6;
+      p.push(`<circle cx="${x}" cy="${y}" r="${r*3.4}" fill="#d6ff9a" opacity=".07"/>`);
+      p.push(`<circle cx="${x-6}" cy="${y}" r="${r}" fill="#eaffb0" opacity=".9"/>`);
+      p.push(`<circle cx="${x+6}" cy="${y}" r="${r}" fill="#eaffb0" opacity=".9"/>`);
+      p.push(`<circle cx="${x-6}" cy="${y}" r="${r*0.45}" fill="#12240f"/>`);
+      p.push(`<circle cx="${x+6}" cy="${y}" r="${r*0.45}" fill="#12240f"/>`);
     });
   } else if (kind === "underverden") {
     // Stalagmitter, lavaspraekker, taagebaand og et blegt maanehul i taget
@@ -7303,8 +7336,8 @@ function pageBackdropMarkup(kind) {
 }
 /* ============ KORT-SIDERNE ============
    Tre kort, bygget efter PRÆCIS samme mønster (renderMapPanel + swipe):
-     side 0 = Galaksen (verden 1-12), side 1 = Ord-akademiet (13-24),
-     side 2 = Mester-riget (verden 25-36).
+     side 0 = Galaksen (verden 1-12), side 1 = Den forbudte skov (13-24),
+     side 2 = Mester-riget / Underverdenen (verden 25-36).
    Kenneth har insisteret på at kortene er identiske i layout — derfor har hver side
    sine EGNE 12 positioner (se MAP_POS), så verden 25-36 ikke lægges oveni verden 1-12.
    Alle tre sider har nu 12 verdener; siden ≥ 24 hører til side 2.
@@ -7314,32 +7347,33 @@ function pageBackdropMarkup(kind) {
    Underverdenen."
    Siderne har derfor fået hver sin GENNEMTÆNKTE identitet — og det er ikke kosmetik:
      A  rummet: ude i rummet bor de første ord (uændret — den virker)
-     B  den levende hverdag: alle tingene omkring barnet ER levende. Det er ikke et
-        tilfælde: alle 12 monstre på siden er netop hverdagsting der er blevet levende
-        (bogen bider, sokken snapper, uret løber, maden gnaver). Det giver barnet en
-        historie i stedet for en liste af emner.
+     B  den forbudte skov: hvert sted er et sted i skoven (den glemte skole, den
+        forladte hytte, troldebakken, vilddyrenes sti, den glemte legeplads,
+        svampe-markedet, tøj-hulen, knogleskoven, den vilde natur, jagt-stien,
+        tidens træ, følelses-skoven) og hvert monster er en FARLIG SKOVSKABNING.
      C  Underverdenen: det mørke spejlbillede UNDER byen. Siden har byens gader, skolens
         loft og samfundet som SPEJLBILLEDER (derfor "Spejl-søen"), og monstrene er
         underverdenens egne: trolde, spøgelser, skygger, ulveflok, troldmanden — og til
         sidst Mester-dragen, som er den eneste drage i spillet.
-   Titlen ("Ord-akademiet", "Mester-riget") er aftalen med Kenneth og står uændret;
-   temaet er den historie barnet møder. Se Docs/verdener-tema-og-qol.md. */
+   Kenneth 18. sep: "Ord akademiet er svagt. Det skal være Den forbudte skov, men
+   farlige skov væsner." Titlerne står nu som "Den forbudte skov" og "Mester-riget",
+   og temaet er den historie barnet møder. Se Docs/den-forbudte-skov.md. */
 const MAP_PAGES = [
   { title: "🌌 Galaksen",      theme: "🌌 Galaksen",            sky: "rum",
     line: "Ude i rummet bor de første ord — og de monstre der vogter dem.",
-    start: 0,  end: 12, letter: "A", hint: "◀ ▶ skifter kort · næste: Den levende hverdag 🏡" },
-  { title: "🎓 Ord-akademiet", theme: "🏡 Den levende hverdag", sky: "hverdag",
-    line: "Her er ALT levende: bogen bider, sokken snapper, uret løber.",
+    start: 0,  end: 12, letter: "A", hint: "◀ ▶ skifter kort · næste: Den forbudte skov 🌲" },
+  { title: "🌲 Den forbudte skov", theme: "🌲 Den forbudte skov", sky: "forbudtSkov",
+    line: "Skoven man ikke må gå ind i — og de væsner der bor i den.",
     start: 12, end: 24, letter: "B", hint: "◀ ▶ skifter kort · næste: Underverdenen 🌑" },
   { title: "🏆 Mester-riget",  theme: "🌑 Underverdenen",       sky: "underverden",
     line: "Det mørke spejlbillede under byen — hvor de sværeste ord og den sidste drage bor.",
-    start: 24, end: 36, letter: "C", hint: "◀ ▶ skifter kort · tilbage: Den levende hverdag 🏡" }
+    start: 24, end: 36, letter: "C", hint: "◀ ▶ skifter kort · tilbage: Den forbudte skov 🌲" }
 ];
 // Hvilket kort hører en verden til? (verden 25-36 ligger på den tredje side)
 function mapPageForWorld(i) { return i >= 24 ? 2 : i >= 12 ? 1 : 0; }
 function mapLetterForWorld(i) { return MAP_PAGES[mapPageForWorld(i)].letter; }
 function renderWorldMap() {
-  // Tre separate kort: A = Galaksen (0-11), B = Ord-akademiet (12-23), C = Mester-riget (24-35)
+  // Tre separate kort: A = Galaksen (0-11), B = Den forbudte skov (12-23), C = Mester-riget (24-35)
   MAP_PAGES.forEach(p => renderMapPanel("worldMap" + p.letter, p.start, p.end, p.title));
   // Vis det kort hvor helten er
   setMapPage(mapPageForWorld(state.mapAt || 0), false);
@@ -7414,15 +7448,15 @@ function renderMapPanel(elId, start, end, title) {
   const kind = page.sky || "rum";
   const skyDefs = {
     rum: '<linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient>',
-    // Den levende hverdag: solnedgang over kvarteret — varmt, men moerkt nok til at
-    // kortenes hvide tekst kan laeses.
-    hverdag: '<linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1d2a5a"/><stop offset="52%" stop-color="#6a4a7a"/><stop offset="100%" stop-color="#d9924f"/></linearGradient>',
+    // Den forbudte skov: naesten sort med en kold groen tone — lyset kommer ned gennem
+    // kronerne, ikke fra en sol.
+    forbudtSkov: '<linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#050f0a"/><stop offset="55%" stop-color="#122a1c"/><stop offset="100%" stop-color="#2c4a2a"/></linearGradient>',
     // Underverdenen: naesten sort med gloede fra lavaen nederst.
     underverden: '<linearGradient id="skyC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0710"/><stop offset="45%" stop-color="#3a1018"/><stop offset="100%" stop-color="#7a2412"/></linearGradient>'
   };
-  const skyId = { rum: "skyA", hverdag: "skyB", underverden: "skyC" }[kind];
+  const skyId = { rum: "skyA", forbudtSkov: "skyB", underverden: "skyC" }[kind];
   // Farvetonen binder terrænet sammen med temaet (samme layout, forskellig verden)
-  const tint = { rum: "rgba(70,50,150,.10)", hverdag: "rgba(255,175,105,.13)", underverden: "rgba(150,10,25,.28)" }[kind];
+  const tint = { rum: "rgba(70,50,150,.10)", forbudtSkov: "rgba(20,60,30,.42)", underverden: "rgba(150,10,25,.28)" }[kind];
   map.innerHTML = `<svg class="map-svg" data-page="${kind}" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice">` +
     `<defs>${skyDefs[kind]}</defs>` +
     `<rect width="1200" height="760" fill="url(#${skyId})"/>` +
@@ -7527,8 +7561,8 @@ function updateMapChrome() {
   const t = document.getElementById("mapTitle");
   if (t) t.textContent = p.title;
   /* TEMAET under titlen: barnet skal vide HVILKEN verden det er i — ikke bare hvilken
-     "side" det er. Titlen er aftalen ("Ord-akademiet"), temaet er historien
-     ("Den levende hverdag"). Se Docs/verdener-tema-og-qol.md. */
+     "side" det er. Titlen er STEDET ("Den forbudte skov"), temaet er historien.
+     Se Docs/den-forbudte-skov.md. */
   const th = document.getElementById("mapTheme");
   if (th) th.innerHTML = `<span class="mt-theme">${p.theme}</span><span class="mt-line">${p.line || ""}</span>`;
   const hint = document.querySelector(".map-swipe-hint");

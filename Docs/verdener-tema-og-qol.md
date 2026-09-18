@@ -1,5 +1,12 @@
 # Verdenernes tema + QOL — "de andre 2 er ikke gennemtænkt"
 
+> **OPDATERET 18. sep:** Kenneth har set den udsendte version og dømt: *"Galaksen og Mester
+> Riget er fedt. Ord akademiet er svagt. Det skal være Den forbudte skov, men farlige skov
+> væsner."* Side B er derfor bygget om fra "Den levende hverdag" til ** Den forbudte skov**.
+> Beslutningen, de 12 nye steder og de 5 nye skovvæsner står i **Docs/den-forbudte-skov.md**.
+> Side A og side C er uændrede. Resten af dette dokument er historik (og gælder stadig for
+> side C's tema, QOL-arbejdet og de to kort-baggrunde).
+
 Kenneth, 17. sep om aftenen:
 > *"Du må også gerne gentænke alle verdener. Jeg synes vores første verden 'galaksen' er
 > rigtig god og det giver mening med monstre.. De andre 2 er ikke gennemtænkt og virker alt

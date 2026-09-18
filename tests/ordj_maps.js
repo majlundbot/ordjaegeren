@@ -62,14 +62,14 @@ check('kort B (Akademiet) har 12 verdener', cardsOf('worldMapB').length === 12, 
 check('kort C (Mester-riget) har 12 verdener', cardsOf('worldMapC').length === 12, cardsOf('worldMapC').length);
 check('alle tre kort har LIGE mange kort (identisk layout)', cardsOf('worldMapA').length === cardsOf('worldMapB').length && cardsOf('worldMapB').length === cardsOf('worldMapC').length);
 check('kort A indeholder Start-planeten', cardsOf('worldMapA').some(c => c.innerHTML.includes('Start-planeten')));
-check('kort B indeholder Bog-klassen', cardsOf('worldMapB').some(c => c.innerHTML.includes('Bog-klassen')));
+check('kort B indeholder Den glemte skole', cardsOf('worldMapB').some(c => c.innerHTML.includes('Den glemte skole')));
 check('kort C indeholder Den svære skov', cardsOf('worldMapC').some(c => c.innerHTML.includes('Den svære skov')));
 check('kort C indeholder Mesterskabet', cardsOf('worldMapC').some(c => c.innerHTML.includes('Mesterskabet')));
 check('kort C indeholder de 10 nye verdener (27-36)', [
   'Dobbelt-bjerget','Stum-skoven','Byens gader','Skole-loftet','Vildt-reservatet',
   'Følelses-fjeldet','Spejl-søen','Samfunds-byen','Eventyr-riget','Drømme-tårnet'
 ].every(n => cardsOf('worldMapC').some(c => c.innerHTML.includes(n))));
-check('kort A har IKKE akademi-ord', !cardsOf('worldMapA').some(c => c.innerHTML.includes('Bog-klassen')));
+check('kort A har IKKE skovens steder', !cardsOf('worldMapA').some(c => c.innerHTML.includes('Den glemte skole')));
 check('kort B har IKKE galakse-ord', !cardsOf('worldMapB').some(c => c.innerHTML.includes('Start-planeten')));
 check('kort A+B viser IKKE side C-verdener', !cardsOf('worldMapA').concat(cardsOf('worldMapB')).some(c => c.innerHTML.includes('Mesterskabet') || c.innerHTML.includes('Drømme-tårnet')));
 check('kort A har 1 helt', heroesIn('worldMapA').length === 1);
@@ -98,7 +98,7 @@ setMapPage(0, false);
 check('titlen er Galaksen på side 0', els['mapTitle'].textContent.includes('Galaksen'));
 check('der er 3 prikker i navigeringen', (els['mapDots'].innerHTML.match(/map-dot/g) || []).length === 3, els['mapDots'].innerHTML);
 setMapPage(1, false);
-check('titlen er akademiet på side 1', els['mapTitle'].textContent.includes('Ord-akademiet'));
+check('titlen er Den forbudte skov på side 1', els['mapTitle'].textContent.includes('Den forbudte skov'));
 setMapPage(2, false);
 check('titlen er Mester-riget på side 2', els['mapTitle'].textContent.includes('Mester-riget'));
 check('praecis én prik lyser', (els['mapDots'].innerHTML.match(/map-dot on/g) || []).length === 1, els['mapDots'].innerHTML);
