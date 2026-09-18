@@ -11,6 +11,8 @@
 const fs = require('fs');
 const path = require('path');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
+// index.html selv, så tema-checks (afsnit 13) læser den RIGTIGE fil — ikke en tom streng
+global.__html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf-8');
 
 global.fakeCanvas = { getContext: () => ({ clearRect(){}, fillRect(){}, beginPath(){}, arc(){}, ellipse(){}, fill(){}, stroke(){}, save(){}, restore(){}, translate(){}, rotate(){}, drawImage(){}, createRadialGradient(){ return { addColorStop(){} }; }, measureText: () => ({width:10}) }), width:0, height:0 };
 // Stub med toggle(c, f) der RESPEKTERER tvang — mærket vises/skjules netop med toggle
@@ -96,6 +98,34 @@ state.talentPoints = 1;
 heroWelcomeAfterWin();
 check('banneret nævner det ubrugte point når man har ét',
   el('heroWelcome').innerHTML.indexOf('1 talent-point') > 0, el('heroWelcome').innerHTML);
+/* 12) DØD-ENDE-VÆRN: har man point, men ALLE tre grene er fyldt op, må mærket ikke
+   love noget der ikke kan bruges (Kenneths regel: ingen døde knapper). */
+state.talentPoints = 3;
+state.talents = { hp: 5, power: 5, crit: 5 };     // alle grene på max
+renderTalentBadge();
+check('alle grene fyldt op: mærkerne vises ikke (der er intet at bruge pointene på)',
+  skjult('tpPill') && skjult('heroPlus'));
+heroWelcomeAfterWin();
+check('alle grene fyldt op: banneret siger det højt i stedet for at love en opgradering',
+  el('heroWelcome').innerHTML.indexOf('fyldt op') > 0, el('heroWelcome').innerHTML);
+state.talents = { hp: 4, power: 5, crit: 5 };     // én gren har plads
+renderTalentBadge();
+check('én gren med plads: mærket er tilbage', !skjult('tpPill'));
+state.talents = { hp: 0, power: 0, crit: 0 };
+state.talentPoints = 0;
+renderTalentBadge();
+
+/* 13) TEMA-KONSISTENS: siden hedder Den forbudte skov (18. sep). Den gamle
+   Ord-akademi-tekst må ikke ligge tilbage i det barnet kan læse. */
+const html2 = global.__html || '';
+[['7 % fra akademi-monstre', 'skatte-tavlens tekst'],
+ ['akademi-monstre (verden 13-24)', 'skattekortets forklaring'],
+ ['Akademi-monstre kan droppe', 'sejrs-beskeden'],
+ ['Akademi-kronen', 'item-navnet'],
+ ['Akademi-mester', 'bedrifts-navnet']].forEach(([tekst, hvor]) => {
+  check('gammel akademi-tekst er væk fra ' + hvor + ' ("' + tekst + '")', html2.indexOf(tekst) < 0);
+});
+
 global.setTimeout = _st;
 `;
 new Function(src.replace('const cv = document.getElementById("bg")', 'var cv = fakeCanvas') + '\n' + t)();

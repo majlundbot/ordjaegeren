@@ -1724,7 +1724,7 @@
         <div class="mythic-board" id="mythicBoard">
           <div class="mb-label mb-mythic" id="mbMythic">❓ MYTISKE<small>10 % fra monstre</small></div>
           <div class="mythic-track" id="mythicTrack"></div>
-          <div class="mb-label mb-secret" id="mbSecret">🔮 HEMMELIGE<small>7 % fra akademi-monstre</small></div>
+          <div class="mb-label mb-secret" id="mbSecret">🔮 HEMMELIGE<small>7 % fra skov-monstre</small></div>
           <div class="mb-label mb-asgard" id="mbAsgard">❓ ASEGÅRD<small>Besejr bossen i Den svære skov og Mesterskabet</small></div>
           <!-- FJERDE gruppe: TROFÆER. De kan KUN komme fra Mester-prøven — ikke fra
                kuben, hjulet eller bossen. Eksklusiviteten er hele grunden til at
@@ -2087,7 +2087,7 @@ const MYTHIC_ITEMS = [
 // ============ VERDEN 2: SECRET ITEMS (end-game på akademiet — mega specielle) ============
 // Kun fra Verden 2-monstre og lykkehjulet der. 6 unikke items, hver med et MEGA-angreb.
 const SECRET_ITEMS = [
-  { slot: "helm",   name: "Akademi-kronen",          attack: { key: "secretcrown",   icon: "🎓", name: "Videns-blitz",   mult: 22, color: "#ff4ecd" }, color: "#ff4ecd" },
+  { slot: "helm",   name: "Skov-kronen",          attack: { key: "secretcrown",   icon: "🎓", name: "Videns-blitz",   mult: 22, color: "#ff4ecd" }, color: "#ff4ecd" },
   { slot: "weapon", name: "Ordets Forbandede Sværd", attack: { key: "secretblade",   icon: "🗡️", name: "Ord-kaos",       mult: 25, color: "#40e0ff" }, color: "#40e0ff" },
   { slot: "armor",  name: "Evighedens Rustning",     attack: { key: "secretarmor",   icon: "🛡️", name: "Evigheds-værn",  mult: 28, color: "#7cf8a8" }, color: "#7cf8a8" },
   { slot: "shield", name: "Den Glemte Aegis",        attack: { key: "secretshield",  icon: "🪩", name: "Glemt-skjold",   mult: 30, color: "#ffd166" }, color: "#ffd166" },
@@ -2410,9 +2410,16 @@ function critChance() {
 /* ⭐ UBRUGTE TALENT-POINT: ét sted der bestemmer om mærket kan ses.
    Kaldes fra renderXpBar (XP ændrer sig), renderHero (point brugt/ændret) og efter
    indlæsning af en gemt profil. */
+function talentKanBruges() {
+  // Er der point OG mindst én gren der ikke er fyldt op? Ellers ville mærket pege på en
+  // skærm hvor der ikke kan gøres noget (Kenneths regel: ingen døde knapper).
+  if (!state || (state.talentPoints || 0) <= 0) return false;
+  if (typeof TALENTS === "undefined" || !TALENTS.length) return true;
+  return TALENTS.some(t => talentLevel(t.key) < t.max);
+}
 function renderTalentBadge() {
   const n = (typeof state !== "undefined" && state && state.talentPoints) || 0;
-  const vis = n > 0;
+  const vis = (typeof talentKanBruges === "function") ? talentKanBruges() : n > 0;
   const pill = document.getElementById("tpPill");
   const num = document.getElementById("tpPillNum");
   const plus = document.getElementById("heroPlus");
@@ -2444,10 +2451,12 @@ function heroWelcomeAfterWin() {
   if (!b || !b.classList || typeof b.classList.remove !== "function") return;
   const n = (state && state.talentPoints) || 0;
   b.classList.remove("hidden");
-  b.innerHTML = n > 0
-    ? "🏆 <b>Sejr!</b> Du har ⭐ " + n + (n === 1 ? " talent-point" : " talent-point") +
-      " — tryk på en gren nedenfor og gør helten stærkere."
-    : "🏆 <b>Sejr!</b> Ingen ubrugte point lige nu — du får ⭐ 1 for hvert niveau.";
+  const kanBruges = (typeof talentKanBruges === "function") ? talentKanBruges() : n > 0;
+  b.innerHTML = kanBruges
+    ? "🏆 <b>Sejr!</b> Du har ⭐ " + n + " talent-point — tryk på en gren nedenfor og gør helten stærkere."
+    : (n > 0
+        ? "🏆 <b>Sejr!</b> Alle tre grene er fyldt op — du er på toppen af talent-træet! ⭐ " + n + " point venter på noget nyt."
+        : "🏆 <b>Sejr!</b> Ingen ubrugte point lige nu — du får ⭐ 1 for hvert niveau.");
 }
 function spendTalent(key) {
   const t = TALENTS.find(t => t.key === key);
@@ -3299,7 +3308,7 @@ function showHero() {
    herunder. Så kan man både se HVAD man mangler og HVORDAN man får det. */
 const TREASURE_HOW = {
   mythic: "10 % chance når du besejrer et monster",
-  secret: "7 % chance fra akademi-monstre (verden 13-24)",
+  secret: "7 % chance fra skov-monstre (verden 13-24)",
   asgard: "besejr bossen i Den svære skov (verden 25) eller Mesterskabet (verden 26)",
   trofe: "klarer Mester-prøven — øv de ord du selv var svag i (2 rigtige i træk pr. ord)"
 };
@@ -3357,7 +3366,7 @@ function renderHero() {
     const d = document.createElement("div");
     const has = owned["s_" + m.slot];
     d.className = "mythic-slot secret" + (has ? " owned" : "");
-    d.title = "🔮 " + m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (7% chance fra akademi-monstre!)");
+    d.title = "🔮 " + m.name + " — " + m.attack.name + " ×" + m.attack.mult + (has ? "" : " (7% chance fra skov-monstre!)");
     d.innerHTML = has ? m.attack.icon : "🔮";
     d.onclick = () => showTreasureInfo("secret", m, has);
     track.appendChild(d);
@@ -5732,7 +5741,7 @@ function bossWin() {
     }
     document.getElementById("bossHint").textContent =
       (cur.world === 24 || cur.world === 25) ? "De to ASEGÅRD-verdener (25 og 26) giver 🏔️ ASEGÅRD — gudernes eget udstyr (Kraft ×45-60)!"
-      : inAcademy ? "Akademi-monstre kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!"
+      : inAcademy ? "Skov-monstrene kan droppe 🔮 HEMMELIGE items (7%) — de stærkeste i spillet!"
       : "25% Mytisk · 25% Legendarisk · 50% Magisk";
     renderAttacks();
     checkAchievements();

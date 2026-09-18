@@ -37,7 +37,7 @@ check('i→i hul (kort ord)', blankInSentence('i', 'Jeg går i skole.', '____').
 
 // 3) SECRET system
 const sItem = makeItem('helm', 'secret');
-check('secret item oprettes', sItem.rarity === 'secret' && sItem.secret === true && sItem.name === 'Akademi-kronen', JSON.stringify(sItem));
+check('secret item oprettes', sItem.rarity === 'secret' && sItem.secret === true && sItem.name === 'Skov-kronen', JSON.stringify(sItem));
 check('secretForSlot', secretForSlot('weapon').name === 'Ordets Forbandede Sværd');
 check('raritet-secret findes med power 15', RARITIES.find(r => r.key === 'secret').power === 15);
 
