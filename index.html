@@ -1014,21 +1014,10 @@
   .boss-hero.attack-1 { animation: heroLunge1 .5s cubic-bezier(.3,1.4,.4,1); }
   .boss-hero.attack-2 { animation: heroLunge2 .6s cubic-bezier(.3,1.4,.4,1); }
   .boss-hero.attack-3 { animation: heroLunge3 .72s cubic-bezier(.3,1.4,.4,1); }
-  @keyframes heroLunge1 { 0% { transform: translate(0,0); }
-    16% { transform: translate(-9px,0) scale(.97); }
-    52% { transform: translate(44px,-7px) scale(1.07); }
-    100% { transform: translate(0,0); } }
-  @keyframes heroLunge2 { 0% { transform: translate(0,0); }
-    14% { transform: translate(-12px,0) scale(.96); }
-    46% { transform: translate(40px,-13px) scale(1.09); }
-    62% { transform: translate(46px,-4px) scale(1.05); }
-    100% { transform: translate(0,0); } }
-  @keyframes heroLunge3 { 0% { transform: translate(0,0); }
-    12% { transform: translate(-14px,0) scale(.95); }
-    36% { transform: translate(50px,-10px) scale(1.10); }
-    52% { transform: translate(34px,-2px) scale(1.04); }
-    70% { transform: translate(54px,-12px) scale(1.09); }
-    100% { transform: translate(0,0); } }
+  /* heroLunge1/2/3 er opgraderet til rigtige HOP (med bue) og staar laengere nede,
+     sammen med kamp-animationerne — se "===== KAMP-ANIMATIONER =====" ved
+     .boss-dragon.attack-leap. (Springet blev lagt der, saa alle kamp-bevægelser
+     laeses eet sted.) */
   .boss-hero.recoil { animation: heroRecoil .42s ease-out; }
   @keyframes heroRecoil { 0% { transform: translate(0,0); }
     35% { transform: translate(-26px,4px) rotate(-5deg); }
@@ -1039,10 +1028,14 @@
     60% { transform: translate(-6px,0) scale(.96); }
     100% { transform: translate(0,0); } }
   .boss-dragon.counter { animation: dragonCounter .5s cubic-bezier(.3,1.4,.4,1); }
-  @keyframes dragonCounter { 0% { transform: translate(0,0); }
-    18% { transform: translate(12px,0) scale(.96); }
-    50% { transform: translate(-42px,6px) scale(1.05); }
-    100% { transform: translate(0,0); } }
+  /* "counter" er nu et SPRING med tilloeb (Kenneth: "de hopper frem") — ikke et stik.
+     Navnet er beholdt, fordi baade koden og den eksisterende test kalder det "counter". */
+  @keyframes dragonCounter { 0% { transform: translate(0,0) scale(1); }
+    18% { transform: translate(16px,4px) scale(1.06,.92); }
+    32% { transform: translate(22px,7px) scale(.95,1.07); }
+    54% { transform: translate(-56px,-22px) scale(1.07,.97); }
+    70% { transform: translate(-38px,-4px) scale(.96,1.08); }
+    100% { transform: translate(0,0) scale(1); } }
   @keyframes hurt { 25% { transform: translateX(-10px) rotate(-8deg); } 75% { transform: translateX(10px) rotate(8deg); } }
   .boss-dragon.dead { filter: grayscale(1) brightness(.45) !important; }
   .boss-dragon.breathe { animation: breathe 2.6s ease-in-out infinite; }
@@ -1206,6 +1199,157 @@
   .stats-row .sr-num { font-size: 12px; color: #9fb0e8; flex: 0 0 auto; }
   .stats-row .sr-stars { flex: 0 0 auto; color: var(--accent); font-size: 13px; }
   .stats-row .sr-time { font-size: 11px; color: #9fb0e8; flex: 0 0 auto; }
+
+  /* ===== KAMP-ANIMATIONER =====
+     Kenneth: "kan man lave noget med de hopper frem og at der sker lidt?"
+     Foer stak monsteret bare frem. Nu SPRINGER det: tilloeb, spring gennem luften,
+     tung landing — og helten hopper frem med en stoevsky ved afsaettet. Alt er CSS. */
+  .boss-dragon { position: relative; }
+  /* Monsterets spring: traekker sig sammen (tilloeb) -> springer frem OG op -> lander. */
+  .boss-dragon.attack-leap { animation: monsterLeap .64s cubic-bezier(.22,1.4,.36,1); }
+  @keyframes monsterLeap {
+    0%   { transform: translate(0,0) scale(1,1); }
+    18%  { transform: translate(16px,4px) scale(1.06,.92); }     /* tilloeb: traekker vaek, synker */
+    30%  { transform: translate(22px,7px) scale(.95,1.07); }     /* afsaet */
+    54%  { transform: translate(-56px,-24px) scale(1.07,.97); }  /* i luften, frem mod helten */
+    68%  { transform: translate(-38px,-4px) scale(.96,1.09); }   /* lander tungt */
+    84%  { transform: translate(-8px,0) scale(1.03,.98); }
+    100% { transform: translate(0,0) scale(1,1); }
+  }
+  /* Det STORE spring (opladet angreb / signaturangreb): længere, hårdere landing. */
+  .boss-dragon.attack-leap-big { animation: monsterLeapBig .9s cubic-bezier(.22,1.5,.3,1); }
+  @keyframes monsterLeapBig {
+    0%   { transform: translate(0,0) scale(1,1); }
+    14%  { transform: translate(24px,6px) scale(1.1,.88); }
+    26%  { transform: translate(30px,10px) scale(.92,1.1); }
+    48%  { transform: translate(-76px,-40px) scale(1.12,.95) rotate(-4deg); }
+    64%  { transform: translate(-52px,-2px) scale(.92,1.14); }   /* BUM */
+    78%  { transform: translate(-20px,0) scale(1.06,.96); }
+    100% { transform: translate(0,0) scale(1,1); }
+  }
+  /* Ramt: monsteret kastes baglaens og roterer let — rekyl, ikke bare rysten. */
+  .boss-dragon.knockback { animation: monsterKnockback .44s cubic-bezier(.3,1.3,.5,1); }
+  @keyframes monsterKnockback {
+    0%   { transform: translate(0,0) rotate(0); }
+    28%  { transform: translate(30px,-8px) rotate(10deg) scale(.94); }
+    58%  { transform: translate(14px,4px) rotate(-4deg); }
+    100% { transform: translate(0,0) rotate(0); }
+  }
+  /* OPLADNINGEN KAN SES PAA MONSTERET: det vokser, gloeder og faar en ring paa gulvet.
+     Det er hele grunden til at barnet skal trykke Paraer — advarslen maa ikke kun staa
+     som tekst oeverst, den skal sidde PAA skabningen. */
+  .boss-dragon.charging { animation: monsterCharge 1.1s ease-in-out infinite; }
+  @keyframes monsterCharge {
+    0%,100% { transform: scale(1) translateY(0); filter: brightness(1) saturate(1); }
+    50%     { transform: scale(1.13) translateY(-4px); filter: brightness(1.55) saturate(1.3); }
+  }
+  .boss-dragon.charging::after {
+    content: ""; position: absolute; left: 50%; bottom: -4px; width: 120px; height: 26px;
+    margin-left: -60px; border-radius: 50%; border: 3px solid var(--chargec, #f87171);
+    pointer-events: none; animation: chargeRing .9s ease-in-out infinite;
+  }
+  @keyframes chargeRing {
+    0%,100% { transform: scale(.78); opacity: .3; }
+    50%     { transform: scale(1.2); opacity: .95; }
+  }
+  /* Heltens HOP: op i luften midt i springet (en bue, ikke en glidning). */
+  @keyframes heroLunge1 { 0% { transform: translate(0,0); }
+    14% { transform: translate(-10px,2px) scale(.96,.94); }
+    34% { transform: translate(18px,-22px) scale(1.02,1.05); }
+    54% { transform: translate(44px,-6px) scale(1.08,.98); }
+    70% { transform: translate(38px,0) scale(1.02,.99); }
+    100% { transform: translate(0,0); } }
+  @keyframes heroLunge2 { 0% { transform: translate(0,0); }
+    12% { transform: translate(-13px,3px) scale(.95,.93); }
+    30% { transform: translate(16px,-26px) scale(1.03,1.06); }
+    46% { transform: translate(42px,-14px) scale(1.09,.99); }
+    62% { transform: translate(50px,-2px) scale(1.05,.98); }
+    100% { transform: translate(0,0); } }
+  @keyframes heroLunge3 { 0% { transform: translate(0,0); }
+    10% { transform: translate(-14px,4px) scale(.94,.92); }
+    26% { transform: translate(14px,-28px) scale(1.04,1.07); }
+    40% { transform: translate(52px,-12px) scale(1.11,1); }
+    54% { transform: translate(34px,0) scale(1.02,.97); }
+    68% { transform: translate(56px,-20px) scale(1.09,1.02); }
+    84% { transform: translate(44px,0) scale(1.03,.98); }
+    100% { transform: translate(0,0); } }
+  /* Arenaen ryster der hvor slaget er — ikke bare hele skaermen. */
+  .boss-arena.quake { animation: arenaQuake .32s ease-in-out; }
+  .boss-arena.quake-big { animation: arenaQuakeBig .52s ease-in-out; }
+  @keyframes arenaQuake {
+    0%,100% { transform: translate(0,0); }
+    20% { transform: translate(-5px,2px) rotate(-.4deg); }
+    45% { transform: translate(4px,-3px); }
+    70% { transform: translate(-3px,1px); }
+  }
+  @keyframes arenaQuakeBig {
+    0%,100% { transform: translate(0,0); }
+    12% { transform: translate(-10px,4px) rotate(-.9deg); }
+    30% { transform: translate(9px,-5px) rotate(.7deg); }
+    48% { transform: translate(-7px,-3px); }
+    66% { transform: translate(5px,3px); }
+    84% { transform: translate(-3px,1px); }
+  }
+  /* Stoevsky ved afsaet/landing: slag maerkes i gulvet. */
+  .fx-dust {
+    position: absolute; width: 11px; height: 11px; border-radius: 50%; z-index: 21;
+    opacity: .8; animation: dustOut linear forwards;
+  }
+  @keyframes dustOut {
+    0% { transform: translate(0,0) scale(1); opacity: .85; }
+    100% { transform: translate(var(--dx,20px),-14px) scale(2.4); opacity: 0; }
+  }
+
+  /* ===== TEMA + QOL =====
+     Temaet under kort-titlen: hvilken verden barnet er i (ikke bare hvilken "side").
+     Titlen er aftalen ("Ord-akademiet"), temaet er historien ("Den levende hverdag"). */
+  .map-theme { text-align: center; margin-top: -4px; }
+  .map-theme .mt-theme { display: block; font-size: 14px; font-weight: 900; color: #ffd76a; letter-spacing: .3px; }
+  .map-theme .mt-line { display: block; font-size: 11.5px; font-weight: 600; color: #b9c4d0; margin-top: 2px; }
+  .world-theme { font-size: 12.5px; font-weight: 800; color: #ffd76a; margin: 2px 0 8px; }
+  /* HVEM VENTER DER: monsteret vist FØR kampen — motivet til at klare missionerne.
+     Ikke en knap (en knap man ikke må trykke på, er en død knap). Bare et billede
+     af skabningen + hvad den er. */
+  .wb-preview {
+    display: flex; align-items: center; gap: 12px; text-align: left;
+    margin: 12px 0 0; padding: 8px 12px; border-radius: 14px;
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+  }
+  .wb-preview.wbp-done { border-color: rgba(74,222,128,.45); background: rgba(74,222,128,.08); }
+  .wb-preview .wbp-fig { width: 78px; height: 66px; flex: 0 0 auto; filter: drop-shadow(0 0 12px rgba(255,210,63,.25)); }
+  .wb-preview .wbp-fig svg { width: 100%; height: 100%; }
+  .wb-preview .wbp-text { min-width: 0; }
+  .wb-preview .wbp-text b { display: block; font-size: 15px; font-weight: 900; }
+  .wb-preview .wbp-text span { display: block; font-size: 12px; font-weight: 700; color: #9fb0e8; margin-top: 1px; }
+  /* PARÉR-KNAPPEN SIGER SELV HVAD DEN VIL: naar monsteret lader op, lyser den og
+     skifter tekst til "PARÉR NU!" — ellers er den daempet. Et barn der trykker
+     "Parér" i blinde mister liv uden at forstaa hvorfor; nu kan man SE hvornaar. */
+  .defend-btn.parry-idle { opacity: .6; }
+  .defend-btn.parry-now {
+    border-color: #38bdf8 !important; color: #eaf6ff !important;
+    background: linear-gradient(135deg, rgba(56,189,248,.35), rgba(56,189,248,.15)) !important;
+    animation: parryPulse .7s ease-in-out infinite;
+  }
+  @keyframes parryPulse {
+    0%,100% { box-shadow: 0 0 10px rgba(56,189,248,.5); }
+    50% { box-shadow: 0 0 26px rgba(56,189,248,1), 0 0 46px rgba(56,189,248,.45); }
+  }
+
+  /* ===== REDUCER BEVÆGELSE ===== */
+     Nogle boern (og foraeldre) bliver daarlige af bevaegelse. Slaaet til i systemet
+     ("Reducér bevægelse" paa iPad/mac): saa ryster, springer og blinker intet —
+     men alt det VIGTIGE kan stadig ses (advarselsteksten, skaden, HP-bjaelkerne).
+     Vi fjerner ikke information, kun bevaegelse. */
+  @media (prefers-reduced-motion: reduce) {
+    .boss-hero, .boss-dragon, .boss-arena, .boss-vs, .fx-dust,
+    .screen-shake, .screen-shake-big, .fx-flash, .fx-banner, .fx-ring, .fx-slash,
+    .fx-spark, .fx-boom, .fx-projectile, .fx-confetti, .fx-dmg, .charge-warn,
+    .energy-wrap.full .energy-fill, .sig-btn:not(:disabled), .cm-combo, .dice.rolling,
+    .defend-btn.parry-now, #hud, .toast, .xp-fly { animation: none !important; transition: none !important; }
+    .boss-dragon.charging::after { animation: none !important; opacity: .8; }
+    /* Glimt uden blink: figuren lyser kort op naar den rammes, men staar stille. */
+    .hit-flash { animation: none !important; filter: brightness(1.7) saturate(.35) !important; }
+  }
 </style>
 </head>
 <body>
@@ -1326,6 +1470,8 @@
 <!-- WORLD MAP -->
 <div class="screen" id="screen-map">
   <div class="title" style="font-size:clamp(28px,7vw,44px)" id="mapTitle">🌌 Galaksen</div>
+  <!-- TEMAET under titlen: hvilken VERDEN er barnet i (ikke bare hvilken side) -->
+  <div class="map-theme" id="mapTheme"></div>
   <div class="map-carousel" id="mapCarousel">
     <div class="worldmap" id="worldMapA"></div>
     <div class="worldmap" id="worldMapB"></div>
@@ -1359,9 +1505,14 @@
   <div class="panel">
     <span class="big-emoji" id="worldEmoji"></span>
     <h2 id="worldName"></h2>
+    <div class="world-theme" id="worldTheme"></div>
     <div class="collect" id="worldWords"></div>
     <div class="world-status" id="worldStatus"></div>
     <div class="game-grid" id="gameGrid"></div>
+    <!-- HVEM VENTER DER? Barnet skal kunne SE monsteret FØR kampen. Det er både
+         motivation ("ham skal jeg slå") og selve reglen: det dyr du ser, er det dyr
+         du kæmper mod. Vises altid — også før missionerne er klaret. -->
+    <div class="wb-preview" id="worldBossPreview"></div>
     <button class="btn red" id="bossBtn" style="margin-top:14px;display:none" onclick="startBoss(cur.world)">👾 Kæmp mod monsteret</button>
     <button class="btn ghost" style="margin-top:10px" onclick="showWorldMap()">← Tilbage</button>
   </div>
@@ -2332,38 +2483,38 @@ function showAchievements() {
 
 /* ============ DRAGE-BOSSER (giver manden et formål) ============ */
 const BOSSES = [
-  { name: "Slimklumpen",           emoji: "🫧", power:  5, c1: "#6ee7b7", c2: "#059669" },
-  { name: "Bjergtrolden",          emoji: "🪨", power:  8, c1: "#d6d3d1", c2: "#57534e" },
-  { name: "Ekko-uglen",            emoji: "🦉", power: 11, c1: "#fde68a", c2: "#b45309" },
-  { name: "Skovtrolden",           emoji: "🌳", power: 14, c1: "#86efac", c2: "#15803d" },
-  { name: "Gåde-kraken",           emoji: "🐙", power: 17, c1: "#c4b5fd", c2: "#6d28d9" },
-  { name: "Strømhesten",           emoji: "🐎", power: 20, c1: "#7dd3fc", c2: "#0369a1" },
-  { name: "Huleflagermusen",       emoji: "🦇", power: 23, c1: "#a78bfa", c2: "#4c1d95" },
-  { name: "Klokketrolden",         emoji: "🕰️", power: 26, c1: "#e9d5ff", c2: "#7e22ce" },
-  { name: "Stjernevogteren",       emoji: "⭐", power: 29, c1: "#fef08a", c2: "#ca8a04" },
-  { name: "Månemanden",            emoji: "🌜", power: 32, c1: "#e9d5ff", c2: "#6b21a8" },
-  { name: "Raketkraken",           emoji: "🚀", power: 35, c1: "#fca5a5", c2: "#b91c1c" },
-  { name: "Galakse-kejseren",      emoji: "🌀", power: 40, c1: "#a5b4fc", c2: "#3730a3" },
+  { name: "Slimklumpen",          emoji: "🦖", form: "dino",             power:   5, c1: "#6ee7b7", c2: "#059669" },
+  { name: "Bjergtrolden",         emoji: "🧌", form: "troldBjerg",       power:   8, c1: "#d6d3d1", c2: "#57534e" },
+  { name: "Ekko-uglen",           emoji: "🦉", form: "ugle",             power:  11, c1: "#fde68a", c2: "#b45309" },
+  { name: "Skovtrolden",          emoji: "🌳", form: "troldSkov",        power:  14, c1: "#86efac", c2: "#15803d" },
+  { name: "Gåde-kraken",          emoji: "🐙", form: "kraken",           power:  17, c1: "#c4b5fd", c2: "#6d28d9" },
+  { name: "Strømhesten",          emoji: "🐎", form: "vandhest",         power:  20, c1: "#7dd3fc", c2: "#0369a1" },
+  { name: "Huleflagermusen",      emoji: "🦇", form: "flagermus",        power:  23, c1: "#a78bfa", c2: "#4c1d95" },
+  { name: "Klokketrolden",        emoji: "🔔", form: "troldKlokke",      power:  26, c1: "#e9d5ff", c2: "#7e22ce" },
+  { name: "Stjernevogteren",      emoji: "🐻", form: "bjoern",           power:  29, c1: "#fef08a", c2: "#ca8a04" },
+  { name: "Månemanden",           emoji: "🌝", form: "maanemand",        power:  32, c1: "#e9d5ff", c2: "#6b21a8" },
+  { name: "Raketkraken",          emoji: "🦑", form: "blaeksprutte",     power:  35, c1: "#fca5a5", c2: "#b91c1c" },
+  { name: "Galakse-kejseren",     emoji: "👾", form: "alien",            power:  40, c1: "#a5b4fc", c2: "#3730a3" },
 /* ============ VERDEN 2 (Ord-akademiet) — tema-monstre ============ */
-  { name: "Bogsnapperen",          emoji: "📚", power: 44, c1: "#fcd34d", c2: "#92400e" },
-  { name: "Hustrolden",            emoji: "🏠", power: 48, c1: "#86efac", c2: "#166534" },
-  { name: "Troldefamilien",        emoji: "👪", power: 52, c1: "#f9a8d4", c2: "#9d174d" },
-  { name: "Ræven",                 emoji: "🦊", power: 56, c1: "#fdba74", c2: "#9a3412" },
-  { name: "Ballonmonstret",        emoji: "🎈", power: 60, c1: "#fde047", c2: "#a16207" },
-  { name: "Madmonstret",           emoji: "🍎", power: 64, c1: "#fca5a5", c2: "#b91c1c" },
-  { name: "Sokkemonstret",         emoji: "🧦", power: 68, c1: "#c4b5fd", c2: "#6d28d9" },
-  { name: "Muskelmonstret",        emoji: "💪", power: 72, c1: "#f9a8d4", c2: "#be185d" },
-  { name: "Frøen",                 emoji: "🐸", power: 76, c1: "#a7f3d0", c2: "#047857" },
-  { name: "Hurtigløberen",         emoji: "🏃", power: 80, c1: "#93c5fd", c2: "#1d4ed8" },
-  { name: "Urmonstret",            emoji: "⏰", power: 85, c1: "#e9d5ff", c2: "#7e22ce" },
-  { name: "Følelsernes Kejser",    emoji: "😊", power: 90, c1: "#fde68a", c2: "#b45309" },
+  { name: "Bogsnapperen",         emoji: "📚", form: "bog",              power:  44, c1: "#fcd34d", c2: "#92400e" },
+  { name: "Hustrolden",           emoji: "🏠", form: "troldHus",         power:  48, c1: "#86efac", c2: "#166534" },
+  { name: "Troldefamilien",       emoji: "👪", form: "troldFamilie",     power:  52, c1: "#f9a8d4", c2: "#9d174d" },
+  { name: "Ræven",                emoji: "🦊", form: "raev",             power:  56, c1: "#fdba74", c2: "#9a3412" },
+  { name: "Ballonmonstret",       emoji: "🎈", form: "ballon",           power:  60, c1: "#fde047", c2: "#a16207" },
+  { name: "Madmonstret",          emoji: "🍎", form: "mad",              power:  64, c1: "#fca5a5", c2: "#b91c1c" },
+  { name: "Sokkemonstret",        emoji: "🧦", form: "sok",              power:  68, c1: "#c4b5fd", c2: "#6d28d9" },
+  { name: "Muskelmonstret",       emoji: "💪", form: "muskel",           power:  72, c1: "#f9a8d4", c2: "#be185d" },
+  { name: "Frøen",                emoji: "🐸", form: "froe",             power:  76, c1: "#a7f3d0", c2: "#047857" },
+  { name: "Hurtigløberen",        emoji: "🏃", form: "loeber",           power:  80, c1: "#93c5fd", c2: "#1d4ed8" },
+  { name: "Urmonstret",           emoji: "⏰", form: "ur",               power:  85, c1: "#e9d5ff", c2: "#7e22ce" },
+  { name: "Følelsernes Kejser",   emoji: "😊", form: "foelseskejser",    power:  90, c1: "#fde68a", c2: "#b45309" },
 /* ============ VERDEN 3 (Mester-riget) — de sværeste ============
    Kraften følger den stigende kurve hele vejen igennem. Fra verden 25 og frem
    stiger den uden stop, og den SIDSTE verden (36) er derfor den stærkeste i
    spillet. Mester-dragen (kraft 110) er stadig den stærkeste drage og den
    eneste vej til ASEGÅRD-udstyret. */
-  { name: "Stavelses-trolden",     emoji: "🌲", power: 95, c1: "#86efac", c2: "#14532d" },
-  { name: "Mester-dragen",         emoji: "🐉", power: 110, c1: "#fffbe8", c2: "#b45309" }, // final boss i Mester-rigets FØRSTE halvdel — ikke som de andre
+  { name: "Stavelses-trolden",    emoji: "👹", form: "troldStavelse",    power:  95, c1: "#86efac", c2: "#14532d" },
+  { name: "Mester-dragen",        emoji: "🐉", form: "drage",            power: 110, c1: "#fffbe8", c2: "#b45309" }, // final boss i Mester-rigets FØRSTE halvdel — ikke som de andre
 /* ============ VERDEN 3 udvidet: 10 NYE MONSTRE (verden 27-36) ============
    KRAFTEN FORTSÆTTER DEN STIGENDE KURVE HELE VEJEN (testen "kraften stiger for hver
    verden" kræver det), og derfor bliver den SIDSTE verden nu den stærkeste — ikke
@@ -2377,62 +2528,67 @@ const BOSSES = [
         gudernes udstyr. Det er en anden og vigtigere slags "stærkest".
    Den sidste verden (36) er "🌌 Drømme-kejseren" med kraft 180 — loftet er 200 i
    testen, så der er plads til en udvidelse mere senere. */
-  { name: "Tvillingen",           emoji: "👯", power: 116, c1: "#a7f3d0", c2: "#065f46" }, // dobbeltkonsonanter: alt kommer i par
-  { name: "Stilheds-ånden",       emoji: "👻", power: 122, c1: "#e2e8f0", c2: "#475569" }, // stumme bogstaver: den siger ingenting
-  { name: "Trafik-trolden",       emoji: "🚦", power: 128, c1: "#fde68a", c2: "#b45309" },
-  { name: "Klassens Spøgelse",    emoji: "🎓", power: 134, c1: "#bfdbfe", c2: "#1e3a8a" },
-  { name: "Ulveflokken",          emoji: "🐺", power: 140, c1: "#cbd5e1", c2: "#334155" },
-  { name: "Sorgens Skygge",       emoji: "😢", power: 147, c1: "#c4b5fd", c2: "#4c1d95" },
-  { name: "Spejl-trolden",        emoji: "🪞", power: 154, c1: "#a5f3fc", c2: "#155e75" },
-  { name: "Byens Vogter",         emoji: "🚓", power: 161, c1: "#93c5fd", c2: "#1e40af" },
-  { name: "Troldmands-kongen",    emoji: "🧙", power: 170, c1: "#ddd6fe", c2: "#5b21b6" },
-  { name: "Drømme-kejseren",      emoji: "🌌", power: 180, c1: "#fbcfe8", c2: "#831843" }, // STÆRKEST I SPILLET — sidste verden på side C
+  { name: "Tvillingen",           emoji: "👯", form: "tvilling",         power: 116, c1: "#a7f3d0", c2: "#065f46" }, // dobbeltkonsonanter: alt kommer i par
+  { name: "Stilheds-ånden",       emoji: "🫥", form: "stilhedsaand",     power: 122, c1: "#e2e8f0", c2: "#475569" }, // stumme bogstaver: den siger ingenting
+  { name: "Trafik-trolden",       emoji: "🚦", form: "trafik",           power: 128, c1: "#fde68a", c2: "#b45309" },
+  { name: "Klassens Spøgelse",    emoji: "👻", form: "spoegelse",        power: 134, c1: "#bfdbfe", c2: "#1e3a8a" },
+  { name: "Ulveflokken",          emoji: "🐺", form: "ulveflok",         power: 140, c1: "#cbd5e1", c2: "#334155" },
+  { name: "Sorgens Skygge",       emoji: "😢", form: "skygge",           power: 147, c1: "#c4b5fd", c2: "#4c1d95" },
+  { name: "Spejl-trolden",        emoji: "🪞", form: "troldSpejl",       power: 154, c1: "#a5f3fc", c2: "#155e75" },
+  { name: "Byens Vogter",         emoji: "🚓", form: "vogter",           power: 161, c1: "#93c5fd", c2: "#1e40af" },
+  { name: "Troldmands-kongen",    emoji: "🧙", form: "troldmand",        power: 170, c1: "#ddd6fe", c2: "#5b21b6" },
+  { name: "Drømme-kejseren",      emoji: "🌌", form: "droemme",          power: 180, c1: "#fbcfe8", c2: "#831843" }, // STÆRKEST I SPILLET — sidste verden på side C
 ];
 
 const WORLDS = [
   { name:"Start-planeten",      emoji:"🦖", words:["jeg","det","er","du","ikke","at","i","en","og","har"] },
-  { name:"Ord-bjergene",        emoji:"🦊", words:["vi","til","på","hvad","med","så","for","mig","der","han"] },
-  { name:"Lyd-dalen",           emoji:"🐼", words:["dig","de","den","kan","igennem","var","vil","her","et","skal"] },
-  { name:"Sætnings-skoven",     emoji:"🐸", words:["men","ved","om","nu","ja","som","hun","nej","min","noget"] },
-  { name:"Gåde-øen",            emoji:"🦁", words:["ham","være","bare","din","hvor","må","hvis","os","kom","ud"] },
-  { name:"Fart-floden",         emoji:"🐯", words:["dem","godt","fra","have","ville","se","gør","okay","hvorfor","alle"] },
-  { name:"Hemmelige-hulen",     emoji:"🐨", words:["lige","op","hende","sig","hvordan","tror","tak","gøre","kunne","lad"] },
-  { name:"Tids-tårnet",         emoji:"🦄", words:["kommer","havde","eller","meget","nok","få","da","ingen","man","gå"] },
-  { name:"Stjernemarken",       emoji:"🐲", words:["går","hvem","bliver","efter","sagde","tilbage","når","alt","måske","også"] },
-  { name:"Måne-byen",           emoji:"🤖", words:["jo","mit","ind","vores","hej","mere","hans","skulle","blev","nogen"] },
-  { name:"Raket-havet",         emoji:"👾", words:["lidt","aldrig","får","siger","selv","far","over","to","kun","sådan"] },
-  { name:"Galaksens kerne",     emoji:"🚀", words:["ser","dit","jer","igen","mor","sammen","tager","mand","hele","deres"] },
-  /* ============ VERDEN 2: Ord-akademiet (sværere hverdagsord) ============ */
+  { name:"Ord-bjergene",        emoji:"🧌", words:["vi","til","på","hvad","med","så","for","mig","der","han"] },
+  { name:"Lyd-dalen",           emoji:"🦉", words:["dig","de","den","kan","igennem","var","vil","her","et","skal"] },
+  { name:"Sætnings-skoven",     emoji:"🌳", words:["men","ved","om","nu","ja","som","hun","nej","min","noget"] },
+  { name:"Gåde-øen",            emoji:"🐙", words:["ham","være","bare","din","hvor","må","hvis","os","kom","ud"] },
+  { name:"Fart-floden",         emoji:"🐎", words:["dem","godt","fra","have","ville","se","gør","okay","hvorfor","alle"] },
+  { name:"Hemmelige-hulen",     emoji:"🦇", words:["lige","op","hende","sig","hvordan","tror","tak","gøre","kunne","lad"] },
+  { name:"Tids-tårnet",         emoji:"🔔", words:["kommer","havde","eller","meget","nok","få","da","ingen","man","gå"] },
+  { name:"Stjernemarken",       emoji:"🐻", words:["går","hvem","bliver","efter","sagde","tilbage","når","alt","måske","også"] },
+  { name:"Måne-byen",           emoji:"🌝", words:["jo","mit","ind","vores","hej","mere","hans","skulle","blev","nogen"] },
+  { name:"Raket-havet",         emoji:"🦑", words:["lidt","aldrig","får","siger","selv","far","over","to","kun","sådan"] },
+  { name:"Galaksens kerne",     emoji:"👾", words:["ser","dit","jer","igen","mor","sammen","tager","mand","hele","deres"] },
+  /* ============ VERDEN 2: Ord-akademiet (sværere hverdagsord) ============
+     TEMA: 🏡 Den levende hverdag — alt herovre er levende (bogen bider, sokken
+     snapper, uret løber). Alle 12 monstre er hverdagsting der er blevet levende.
+     Verden 14 hed tidligere "Skrive-værkstedet", men dens ord ER hus-ord
+     (hus, køkken, stue …) og bossen er "Hustrolden" — navnet passede ikke til
+     indholdet. Se Docs/verdener-tema-og-qol.md. */
   { name:"Bog-klassen",         emoji:"📚", words:["skole","bog","læse","skrive","tegne","time","klasse","lærer","lektie","tavle"] },
-  { name:"Skrive-værkstedet",   emoji:"✏️", words:["hus","køkken","stue","seng","dør","vindue","værelse","gulv","loft","væg"] },
-  { name:"Familiens hus",       emoji:"🏠", words:["familie","bror","søster","bedstefar","bedstemor","onkel","moster","fætter","kusine","barn"] },
-  { name:"Dyre-parken",         emoji:"🐾", words:["hund","kat","hest","ko","gris","ræv","and","høne","kanin","mus"] },
-  { name:"Lege-pladsen",        emoji:"⚽", words:["bold","cykel","lege","løbe","hoppe","kaste","fange","spil","dukke","klods"] },
+  { name:"Hjemmets rum",        emoji:"🏠", words:["hus","køkken","stue","seng","dør","vindue","værelse","gulv","loft","væg"] },
+  { name:"Familiens hus",       emoji:"👪", words:["familie","bror","søster","bedstefar","bedstemor","onkel","moster","fætter","kusine","barn"] },
+  { name:"Dyre-parken",         emoji:"🦊", words:["hund","kat","hest","ko","gris","ræv","and","høne","kanin","mus"] },
+  { name:"Lege-pladsen",        emoji:"🎈", words:["bold","cykel","lege","løbe","hoppe","kaste","fange","spil","dukke","klods"] },
   { name:"Mad-markedet",        emoji:"🍎", words:["mad","mælk","brød","ost","æble","banan","gulerod","kartoffel","smør","sukker"] },
-  { name:"Tøj-kammeret",        emoji:"👕", words:["tøj","trøje","bukser","kjole","sko","sokker","jakke","hue","vanter","bælte"] },
+  { name:"Tøj-kammeret",        emoji:"🧦", words:["tøj","trøje","bukser","kjole","sko","sokker","jakke","hue","vanter","bælte"] },
   { name:"Krop-værkstedet",     emoji:"💪", words:["krop","hoved","hår","øje","øre","næse","mund","tand","hånd","fod"] },
-  { name:"Natur-haven",         emoji:"🌳", words:["sol","måne","stjerne","sky","regn","sne","vind","træ","blomst","græs"] },
+  { name:"Natur-haven",         emoji:"🐸", words:["sol","måne","stjerne","sky","regn","sne","vind","træ","blomst","græs"] },
   { name:"Handle-hallen",       emoji:"🏃", words:["spise","sove","sidde","stå","sige","give","bygge","male","synge","danse"] },
   { name:"Tids-uret",           emoji:"⏰", words:["dag","nat","morgen","aften","uge","måned","år","klokken","minut","sekund"] },
-  { name:"Følelses-skoven",     emoji:"💖", words:["glad","trist","bange","vred","træt","sulten","tørstig","sjov","kedelig","modig"] },
+  { name:"Følelses-skoven",     emoji:"😊", words:["glad","trist","bange","vred","træt","sulten","tørstig","sjov","kedelig","modig"] },
   /* ============ VERDEN 3: de to sværeste (eget kort, side C) ============
      Verden 25: ord der staves anderledes end de lyder (stumme bogstaver).
      Verden 26: lange sammensatte ord, hvor man skal DELE ordet for at stave det. */
-  { name:"Den svære skov",      emoji:"🌲", words:["dejligt","ellers","farligt","færdig","næsten","rigtigt","sikkert","sjovt","skønt","specielt"] },
-  { name:"Mesterskabet",        emoji:"🏆", words:["sommerfugl","fødselsdag","jordbær","skolegård","bibliotek","sommerferie","computer","telefon","fodboldbane","aftensmad"] },
+  { name:"Den svære skov",      emoji:"👹", words:["dejligt","ellers","farligt","færdig","næsten","rigtigt","sikkert","sjovt","skønt","specielt"] },
+  { name:"Mesterskabet",        emoji:"🐉", words:["sommerfugl","fødselsdag","jordbær","skolegård","bibliotek","sommerferie","computer","telefon","fodboldbane","aftensmad"] },
   /* ============ VERDEN 3 udvidet: 10 NYE verdener (27-36), så side C også har 12 ============
      Rækkefølgen er en fortsat SVÆRHEDS-kurve: verden 25 tog de stumme/uregelrette ord,
      verden 26 de lange sammensatte — og herfra bliver det sværere endnu. Hver verden
      har sit eget TEMA, så ordene kan huskes i sammenhæng i stedet for som løsrevne ord. */
-  { name:"Dobbelt-bjerget",     emoji:"🏔️", words:["tallerken","klippe","springe","gætte","kigge","rulle","svømme","briller","appelsin","middag"] },
-  { name:"Stum-skoven",         emoji:"🌫️", words:["hjul","hjerte","hjælpe","hjem","gæst","guld","jord","født","fugl","kugle"] },
-  { name:"Byens gader",         emoji:"🏙️", words:["pizza","bus","tog","biograf","hotel","restaurant","kamera","robot","guitar","cirkus"] },
-  { name:"Skole-loftet",        emoji:"🎒", words:["matematik","engelsk","historie","idræt","frikvarter","opgave","regne","blyant","lineal","gruppe"] },
-  { name:"Vildt-reservatet",    emoji:"🦌", words:["egern","pindsvin","ugle","hjort","bi","edderkop","myre","skildpadde","delfin","bjørn"] },
-  { name:"Følelses-fjeldet",    emoji:"😌", words:["stolt","nervøs","overrasket","forvirret","taknemlig","ensom","ivrig","rolig","ærlig","tålmodig"] },
+  { name:"Dobbelt-bjerget",     emoji:"👯", words:["tallerken","klippe","springe","gætte","kigge","rulle","svømme","briller","appelsin","middag"] },
+  { name:"Stum-skoven",         emoji:"🫥", words:["hjul","hjerte","hjælpe","hjem","gæst","guld","jord","født","fugl","kugle"] },
+  { name:"Byens gader",         emoji:"🚦", words:["pizza","bus","tog","biograf","hotel","restaurant","kamera","robot","guitar","cirkus"] },
+  { name:"Skole-loftet",        emoji:"👻", words:["matematik","engelsk","historie","idræt","frikvarter","opgave","regne","blyant","lineal","gruppe"] },
+  { name:"Vildt-reservatet",    emoji:"🐺", words:["egern","pindsvin","ugle","hjort","bi","edderkop","myre","skildpadde","delfin","bjørn"] },
+  { name:"Følelses-fjeldet",    emoji:"😢", words:["stolt","nervøs","overrasket","forvirret","taknemlig","ensom","ivrig","rolig","ærlig","tålmodig"] },
   { name:"Spejl-søen",          emoji:"🪞", words:["vejr","spejl","nøgle","højt","høj","spejder","vej","vand","tusind","hundrede"] },
-  { name:"Samfunds-byen",       emoji:"🏛️", words:["penge","arbejde","sygehus","politi","brandbil","museum","teater","avis","station","lufthavn"] },
-  { name:"Eventyr-riget",       emoji:"🏰", words:["ridder","prinsesse","trold","heks","troldmand","drage","slot","skat","viking","rune"] },
+  { name:"Samfunds-byen",       emoji:"🚓", words:["penge","arbejde","sygehus","politi","brandbil","museum","teater","avis","station","lufthavn"] },
+  { name:"Eventyr-riget",       emoji:"🧙", words:["ridder","prinsesse","trold","heks","troldmand","drage","slot","skat","viking","rune"] },
   { name:"Drømme-tårnet",       emoji:"🌌", words:["drøm","tanke","hemmelighed","fremtid","frihed","sandhed","kærlighed","venskab","fantasi","håb"] }
 ];
 
@@ -3628,6 +3784,72 @@ function flashHit(id, color) {
   setTimeout(() => el.classList.remove("hit-flash"), 320);
 }
 
+/* ============ KAMP-BEVÆGELSE (Kenneth: "de hopper frem, og der sker lidt") ============
+   Foer stak monsteret bare frem og helten gled. Nu er der SPRING og rekyl.
+   Alt sammen CSS-klasser — ingen biblioteker.
+   VIGTIGT: respekterer "reducér bevægelse" (se reducedMotion nedenfor). Et barn der
+   bliver daarligt af bevaegelse skal kunne spille kampen uden ryst og spring. */
+function reducedMotion() {
+  /* Defensiv: matchMedia findes ikke i test-harnesset (og ikke i gamle browsere). */
+  try {
+    return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches === true;
+  } catch (e) { return false; }
+}
+// Stoevsky ved afsaet/landing — slaget skal kunne maerKES, ikke bare ses
+function dustPuff(x, y, color) {
+  if (reducedMotion()) return;
+  const layer = document.getElementById("fxLayer");
+  if (!layer || typeof layer.appendChild !== "function") return;
+  for (let i = 0; i < 6; i++) {
+    const el = document.createElement("div");
+    el.className = "fx-dust";
+    if (el.style) {
+      el.style.left = (x + (Math.random() * 40 - 20)) + "px";
+      el.style.top = (y + (Math.random() * 12 - 6)) + "px";
+      el.style.background = color || "#cbd5e1";
+      if (typeof el.style.setProperty === "function") {
+        el.style.setProperty("--dx", ((i % 2 ? 1 : -1) * (16 + Math.random() * 30)) + "px");
+        el.style.animationDuration = (0.4 + Math.random() * 0.3) + "s";
+      }
+    }
+    layer.appendChild(el);
+    setTimeout(() => { if (el && typeof el.remove === "function") el.remove(); }, 800);
+  }
+}
+// Monsteret SPRINGER frem naar det angriber: tilloeb → spring gennem luften → tung landing.
+// big = det opladede/signatur-angreb (laengere spring, haardere landing).
+function monsterLeap(big) {
+  const el = document.getElementById("bossDragonEmoji");
+  if (!el || !el.classList || typeof el.classList.add !== "function") return;
+  el.classList.remove("attack-leap", "attack-leap-big");
+  void el.offsetWidth;
+  el.classList.add(big ? "attack-leap-big" : "attack-leap");
+  setTimeout(() => el.classList.remove("attack-leap", "attack-leap-big"), big ? 940 : 680);
+  if (!reducedMotion()) {
+    const c = centerOf("bossDragonEmoji");
+    setTimeout(() => dustPuff(c.x + 44, c.y + 46), big ? 210 : 150);   // afsaettet
+    setTimeout(() => dustPuff(c.x - 30, c.y + 52, "#f1f5f9"), big ? 620 : 430); // landingen
+  }
+}
+// Ramt: monsteret kastes BAGLAENS og roterer let (rekyl) — foer rystede det bare.
+function monsterKnockback() {
+  const el = document.getElementById("bossDragonEmoji");
+  if (!el || !el.classList || typeof el.classList.add !== "function") return;
+  el.classList.remove("knockback");
+  void el.offsetWidth;
+  el.classList.add("knockback");
+  setTimeout(() => el.classList.remove("knockback"), 480);
+}
+// Arenaen ryster dér hvor slaget er. Bruges sammen med shakeScreen (hele skaermen).
+function arenaQuake(big) {
+  const el = document.querySelector ? document.querySelector(".boss-arena") : null;
+  if (!el || !el.classList || typeof el.classList.add !== "function") return;
+  el.classList.remove("quake", "quake-big");
+  void el.offsetWidth;
+  el.classList.add(big ? "quake-big" : "quake");
+  setTimeout(() => el.classList.remove("quake", "quake-big"), big ? 560 : 360);
+}
+
 /* ============ NAVIGATION ============ */
 function goHome() {
   stopAudio();
@@ -3938,7 +4160,9 @@ function showWorld(i) {
   bossBtn.classList.remove("done");
   if (ws.done[0] && ws.done[1] && ws.done[2] && ws.done[3] && !defeated) {
     bossBtn.style.display = "block";
-    bossBtn.textContent = "🐉 Kæmp mod " + dragon.name + " (kraft " + dragon.power + ")";
+    // Skabningens EGET ikon — ikke en drage. Der er kun én drage i spillet
+    // (Mester-dragen), saa en drage foran "Frøen" ville love noget andet end kampen.
+    bossBtn.textContent = dragon.emoji + " Kæmp mod " + dragon.name + " (kraft " + dragon.power + ")";
   } else if (defeated) {
     bossBtn.style.display = "block";
     bossBtn.textContent = "🏆 " + dragon.name + " besejret!";
@@ -3946,6 +4170,22 @@ function showWorld(i) {
     bossBtn.classList.add("done");
   } else {
     bossBtn.style.display = "none";
+  }
+  /* TEMAET + HVEM DER VENTER (QOL): barnet skal se hvilken verden det er i og HVILKEN
+     skabning der venter — FOER det vælger en mission. Foer stod monsteret først i
+     kampen, altså efter arbejdet. Skabningen tegnes med SIN egen form (monsterSvgMarkup),
+     saa verdensskærmen, kortet og kampen viser samme dyr. */
+  const pg = MAP_PAGES[mapPageForWorld(i)] || MAP_PAGES[0];
+  const wt = document.getElementById("worldTheme");
+  if (wt) wt.textContent = pg.theme + " · " + pg.title;
+  const pv = document.getElementById("worldBossPreview");
+  if (pv) {
+    const el = elementOf(i);
+    if (pv.classList && typeof pv.classList.toggle === "function") pv.classList.toggle("wbp-done", !!defeated);
+    pv.innerHTML = `<div class="wbp-fig">${monsterSvgMarkup(i)}</div>` +
+      `<div class="wbp-text"><b>${dragon.emoji} ${dragon.name}</b>` +
+      `<span>Kraft ${dragon.power} · ${el.icon} ${el.name}</span>` +
+      `<span>${defeated ? "✅ Besejret" : "Venter på dig — klarer du alle 4 missioner, møder du den"}</span></div>`;
   }
 }
 /* ============ DRAGEKAMP ============ */
@@ -3993,7 +4233,9 @@ function startBoss(worldIdx) {
   document.getElementById("bossHeroPower").textContent = "Kraft: " + power;
   // Rigtig SVG-skabning med monsterets farver
   const dragonEl = document.getElementById("bossDragonEmoji");
-  dragonEl.innerHTML = dragonSvgMarkup(dragon.c1, dragon.c2);
+  // Skabningen tegnes ud fra VERDENENS form (ikke kun farverne): barnet moedte praecis
+  // det dyr det saa paa verdenskortet. Se Docs/bosser-og-animationer.md.
+  dragonEl.innerHTML = monsterSvgMarkup(cur.world);
   dragonEl.className = "boss-dragon breathe";
   dragonEl.style.filter = "drop-shadow(0 0 24px " + dragon.c1 + "88)";
   document.getElementById("bossDragonName").textContent = dragon.name;
@@ -4044,10 +4286,37 @@ function renderCombatMeta() {
 function renderChargeWarn() {
   const w = document.getElementById("chargeWarn");
   const on = !!(bossState && bossState.charge);
-  w.classList.toggle("hidden", !on);
-  if (on) {
-    document.getElementById("chargeName").textContent = bossState.charge.name;
-    w.style.borderColor = bossState.charge.color + "cc";
+  if (w && w.classList && typeof w.classList.toggle === "function") {
+    w.classList.toggle("hidden", !on);
+    if (on) {
+      const cn = document.getElementById("chargeName");
+      if (cn) cn.textContent = bossState.charge.name;
+      if (w.style) w.style.borderColor = bossState.charge.color + "cc";
+    }
+  }
+  /* ADVARSLEN SKAL KUNNE SES PAA MONSTERET — ikke kun som tekst oeverst.
+     Barnet skal forstaa HVORFOR det skal trykke Paraer: skabningen vokser og gloeder
+     (klassen "charging"), og der tegnes en pulserende ring paa gulvet under den.
+     Farven er angrebets egen farve, saa det passer til teksten. */
+  const mon = document.getElementById("bossDragonEmoji");
+  if (mon && mon.classList && typeof mon.classList.toggle === "function") {
+    mon.classList.toggle("charging", on);
+    if (on && mon.style && typeof mon.style.setProperty === "function") {
+      mon.style.setProperty("--chargec", bossState.charge.color);
+    }
+  }
+  /* PARÉR-KNAPPEN SIGER SELV HVAD DEN VIL (QOL): naar monsteret lader op, lyser den
+     blaa og skifter tekst til "PARÉR NU!" — ellers er den daempet og forklarer at der
+     ikke er noget at parere. Spillet har ALTID straffet et blindt "Parér" (man mister
+     liv), og teksten i statuslinjen var det eneste der fortalte det. Nu kan barnet SE
+     det paa knappen, foer det trykker. */
+  const db = document.getElementById("defendBtn");
+  if (db && db.classList && typeof db.classList.toggle === "function") {
+    db.classList.toggle("parry-now", on);
+    db.classList.toggle("parry-idle", !on);
+    db.textContent = on ? "🛡️ PARÉR NU!" : "🛡️ Parér";
+    db.title = on ? "Monsteret lader op — parér for at sende angrebet tilbage!"
+                  : "Der er intet at parere lige nu — vent på den røde advarsel.";
   }
 }
 function renderBossHp() {
@@ -4114,6 +4383,11 @@ function heroLunge(hits) {
   void el.offsetWidth;              // tving reflow, saa animationen kan koere igen
   el.classList.add(cls);
   setTimeout(() => el.classList.remove(cls), 820);
+  // Stoev ved afsaettet: helten HOPPER (buen ligger i keyframes) — ikke en glidning
+  if (!reducedMotion()) {
+    const c = centerOf("bossHeroSvg");
+    setTimeout(() => dustPuff(c.x - 26, c.y + 56, "#fde68a"), 90);
+  }
 }
 
 /* Helten reagerer: "recoil" naar den bliver ramt, "guard" naar den forsvarer sig. */
@@ -4126,14 +4400,18 @@ function heroReact(kind) {
   setTimeout(() => el.classList.remove(kind), 620);
 }
 
-/* Monsteret stikker frem naar DET rammer (modspil til heltens fremstoed). */
+/* Monsteret SPRINGER frem naar DET rammer (modspil til heltens hop).
+   Klassen heder stadig "counter" (den kontrakt kendte spillet i forvejen), men
+   @keyframes dragonCounter ER nu et spring med tilloeb — ikke et stik. */
 function dragonCounter() {
   const el = document.getElementById("bossDragonEmoji");
-  if (!el) return;
-  el.classList.remove("counter");
-  void el.offsetWidth;
-  el.classList.add("counter");
-  setTimeout(() => el.classList.remove("counter"), 620);
+  if (el && el.classList && typeof el.classList.add === "function") {
+    el.classList.remove("counter");
+    void el.offsetWidth;
+    el.classList.add("counter");
+    setTimeout(() => el.classList.remove("counter"), 680);
+  }
+  monsterLeap(false);            // stoevet ved afsaet/landing hoerer med til springet
 }
 
 function heroSvgMarkup() {
@@ -4269,10 +4547,633 @@ function asgardAuraMarkup() {
   }
   return glow;
 }
-function dragonSvgMarkup(c1, c2) {
-  const gid = "dg" + Math.random().toString(36).slice(2, 7);
+/* ============ MONSTER-FORMER — én form pr. skabning ============
+   FEJLEN DER RETTES: foer tegnede `dragonSvgMarkup(c1, c2)` ALLE 36 bosser, saa kun
+   farverne skiftede. Barnet kunne ikke se forskel paa monstrene. Nu tegnes hver boss
+   ud fra SIN art (`BOSSES[i].form`), grupperet i familier — saa FORMEN, ikke farven,
+   er det barnet kender skabningen paa. Farverne (c1/c2) er uaendrede.
+   Alle former bruger samme viewBox som den gamle tegning (220x190), saa kamp-boksen
+   ikke rykker, og holdes enkle: de skal kunne ses paa en iPad, ikke paa en 4K-skærm. */
+function monsterEyes(u, x, y, r) {
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u.e})"/>`
+    + `<circle cx="${x}" cy="${y}" r="${(r * 0.52).toFixed(1)}" fill="#1f1300"/>`
+    + `<circle cx="${(x - r * 0.3).toFixed(1)}" cy="${(y - r * 0.32).toFixed(1)}" r="${(r * 0.2).toFixed(1)}" fill="#fff" opacity=".85"/>`;
+}
+function monsterShadow(rx) {
+  return `<ellipse cx="110" cy="176" rx="${rx}" ry="7" fill="rgba(0,0,0,.32)"/>`;
+}
+/* Hvilken FAMILIE hører hver form til? (10 familier — se Docs/bosser-og-animationer.md §3)
+   Familien findes for at kunne se om en ny boss ligner en der er der i forvejen: to
+   bosser i samme familie maa aldrig tegnes ens (testet i tests/ordj_bosser.js). */
+const MONSTER_FAMILIES = {
+  dino: "krybdyr", froe: "krybdyr", muskel: "krybdyr",
+  vandhest: "pattedyr", bjoern: "pattedyr", raev: "pattedyr", ulveflok: "pattedyr",
+  ugle: "luft", flagermus: "luft",
+  kraken: "vand", blaeksprutte: "vand",
+  troldBjerg: "trold", troldSkov: "trold", troldFamilie: "trold", troldStavelse: "trold", troldSpejl: "trold",
+  maanemand: "aand", stilhedsaand: "aand", spoegelse: "aand", skygge: "aand", droemme: "aand",
+  alien: "robot", trafik: "robot", vogter: "robot",
+  troldKlokke: "objekt", bog: "objekt", troldHus: "objekt", ballon: "objekt",
+  mad: "objekt", sok: "objekt", ur: "objekt",
+  loeber: "menneske", foelseskejser: "menneske", tvilling: "menneske", troldmand: "menneske",
+  drage: "drage",
+};
+const MONSTER_FORMS = {
+  /* ---------- KRYBDYR / KÆMPE / AMFIBIE ---------- */
+  // Slim-dinosaur: tung krop, hale, fire ben, lang hals — og slim der drypper.
+  dino: u => monsterShadow(62) + `
+    <path d="M30 148 Q8 140 6 118 Q4 104 16 100 Q26 96 30 110 L54 134 Z" fill="url(#${u.g})"/>
+    <ellipse cx="104" cy="126" rx="54" ry="33" fill="url(#${u.g})"/>
+    <path d="M76 138 Q104 150 132 138" stroke="rgba(0,0,0,.22)" stroke-width="2" fill="none"/>
+    <path d="M124 148 Q134 160 126 172 L144 174 Q150 164 142 150 Z" fill="url(#${u.g})"/>
+    <path d="M78 150 Q70 162 78 172 L60 174 Q54 162 64 150 Z" fill="url(#${u.g})"/>
+    <path d="M126 106 Q140 86 148 68 Q152 60 160 60 L176 72 Q172 82 160 88 Q149 92 143 106 Z" fill="url(#${u.g})"/>
+    <path d="M148 66 Q158 50 174 48 Q192 48 196 60 Q198 74 186 82 Q172 88 160 80 Z" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 176, 64, 6)}
+    <circle cx="195" cy="68" r="2" fill="${u.c2}"/>
+    <path d="M166 84 Q174 88 184 86" stroke="${u.c2}" stroke-width="2" fill="none"/>
+    <path d="M110 92 L116 78 L124 94 M130 96 L136 82 L142 98 M96 92 L102 80 L108 94" fill="${u.c2}" opacity=".85"/>
+    <path d="M96 110 Q100 122 96 126 Q92 122 96 110 M118 104 Q122 116 118 120 Q114 116 118 104 M52 120 Q56 130 52 134 Q48 130 52 120" fill="${u.c1}" opacity=".9"/>`,
+  // Muskelmonster: arme som hovedpersoner, lille hoved, står bredt.
+  muskel: u => monsterShadow(58) + `
+    <ellipse cx="110" cy="128" rx="34" ry="38" fill="url(#${u.g})"/>
+    <path d="M74 108 Q40 96 30 74 Q26 62 36 58 Q48 56 56 68 Q66 86 84 96 Z" fill="url(#${u.g})"/>
+    <path d="M146 108 Q180 96 190 74 Q194 62 184 58 Q172 56 164 68 Q154 86 136 96 Z" fill="url(#${u.g})"/>
+    <ellipse cx="34" cy="70" rx="17" ry="15" fill="${u.c1}"/>
+    <ellipse cx="186" cy="70" rx="17" ry="15" fill="${u.c1}"/>
+    <circle cx="110" cy="76" r="22" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 102, 74, 5)}${monsterEyes(u, 118, 74, 5)}
+    <path d="M102 88 Q110 94 118 88" stroke="#2b2b35" stroke-width="2" fill="none"/>
+    <rect x="84" y="158" width="20" height="18" rx="6" fill="url(#${u.g})"/>
+    <rect x="116" y="158" width="20" height="18" rx="6" fill="url(#${u.g})"/>
+    <path d="M92 124 Q110 136 128 124 M96 138 Q110 148 124 138" stroke="rgba(0,0,0,.22)" stroke-width="2" fill="none"/>`,
+  // Frø: bred mund, øjne PÅ hovedet, lang tunge og lange bagben.
+  froe: u => monsterShadow(56) + `
+    <ellipse cx="104" cy="126" rx="56" ry="30" fill="url(#${u.g})"/>
+    <circle cx="88" cy="88" r="19" fill="url(#${u.g})"/>
+    <circle cx="130" cy="88" r="19" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 88, 78, 9)}${monsterEyes(u, 130, 78, 9)}
+    <path d="M56 116 Q104 152 152 116" stroke="${u.c2}" stroke-width="3" fill="none"/>
+    <path d="M74 124 Q104 142 134 124 Z" fill="${u.c2}" opacity=".55"/>
+    <path d="M104 136 Q118 148 140 140 Q122 156 104 146 Z" fill="#f472b6"/>
+    <path d="M148 142 Q176 156 166 172 L150 168 Q156 156 140 150 Z" fill="url(#${u.g})"/>
+    <path d="M60 142 Q32 156 42 172 L58 168 Q52 156 68 150 Z" fill="url(#${u.g})"/>
+    <ellipse cx="66" cy="172" rx="18" ry="7" fill="${u.c2}"/>
+    <ellipse cx="154" cy="172" rx="18" ry="7" fill="${u.c2}"/>
+    <circle cx="66" cy="112" r="4" fill="${u.c2}" opacity=".7"/><circle cx="142" cy="112" r="4" fill="${u.c2}" opacity=".7"/>`,
+
+  /* ---------- PATTEDYR ---------- */
+  // Vandhest: hestehoved, lang manke, hove — og bølger ved fødderne.
+  vandhest: u => monsterShadow(60) + `
+    <ellipse cx="116" cy="118" rx="52" ry="30" fill="url(#${u.g})"/>
+    <path d="M74 108 Q66 84 74 66 Q82 50 96 56 Q104 62 100 78 Q96 98 96 108 Z" fill="url(#${u.g})"/>
+    <path d="M74 70 Q88 62 100 66 Q110 70 108 80 Q98 74 86 76 Q76 78 74 70 Z" fill="${u.c2}" opacity=".8"/>
+    <path d="M150 106 Q168 98 174 84 Q178 74 170 72 Q160 70 154 80 Q148 92 138 98 Z" fill="${u.c2}" opacity=".55"/>
+    <path d="M62 104 Q56 60 74 54 Q82 52 84 60 Q70 66 70 100 Z" fill="${u.c2}" opacity=".35"/>
+    ${monsterEyes(u, 92, 80, 5)}
+    <path d="M74 88 Q80 92 88 90" stroke="#2b2b35" stroke-width="1.6" fill="none"/>
+    <path d="M70 96 Q78 100 86 96" stroke="${u.c2}" stroke-width="2" fill="none"/>
+    <rect x="78" y="146" width="16" height="28" rx="6" fill="url(#${u.g})"/>
+    <rect x="130" y="146" width="16" height="28" rx="6" fill="url(#${u.g})"/>
+    <ellipse cx="86" cy="174" rx="12" ry="6" fill="${u.c2}"/><ellipse cx="138" cy="174" rx="12" ry="6" fill="${u.c2}"/>
+    <path d="M20 168 Q36 158 52 168 Q68 178 84 168" stroke="${u.c1}" stroke-width="3" fill="none" opacity=".7"/>
+    <path d="M132 168 Q152 158 172 168 Q186 175 200 168" stroke="${u.c2}" stroke-width="3" fill="none" opacity=".7"/>`,
+  // Bjørn: rund krop, små ører, snude — stjernevogterens stjerner omkring den.
+  bjoern: u => monsterShadow(58) + `
+    <circle cx="76" cy="84" r="13" fill="url(#${u.g})"/><circle cx="144" cy="84" r="13" fill="url(#${u.g})"/>
+    <circle cx="112" cy="98" r="30" fill="url(#${u.g})"/>
+    <ellipse cx="112" cy="134" rx="44" ry="36" fill="url(#${u.g})"/>
+    <ellipse cx="112" cy="112" rx="18" ry="13" fill="${u.c1}" opacity=".8"/>
+    <ellipse cx="112" cy="108" rx="7" ry="5" fill="${u.c2}"/>
+    ${monsterEyes(u, 100, 94, 5)}${monsterEyes(u, 124, 94, 5)}
+    <path d="M100 118 Q112 126 124 118" stroke="#2b2b35" stroke-width="2" fill="none"/>
+    <ellipse cx="92" cy="120" rx="7" ry="5" fill="${u.c2}" opacity=".5"/>
+    <ellipse cx="132" cy="120" rx="7" ry="5" fill="${u.c2}" opacity=".5"/>
+    <rect x="76" y="158" width="26" height="18" rx="8" fill="url(#${u.g})"/>
+    <rect x="122" y="158" width="26" height="18" rx="8" fill="url(#${u.g})"/>
+    <path d="M34 66 L38 76 L48 78 L38 82 L34 92 L30 82 L20 78 L30 76 Z" fill="${u.c1}"/>
+    <path d="M186 108 L189 116 L197 118 L189 122 L186 130 L183 122 L175 118 L183 116 Z" fill="${u.c1}"/>
+    <circle cx="60" cy="120" r="3" fill="#fff" opacity=".8"/><circle cx="170" cy="66" r="3" fill="#fff" opacity=".8"/>`,
+  // Ræv: spids snude, trekantede ører, KÆMPE hale.
+  raev: u => monsterShadow(58) + `
+    <path d="M40 152 Q10 138 14 106 Q18 74 52 68 Q74 64 84 84 Q90 106 74 128 Q60 146 40 152 Z" fill="url(#${u.g})"/>
+    <path d="M22 112 Q40 104 56 112" stroke="${u.c1}" stroke-width="8" fill="none" opacity=".8"/>
+    <ellipse cx="126" cy="128" rx="42" ry="27" fill="url(#${u.g})"/>
+    <path d="M112 104 Q124 74 152 66 Q178 60 190 76 Q196 94 186 106 Q166 118 144 118 Z" fill="url(#${u.g})"/>
+    <path d="M136 66 Q134 44 150 38 Q160 46 154 66 Z" fill="url(#${u.g})"/>
+    <path d="M172 60 Q178 38 194 38 Q198 50 188 62 Z" fill="url(#${u.g})"/>
+    <path d="M138 72 Q142 58 150 54" stroke="${u.c2}" stroke-width="2" fill="none"/>
+    <path d="M186 92 Q200 96 206 104 Q196 108 184 104 Z" fill="${u.c1}"/>
+    <circle cx="203" cy="102" r="3" fill="#2b2b35"/>
+    ${monsterEyes(u, 152, 84, 5)}${monsterEyes(u, 176, 82, 4.5)}
+    <rect x="104" y="146" width="14" height="28" rx="6" fill="url(#${u.g})"/>
+    <rect x="140" y="146" width="14" height="28" rx="6" fill="url(#${u.g})"/>
+    <ellipse cx="111" cy="174" rx="11" ry="5" fill="${u.c2}"/><ellipse cx="147" cy="174" rx="11" ry="5" fill="${u.c2}"/>`,
+  // Ulveflok: TO ulve — en flok, ikke ét dyr.
+  ulveflok: u => monsterShadow(70) + `
+    <ellipse cx="66" cy="140" rx="34" ry="22" fill="url(#${u.g})"/>
+    <path d="M44 130 Q40 108 54 100 Q66 94 74 104 Q80 114 74 124 Z" fill="url(#${u.g})"/>
+    <path d="M50 102 Q46 84 62 82 Q70 92 66 104 Z" fill="url(#${u.g})"/>
+    <path d="M78 106 Q86 82 104 80 Q118 86 112 104 Q104 118 88 116 Z" fill="url(#${u.g})"/>
+    <path d="M104 82 Q100 66 114 64 Q124 72 118 86 Z" fill="url(#${u.g})"/>
+    <path d="M118 100 Q134 96 140 104 Q132 110 118 106 Z" fill="${u.c1}"/>
+    <path d="M124 104 L128 112 L134 104 Z" fill="#fff"/>
+    <path d="M124 110 L128 116 L134 110 Z" fill="#fff"/>
+    ${monsterEyes(u, 92, 96, 4.5)}${monsterEyes(u, 108, 96, 4.5)}
+    <circle cx="138" cy="103" r="2.6" fill="#2b2b35"/>
+    <rect x="48" y="156" width="12" height="18" rx="5" fill="url(#${u.g})"/>
+    <rect x="76" y="156" width="12" height="18" rx="5" fill="url(#${u.g})"/>
+    <path d="M42 128 Q22 116 14 132 Q10 146 22 154 Q34 158 42 148 Z" fill="url(#${u.g})" opacity=".9"/>
+    <ellipse cx="172" cy="146" rx="30" ry="19" fill="url(#${u.g})" opacity=".92"/>
+    <path d="M152 138 Q148 120 160 114 Q172 110 178 120 Q182 130 176 140 Z" fill="url(#${u.g})"/>
+    <path d="M158 118 Q154 102 168 100 Q176 110 172 122 Z" fill="url(#${u.g})"/>
+    <path d="M178 124 Q192 104 208 106 Q220 112 212 128 Q202 140 186 136 Z" fill="url(#${u.g})"/>
+    <path d="M208 108 Q204 92 216 92 Q224 100 218 114 Z" fill="url(#${u.g})"/>
+    <path d="M180 132 L184 140 L190 132 Z" fill="#fff"/>
+    ${monsterEyes(u, 186, 124, 4)}${monsterEyes(u, 200, 122, 4)}
+    <rect x="156" y="164" width="11" height="14" rx="4" fill="url(#${u.g})"/>
+    <rect x="182" y="164" width="11" height="14" rx="4" fill="url(#${u.g})"/>`,
+
+  /* ---------- FUGL / LUFT ---------- */
+  // Ekko-ugle: rund krop, KÆMPE øjne, ører — og ekko-ringe der ruller ud.
+  ugle: u => monsterShadow(44) + `
+    <ellipse cx="104" cy="122" rx="44" ry="48" fill="url(#${u.g})"/>
+    <path d="M62 84 Q56 58 76 52 Q82 66 84 82 Z" fill="url(#${u.g})"/>
+    <path d="M146 84 Q152 58 132 52 Q126 66 124 82 Z" fill="url(#${u.g})"/>
+    <circle cx="88" cy="94" r="20" fill="${u.c1}"/>
+    <circle cx="122" cy="94" r="20" fill="${u.c1}"/>
+    ${monsterEyes(u, 88, 94, 12)}${monsterEyes(u, 122, 94, 12)}
+    <path d="M96 114 L104 128 L112 114 Z" fill="#fbbf24"/>
+    <path d="M56 116 Q40 130 48 146 Q64 142 70 128 Z" fill="${u.c2}" opacity=".8"/>
+    <path d="M152 116 Q168 130 160 146 Q144 142 138 128 Z" fill="${u.c2}" opacity=".8"/>
+    <path d="M74 152 L70 172 M88 156 L86 174 M120 156 L122 174 M134 152 L138 172" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>
+    <path d="M180 96 Q194 92 200 100 M182 112 Q198 110 206 118 M180 128 Q194 128 202 138" stroke="${u.c1}" stroke-width="3" fill="none" opacity=".8"/>
+    <path d="M84 136 Q104 148 126 136" stroke="rgba(0,0,0,.2)" stroke-width="2" fill="none"/>`,
+  // Huleflagermus: spredte vinger, store ører, hænger ned fra loftet.
+  flagermus: u => `
+    <path d="M104 0 L104 34" stroke="${u.c2}" stroke-width="3"/>
+    <path d="M66 54 Q30 40 6 60 Q26 62 24 80 Q44 70 66 78 Z" fill="url(#${u.g})"/>
+    <path d="M142 54 Q178 40 202 60 Q182 62 184 80 Q164 70 142 78 Z" fill="url(#${u.g})"/>
+    <path d="M6 60 Q22 66 24 80 Q34 92 20 96 Q4 88 6 60 Z" fill="${u.c2}" opacity=".7"/>
+    <path d="M202 60 Q186 66 184 80 Q174 92 188 96 Q204 88 202 60 Z" fill="${u.c2}" opacity=".7"/>
+    <ellipse cx="104" cy="86" rx="34" ry="38" fill="url(#${u.g})"/>
+    <path d="M74 60 Q64 34 84 32 Q92 46 90 62 Z" fill="url(#${u.g})"/>
+    <path d="M134 60 Q144 34 124 32 Q116 46 118 62 Z" fill="url(#${u.g})"/>
+    <path d="M74 60 Q80 48 88 56 Z" fill="${u.c1}" opacity=".6"/>
+    <path d="M134 60 Q128 48 120 56 Z" fill="${u.c1}" opacity=".6"/>
+    ${monsterEyes(u, 92, 84, 6)}${monsterEyes(u, 116, 84, 6)}
+    <path d="M96 104 L100 114 L104 104 Z" fill="#fff"/>
+    <path d="M104 104 L108 114 L112 104 Z" fill="#fff"/>
+    <path d="M92 118 Q104 126 116 118" stroke="rgba(0,0,0,.35)" stroke-width="2" fill="none"/>
+    <path d="M88 124 Q104 140 120 124 Q124 150 104 152 Q84 150 88 124 Z" fill="${u.c1}" opacity=".35"/>
+    <path d="M96 152 Q92 168 104 166 Q116 168 112 152" fill="url(#${u.g})"/>`,
+
+  /* ---------- VAND ---------- */
+  // Gåde-kraken: kuppel-hoved, OTTO arme, sugekopper — og et spørgsmålstegn.
+  kraken: u => monsterShadow(62) + `
+    <path d="M40 118 Q36 148 14 158 Q6 146 22 134 Q30 126 30 112 Z" fill="url(#${u.g})"/>
+    <path d="M168 118 Q172 148 194 158 Q202 146 186 134 Q178 126 178 112 Z" fill="url(#${u.g})"/>
+    <path d="M62 128 Q54 158 34 170 Q22 160 38 144 Q50 136 52 122 Z" fill="url(#${u.g})"/>
+    <path d="M146 128 Q154 158 174 170 Q186 160 170 144 Q158 136 156 122 Z" fill="url(#${u.g})"/>
+    <path d="M84 138 Q78 164 66 176 Q52 170 70 156 Q80 148 76 136 Z" fill="url(#${u.g})"/>
+    <path d="M124 138 Q130 164 142 176 Q156 170 138 156 Q128 148 132 136 Z" fill="url(#${u.g})"/>
+    <path d="M98 142 Q96 166 92 176 Q78 174 88 158 Q96 150 90 138 Z" fill="${u.c2}" opacity=".8"/>
+    <path d="M110 142 Q118 166 122 176 Q136 174 126 158 Q118 150 118 138 Z" fill="${u.c2}" opacity=".8"/>
+    <path d="M58 106 Q58 62 104 58 Q150 62 150 106 Q128 122 104 122 Q80 122 58 106 Z" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 88, 86, 8)}${monsterEyes(u, 122, 86, 8)}
+    <path d="M96 104 Q104 112 114 104" stroke="rgba(0,0,0,.35)" stroke-width="2.4" fill="none"/>
+    <text x="104" y="46" font-size="34" font-weight="900" font-family="Arial, sans-serif" fill="${u.c1}" text-anchor="middle">?</text>
+    <circle cx="66" cy="128" r="3.4" fill="${u.c1}" opacity=".8"/><circle cx="78" cy="136" r="3" fill="${u.c1}" opacity=".7"/>
+    <circle cx="142" cy="128" r="3.4" fill="${u.c1}" opacity=".8"/><circle cx="130" cy="136" r="3" fill="${u.c1}" opacity=".7"/>`,
+  // Raket-blæksprutte: seks arme, finner — og raketdyser med ild.
+  blaeksprutte: u => monsterShadow(48) + `
+    <path d="M56 116 Q56 62 104 44 Q152 62 152 116 Q128 132 104 132 Q80 132 56 116 Z" fill="url(#${u.g})"/>
+    <path d="M62 76 Q34 58 30 34 Q56 40 74 62 Z" fill="${u.c2}" opacity=".85"/>
+    <path d="M146 76 Q174 58 178 34 Q152 40 134 62 Z" fill="${u.c2}" opacity=".85"/>
+    <path d="M64 106 Q50 136 34 146 Q24 134 40 124 Q52 116 50 104 Z" fill="url(#${u.g})"/>
+    <path d="M144 106 Q158 136 174 146 Q184 134 168 124 Q156 116 158 104 Z" fill="url(#${u.g})"/>
+    <path d="M82 124 Q72 152 58 164 Q46 156 62 144 Q74 136 72 122 Z" fill="url(#${u.g})"/>
+    <path d="M126 124 Q136 152 150 164 Q162 156 146 144 Q134 136 136 122 Z" fill="url(#${u.g})"/>
+    <path d="M100 130 Q94 156 88 168 Q76 162 88 150 Q98 142 96 128 Z" fill="${u.c2}" opacity=".75"/>
+    <path d="M112 130 Q118 156 124 168 Q136 162 124 150 Q114 142 114 128 Z" fill="${u.c2}" opacity=".75"/>
+    ${monsterEyes(u, 90, 84, 7)}${monsterEyes(u, 118, 84, 7)}
+    <path d="M96 102 Q104 110 114 102" stroke="rgba(0,0,0,.35)" stroke-width="2.2" fill="none"/>
+    <path d="M86 132 Q86 152 92 164 M122 132 Q122 152 116 164" stroke="#fb923c" stroke-width="6" fill="none" stroke-linecap="round" opacity=".85"/>
+    <path d="M64 60 Q74 50 84 60 M124 60 Q134 50 144 60" stroke="${u.c1}" stroke-width="2" fill="none" opacity=".7"/>`,
+
+  /* ---------- TROLD ---------- */
+  // Bjergtrold: klodsede skuldre af klippe, stor stenkølle, små ben.
+  troldBjerg: u => monsterShadow(60) + `
+    <rect x="64" y="84" width="92" height="70" rx="16" fill="url(#${u.g})"/>
+    <ellipse cx="52" cy="98" rx="24" ry="18" fill="url(#${u.g})"/>
+    <ellipse cx="168" cy="98" rx="24" ry="18" fill="url(#${u.g})"/>
+    <path d="M62 88 Q72 76 84 86 M126 88 Q138 76 148 86" stroke="rgba(255,255,255,.22)" stroke-width="3" fill="none"/>
+    <rect x="76" y="150" width="24" height="26" rx="10" fill="url(#${u.g})"/>
+    <rect x="120" y="150" width="24" height="26" rx="10" fill="url(#${u.g})"/>
+    <rect x="60" y="66" width="100" height="36" rx="17" fill="url(#${u.g})"/>
+    <rect x="56" y="62" width="26" height="14" rx="7" fill="${u.c2}"/>
+    <rect x="138" y="62" width="26" height="14" rx="7" fill="${u.c2}"/>
+    ${monsterEyes(u, 90, 86, 6)}${monsterEyes(u, 130, 86, 6)}
+    <path d="M92 102 Q110 112 128 102" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <path d="M96 100 L94 110 L100 102 Z M124 100 L126 110 L120 102 Z" fill="#fff"/>
+    <rect x="176" y="52" width="12" height="76" rx="6" fill="${u.c2}" transform="rotate(12 182 90)"/>
+    <ellipse cx="188" cy="50" rx="16" ry="13" fill="${u.c2}"/>
+    <path d="M74 120 L96 130 M118 130 L140 120 M74 136 L96 146 M118 146 L140 136" stroke="rgba(0,0,0,.2)" stroke-width="2"/>`,
+  // Træ-trold: en trold der ER et træ — rødder, grene, løvkrone.
+  troldSkov: u => monsterShadow(54) + `
+    <path d="M86 166 Q74 140 78 108 Q82 84 104 80 Q126 84 130 108 Q134 140 122 166 Z" fill="url(#${u.g})"/>
+    <path d="M78 108 Q46 96 34 66 Q54 58 74 76 Q84 86 86 102 Z" fill="url(#${u.g})"/>
+    <path d="M130 108 Q162 96 174 66 Q154 58 134 76 Q124 86 122 102 Z" fill="url(#${u.g})"/>
+    <path d="M60 78 Q40 34 62 22 Q84 18 92 40 Q98 16 124 22 Q146 30 140 60 Q160 46 170 62 Q166 84 144 84 Z" fill="${u.c1}"/>
+    <ellipse cx="90" cy="112" rx="20" ry="17" fill="${u.c2}" opacity=".55"/>
+    ${monsterEyes(u, 92, 108, 5.5)}${monsterEyes(u, 116, 108, 5.5)}
+    <path d="M92 124 Q104 134 116 124" stroke="rgba(0,0,0,.42)" stroke-width="2.4" fill="none"/>
+    <path d="M100 128 L98 140 L106 132 Z" fill="#fff"/>
+    <path d="M90 148 Q84 162 76 172 M116 148 Q124 162 132 172 M104 152 Q104 166 104 174" stroke="${u.c2}" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M74 88 Q64 78 56 66 M134 88 Q144 78 152 66" stroke="${u.c2}" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+  // Troldefamilie: TRE trolde — den lille i midten.
+  troldFamilie: u => monsterShadow(72) + `
+    <rect x="14" y="86" width="56" height="62" rx="14" fill="url(#${u.g})"/>
+    <rect x="18" y="70" width="48" height="26" rx="12" fill="url(#${u.g})"/>
+    <path d="M18 68 Q14 54 26 54 Q30 62 30 68 Z M62 68 Q66 54 54 54 Q50 62 50 68 Z" fill="${u.c2}"/>
+    ${monsterEyes(u, 32, 82, 5)}${monsterEyes(u, 52, 82, 5)}
+    <path d="M34 96 Q42 102 50 96" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <rect x="22" y="148" width="16" height="22" rx="7" fill="url(#${u.g})"/>
+    <rect x="46" y="148" width="16" height="22" rx="7" fill="url(#${u.g})"/>
+    <rect x="82" y="104" width="60" height="58" rx="16" fill="url(#${u.g})"/>
+    <rect x="86" y="88" width="52" height="26" rx="13" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 100, 100, 5)}${monsterEyes(u, 124, 100, 5)}
+    <path d="M102 112 Q112 118 122 112" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <rect x="90" y="162" width="17" height="14" rx="6" fill="url(#${u.g})"/>
+    <rect x="117" y="162" width="17" height="14" rx="6" fill="url(#${u.g})"/>
+    <ellipse cx="176" cy="134" rx="26" ry="22" fill="url(#${u.g})"/>
+    <circle cx="176" cy="106" r="17" fill="url(#${u.g})"/>
+    <path d="M162 96 Q158 84 170 82 Q176 90 174 98 Z" fill="${u.c2}"/>
+    ${monsterEyes(u, 170, 106, 4)}${monsterEyes(u, 184, 106, 4)}
+    <path d="M170 116 Q176 121 183 116" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <path d="M156 140 Q144 152 148 166 M196 140 Q208 152 204 166" stroke="${u.c2}" stroke-width="5" stroke-linecap="round" fill="none"/>`,
+  // Stavelses-trolden: den STORE trold, bygget af bogstav-klodser.
+  troldStavelse: u => monsterShadow(70) + `
+    <rect x="60" y="76" width="100" height="80" rx="16" fill="url(#${u.g})"/>
+    <rect x="52" y="52" width="116" height="38" rx="18" fill="url(#${u.g})"/>
+    <path d="M52 54 Q42 34 62 30 Q72 42 74 52 Z M168 54 Q178 34 158 30 Q148 42 146 52 Z" fill="${u.c2}"/>
+    ${monsterEyes(u, 84, 70, 7)}${monsterEyes(u, 136, 70, 7)}
+    <path d="M84 88 Q110 102 136 88" stroke="rgba(0,0,0,.45)" stroke-width="3" fill="none"/>
+    <path d="M86 92 L82 104 L94 96 Z M134 92 L138 104 L126 96 Z" fill="#fff"/>
+    <rect x="72" y="100" width="24" height="24" rx="5" fill="${u.c1}" opacity=".9"/>
+    <text x="84" y="118" font-size="17" font-weight="900" font-family="Arial, sans-serif" fill="#1f1300" text-anchor="middle">STAV</text>
+    <rect x="124" y="100" width="24" height="24" rx="5" fill="${u.c1}" opacity=".9"/>
+    <rect x="94" y="130" width="32" height="20" rx="5" fill="${u.c2}" opacity=".8"/>
+    <text x="110" y="146" font-size="15" font-weight="900" font-family="Arial, sans-serif" fill="#fff" text-anchor="middle">EL</text>
+    <rect x="70" y="156" width="28" height="20" rx="8" fill="url(#${u.g})"/>
+    <rect x="122" y="156" width="28" height="20" rx="8" fill="url(#${u.g})"/>
+    <path d="M158 108 L182 88" stroke="${u.c2}" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="188" cy="82" rx="14" ry="11" fill="${u.c2}"/>`,
+  // Spejl-trold: trolden med et SPEJL som mave — og et håndspejl i hånden.
+  troldSpejl: u => monsterShadow(58) + `
+    <rect x="68" y="80" width="84" height="74" rx="18" fill="url(#${u.g})"/>
+    <ellipse cx="110" cy="124" rx="30" ry="24" fill="${u.c1}" opacity=".85"/>
+    <ellipse cx="110" cy="124" rx="30" ry="24" fill="none" stroke="${u.c2}" stroke-width="3"/>
+    <path d="M92 138 Q104 108 128 110" stroke="#fff" stroke-width="4" fill="none" opacity=".8"/>
+    <path d="M62 84 Q54 62 74 58 Q82 70 82 82 Z M158 84 Q166 62 146 58 Q138 70 138 82 Z" fill="${u.c2}"/>
+    <path d="M92 78 L92 66 M100 78 L100 66 M108 78 L108 66 M116 78 L116 66 M124 78 L124 66" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+    <circle cx="94" cy="94" r="6" fill="url(#${u.e})"/><circle cx="94" cy="94" r="3" fill="#1f1300"/>
+    <circle cx="126" cy="94" r="6" fill="url(#${u.e})"/><circle cx="126" cy="94" r="3" fill="#1f1300"/>
+    <path d="M98 104 Q110 112 124 104" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <rect x="76" y="154" width="22" height="18" rx="8" fill="url(#${u.g})"/>
+    <rect x="124" y="154" width="22" height="18" rx="8" fill="url(#${u.g})"/>
+    <ellipse cx="176" cy="120" rx="18" ry="22" fill="${u.c1}"/>
+    <ellipse cx="176" cy="120" rx="18" ry="22" fill="none" stroke="${u.c2}" stroke-width="3"/>
+    <rect x="168" y="140" width="16" height="26" rx="7" fill="${u.c2}"/>
+    <path d="M150 108 Q166 106 176 122" stroke="${u.c2}" stroke-width="5" fill="none"/>`,
+
+  /* ---------- OBJEKT-MONSTRE ---------- */
+  // Klokketrolden: kroppen er en KLOKKE i tårnet — hammer, pendul og urskive.
+  troldKlokke: u => `
+    <ellipse cx="110" cy="176" rx="52" ry="7" fill="rgba(0,0,0,.32)"/>
+    <path d="M72 60 Q56 60 56 78 Q56 96 74 96 M148 60 Q164 60 164 78 Q164 96 146 96" fill="none" stroke="${u.c2}" stroke-width="6"/>
+    <path d="M80 40 Q110 22 140 40 L140 52 Q110 44 80 52 Z" fill="${u.c2}"/>
+    <path d="M78 132 Q62 140 58 130 Q56 118 72 112 Q94 150 110 132 Q126 150 148 112 Q164 118 162 130 Q158 140 142 132 Z" fill="url(#${u.g})"/>
+    <path d="M86 66 Q86 62 110 60 Q134 62 134 66 L146 128 Q134 142 110 144 Q86 142 74 128 Z" fill="url(#${u.g})"/>
+    <circle cx="92" cy="88" r="6" fill="url(#${u.e})"/><circle cx="92" cy="88" r="3" fill="#1f1300"/>
+    <circle cx="128" cy="88" r="6" fill="url(#${u.e})"/><circle cx="128" cy="88" r="3" fill="#1f1300"/>
+    <circle cx="110" cy="112" r="16" fill="${u.c1}" opacity=".9"/>
+    <path d="M110 112 L110 100 M110 112 L120 116" stroke="#1f1300" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M96 130 Q110 138 124 130" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <rect x="166" y="86" width="8" height="52" rx="4" fill="${u.c2}"/>
+    <circle cx="170" cy="82" r="11" fill="${u.c2}"/>
+    <path d="M110 144 L110 168" stroke="${u.c2}" stroke-width="5"/>
+    <circle cx="110" cy="170" r="9" fill="${u.c1}"/>`,
+  // Bogsnapperen: en OPSLÅET bog med tænder — kroppen ER bogen.
+  bog: u => `
+    <ellipse cx="110" cy="176" rx="56" ry="7" fill="rgba(0,0,0,.32)"/>
+    <path d="M108 74 Q78 56 34 60 L34 148 Q78 144 108 160 Z" fill="url(#${u.g})"/>
+    <path d="M112 74 Q142 56 186 60 L186 148 Q142 144 112 160 Z" fill="url(#${u.g})"/>
+    <path d="M42 70 Q74 68 102 80 L102 104 Q74 92 42 94 Z" fill="${u.c1}" opacity=".55"/>
+    <path d="M178 70 Q146 68 118 80 L118 104 Q146 92 178 94 Z" fill="${u.c1}" opacity=".55"/>
+    <path d="M48 118 Q76 112 102 124 M172 118 Q144 112 118 124" stroke="rgba(255,255,255,.5)" stroke-width="2" fill="none"/>
+    ${monsterEyes(u, 70, 84, 6)}${monsterEyes(u, 150, 84, 6)}
+    <path d="M66 108 L62 120 L74 114 Z M154 108 L158 120 L146 114 Z" fill="#fff"/>
+    <path d="M86 104 Q110 92 134 104 Q110 122 86 104 Z" fill="#7f1d1d"/>
+    <path d="M92 106 L96 114 L102 106 M118 106 L122 114 L128 106" fill="#fff"/>
+    <path d="M108 74 L108 160" stroke="${u.c2}" stroke-width="3"/>
+    <path d="M32 60 Q26 44 40 40 Q50 48 44 60 Z" fill="${u.c2}"/>
+    <path d="M188 60 Q194 44 180 40 Q170 48 176 60 Z" fill="${u.c2}"/>`,
+  // Hustrolden: en trold der ER et hus — skorstenhat, vindue-mave, dør-mund.
+  troldHus: u => monsterShadow(62) + `
+    <path d="M46 92 Q110 40 174 92 Z" fill="url(#${u.g})"/>
+    <path d="M46 92 L174 92 L174 104 L46 104 Z" fill="${u.c2}"/>
+    <rect x="60" y="104" width="100" height="60" rx="5" fill="url(#${u.g})"/>
+    <rect x="132" y="44" width="18" height="26" rx="4" fill="${u.c2}"/>
+    <rect x="64" y="120" width="26" height="24" rx="3" fill="${u.c1}" opacity=".85"/>
+    <path d="M64 132 L90 132 M77 120 L77 144" stroke="${u.c2}" stroke-width="2"/>
+    <rect x="100" y="128" width="34" height="36" rx="4" fill="${u.c2}"/>
+    <circle cx="128" cy="146" r="3" fill="${u.c1}"/>
+    ${monsterEyes(u, 112, 112, 5.5)}${monsterEyes(u, 138, 112, 5.5)}
+    <path d="M104 158 L108 166 L114 158 M122 158 L126 166 L132 158" fill="#fff"/>
+    <rect x="66" y="164" width="22" height="12" rx="5" fill="url(#${u.g})"/>
+    <rect x="134" y="164" width="22" height="12" rx="5" fill="url(#${u.g})"/>
+    <path d="M40 100 Q22 108 26 122 M180 100 Q198 108 194 122" stroke="${u.c2}" stroke-width="6" stroke-linecap="round" fill="none"/>`,
+  // Ballonmonstret: ballonkrop, knude-ører, snor-ben.
+  ballon: u => `
+    <ellipse cx="110" cy="176" rx="34" ry="6" fill="rgba(0,0,0,.3)"/>
+    <ellipse cx="110" cy="106" rx="50" ry="56" fill="url(#${u.g})"/>
+    <path d="M96 52 Q88 30 104 28 Q110 42 108 54 Z" fill="${u.c2}"/>
+    <path d="M124 52 Q132 30 116 28 Q110 42 112 54 Z" fill="${u.c2}"/>
+    <path d="M92 60 Q104 44 118 56" stroke="#fff" stroke-width="3" fill="none" opacity=".45"/>
+    <ellipse cx="88" cy="86" rx="12" ry="9" fill="#fff" opacity=".28"/>
+    ${monsterEyes(u, 94, 100, 7)}${monsterEyes(u, 128, 100, 7)}
+    <path d="M96 120 Q110 132 126 120" stroke="rgba(0,0,0,.35)" stroke-width="2.6" fill="none"/>
+    <path d="M108 160 L104 178 M112 160 L120 178 M116 160 L134 176" stroke="${u.c2}" stroke-width="3" fill="none"/>
+    <circle cx="104" cy="180" r="4" fill="${u.c1}"/><circle cx="120" cy="180" r="4" fill="${u.c1}"/><circle cx="136" cy="176" r="4" fill="${u.c1}"/>
+    <path d="M56 116 Q42 124 46 138" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M164 116 Q178 124 174 138" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+  // Madmonstret: et æble med bid og tænder.
+  mad: u => `
+    <ellipse cx="110" cy="176" rx="52" ry="7" fill="rgba(0,0,0,.32)"/>
+    <path d="M110 62 Q60 62 52 110 Q44 158 110 162 Q176 158 168 110 Q160 62 110 62 Z" fill="url(#${u.g})"/>
+    <path d="M154 96 Q172 88 182 98 Q170 116 152 116 Q148 104 154 96 Z" fill="${u.c1}" opacity=".55"/>
+    <path d="M110 62 Q108 40 122 32 Q112 26 104 34 Q102 50 110 62 Z" fill="#166534"/>
+    <ellipse cx="134" cy="46" rx="20" ry="10" fill="#22c55e" transform="rotate(-20 134 46)"/>
+    ${monsterEyes(u, 88, 100, 7)}${monsterEyes(u, 124, 100, 7)}
+    <path d="M86 126 Q110 142 136 124 Q130 136 110 138 Q92 136 86 126 Z" fill="#7f1d1d"/>
+    <path d="M92 128 L96 138 L102 128 M118 128 L122 138 L128 128" fill="#fff"/>
+    <path d="M60 118 Q56 134 62 148 M158 118 Q162 134 156 148" stroke="rgba(0,0,0,.18)" stroke-width="3" fill="none"/>
+    <path d="M96 74 Q104 66 112 74" stroke="#fff" stroke-width="3" fill="none" opacity=".5"/>`,
+  // Sokkemonstret: sok med striber og knap-øje.
+  sok: u => `
+    <ellipse cx="110" cy="176" rx="46" ry="7" fill="rgba(0,0,0,.32)"/>
+    <path d="M78 44 L132 44 L136 116 Q162 122 164 148 Q166 170 132 172 Q100 172 84 156 Q72 140 74 116 Z" fill="url(#${u.g})"/>
+    <path d="M78 60 L134 60 M76 78 L134 78 M74 96 L134 96" stroke="${u.c1}" stroke-width="7" opacity=".75"/>
+    <path d="M78 44 Q80 30 90 30 L118 30 Q130 30 132 44 Z" fill="${u.c2}"/>
+    <circle cx="108" cy="122" r="8" fill="${u.c1}"/><circle cx="108" cy="122" r="4" fill="#1f1300"/>
+    <circle cx="146" cy="142" r="7" fill="url(#${u.e})"/><circle cx="146" cy="142" r="3.4" fill="#1f1300"/>
+    <path d="M148 156 Q162 160 164 150" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <path d="M92 140 Q104 150 120 144" stroke="rgba(0,0,0,.2)" stroke-width="2" fill="none"/>
+    <path d="M84 156 Q92 168 104 168" stroke="${u.c2}" stroke-width="3" fill="none"/>
+    <path d="M52 96 Q40 84 44 70" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M168 122 Q184 116 190 104" stroke="${u.c2}" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+  // Urmonstret: vækkeur med ringeklokker, viser-ben.
+  ur: u => `
+    <ellipse cx="110" cy="176" rx="44" ry="7" fill="rgba(0,0,0,.32)"/>
+    <circle cx="86" cy="52" r="20" fill="url(#${u.g})"/>
+    <circle cx="134" cy="52" r="20" fill="url(#${u.g})"/>
+    <circle cx="86" cy="52" r="11" fill="${u.c1}" opacity=".6"/>
+    <circle cx="134" cy="52" r="11" fill="${u.c1}" opacity=".6"/>
+    <circle cx="110" cy="110" r="48" fill="url(#${u.g})"/>
+    <circle cx="110" cy="110" r="38" fill="${u.c1}" opacity=".55"/>
+    <circle cx="110" cy="110" r="38" fill="none" stroke="${u.c2}" stroke-width="3"/>
+    <path d="M110 110 L110 84 M110 110 L130 120" stroke="#1f1300" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="110" cy="110" r="4" fill="#1f1300"/>
+    <path d="M96 84 Q110 76 124 84" stroke="rgba(255,255,255,.4)" stroke-width="2" fill="none"/>
+    ${monsterEyes(u, 96, 132, 5)}${monsterEyes(u, 124, 132, 5)}
+    <path d="M100 144 Q110 150 120 144" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <path d="M92 156 L88 176 M128 156 L132 176" stroke="${u.c2}" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="88" cy="178" r="5" fill="${u.c2}"/><circle cx="132" cy="178" r="5" fill="${u.c2}"/>`,
+  // Trafik-trolden: kroppen ER et trafiklys med ben og en skilt-arm.
+  trafik: u => monsterShadow(50) + `
+    <rect x="84" y="40" width="52" height="118" rx="12" fill="url(#${u.g})"/>
+    <rect x="78" y="34" width="64" height="130" rx="16" fill="none" stroke="${u.c2}" stroke-width="4"/>
+    <circle cx="110" cy="62" r="13" fill="#ef4444"/>
+    <circle cx="110" cy="98" r="13" fill="#fbbf24"/>
+    <circle cx="110" cy="134" r="13" fill="#4ade80"/>
+    <circle cx="106" cy="58" r="4" fill="#fff" opacity=".6"/>
+    ${monsterEyes(u, 100, 80, 4)}${monsterEyes(u, 122, 80, 4)}
+    <path d="M100 112 Q110 118 120 112" stroke="rgba(0,0,0,.45)" stroke-width="2" fill="none"/>
+    <path d="M84 152 L74 174 M136 152 L146 174" stroke="${u.c2}" stroke-width="6" stroke-linecap="round"/>
+    <rect x="30" y="80" width="40" height="26" rx="8" fill="${u.c1}" opacity=".9"/>
+    <text x="50" y="99" font-size="15" font-weight="900" font-family="Arial, sans-serif" fill="#1f1300" text-anchor="middle">STOP</text>
+    <path d="M84 92 L70 88" stroke="${u.c2}" stroke-width="6" stroke-linecap="round"/>
+    <path d="M136 120 Q160 116 172 104" stroke="${u.c2}" stroke-width="6" fill="none" stroke-linecap="round"/>`,
+
+  /* ---------- ROBOT / MASKINE / ALIEN ---------- */
+  // Galakse-kejseren: alien med tre øjne, antenner og kejserkappe.
+  alien: u => monsterShadow(54) + `
+    <path d="M40 116 Q22 150 30 174 Q74 160 110 162 Q146 160 190 174 Q198 150 180 116 Q150 132 110 132 Q70 132 40 116 Z" fill="${u.c2}" opacity=".55"/>
+    <ellipse cx="110" cy="140" rx="40" ry="24" fill="url(#${u.g})"/>
+    <path d="M74 44 Q74 92 110 96 Q146 92 146 44 Q146 16 110 14 Q74 16 74 44 Z" fill="url(#${u.g})"/>
+    <path d="M92 14 Q84 -2 100 0 Q104 10 100 18 M128 14 Q136 -2 120 0 Q116 10 120 18" stroke="${u.c2}" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <circle cx="100" cy="0" r="5" fill="${u.c1}"/><circle cx="120" cy="0" r="5" fill="${u.c1}"/>
+    ${monsterEyes(u, 94, 48, 7)}${monsterEyes(u, 126, 48, 7)}
+    <circle cx="110" cy="72" r="5" fill="url(#${u.e})"/><circle cx="110" cy="72" r="2.4" fill="#1f1300"/>
+    <path d="M98 84 Q110 90 122 84" stroke="rgba(0,0,0,.35)" stroke-width="2" fill="none"/>
+    <path d="M78 34 Q110 20 142 34" stroke="${u.c1}" stroke-width="4" fill="none"/>
+    <circle cx="78" cy="34" r="4" fill="${u.c1}"/><circle cx="142" cy="34" r="4" fill="${u.c1}"/><circle cx="110" cy="24" r="4" fill="${u.c1}"/>
+    <path d="M74 140 Q58 156 62 172 M146 140 Q162 156 158 172" stroke="url(#${u.g})" stroke-width="9" fill="none" stroke-linecap="round"/>`,
+  // Byens Vogter: maskine med blink-lys, hjul og arme.
+  vogter: u => monsterShadow(66) + `
+    <rect x="34" y="86" width="152" height="52" rx="14" fill="url(#${u.g})"/>
+    <rect x="62" y="58" width="96" height="34" rx="12" fill="url(#${u.g})"/>
+    <rect x="70" y="66" width="80" height="18" rx="6" fill="${u.c1}" opacity=".75"/>
+    <rect x="54" y="56" width="24" height="10" rx="4" fill="#ef4444"/>
+    <rect x="142" y="56" width="24" height="10" rx="4" fill="#38bdf8"/>
+    ${monsterEyes(u, 90, 102, 6)}${monsterEyes(u, 130, 102, 6)}
+    <path d="M94 118 Q110 126 126 118" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <rect x="64" y="140" width="24" height="14" rx="4" fill="${u.c2}"/>
+    <rect x="132" y="140" width="24" height="14" rx="4" fill="${u.c2}"/>
+    <circle cx="48" cy="138" r="20" fill="#1f2937"/><circle cx="48" cy="138" r="9" fill="${u.c1}"/>
+    <circle cx="172" cy="138" r="20" fill="#1f2937"/><circle cx="172" cy="138" r="9" fill="${u.c1}"/>
+    <path d="M34 100 Q14 108 12 128" stroke="${u.c2}" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M186 100 Q204 108 206 128" stroke="${u.c2}" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <circle cx="110" cy="130" r="7" fill="${u.c1}"/>
+    <text x="110" y="135" font-size="9" font-weight="900" font-family="Arial, sans-serif" fill="#1f1300" text-anchor="middle">V</text>`,
+
+  /* ---------- MENNESKE / MAGISK ---------- */
+  // Hurtigløberen: læner frem, fart-striber, sneakers.
+  loeber: u => `
+    <ellipse cx="112" cy="176" rx="46" ry="6" fill="rgba(0,0,0,.3)"/>
+    <circle cx="120" cy="52" r="22" fill="url(#${u.g})"/>
+    <path d="M100 46 Q120 26 142 40 Q136 30 116 28 Q100 32 100 46 Z" fill="${u.c2}"/>
+    ${monsterEyes(u, 126, 48, 5)}${monsterEyes(u, 110, 50, 4)}
+    <path d="M122 62 Q132 64 138 60" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <path d="M104 74 Q124 68 140 78 Q150 96 142 118 L104 130 Q92 104 104 74 Z" fill="url(#${u.g})"/>
+    <path d="M142 84 Q168 74 182 92" stroke="url(#${u.g})" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M104 122 Q84 132 72 152" stroke="url(#${u.g})" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M120 126 Q140 140 146 164" stroke="url(#${u.g})" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M64 156 Q56 170 44 172 L74 174 Q80 164 78 154 Z" fill="#f8fafc"/>
+    <path d="M140 168 Q136 176 128 178 L156 176 Q160 170 156 164 Z" fill="#ef4444"/>
+    <path d="M22 70 L54 62 M18 92 L48 88 M24 114 L50 110" stroke="${u.c1}" stroke-width="5" stroke-linecap="round" opacity=".85"/>`,
+  // Følelsernes Kejser: TRE ansigter — glad, vred, trist.
+  foelseskejser: u => monsterShadow(56) + `
+    <path d="M42 112 Q22 150 30 174 Q74 158 110 160 Q146 158 190 174 Q198 150 178 112 Q146 130 110 130 Q74 130 42 112 Z" fill="${u.c2}" opacity=".6"/>
+    <ellipse cx="110" cy="124" rx="34" ry="34" fill="url(#${u.g})"/>
+    <circle cx="70" cy="82" r="24" fill="url(#${u.g})"/>
+    <circle cx="110" cy="70" r="25" fill="${u.c1}"/>
+    <circle cx="150" cy="82" r="24" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 62, 78, 5)}${monsterEyes(u, 150, 78, 5)}
+    <path d="M58 94 Q70 102 82 94" stroke="#2b2b35" stroke-width="2.4" fill="none"/>
+    <path d="M138 96 Q150 88 162 96" stroke="#2b2b35" stroke-width="2.4" fill="none"/>
+    ${monsterEyes(u, 100, 66, 5)}${monsterEyes(u, 120, 66, 5)}
+    <path d="M98 80 Q110 90 122 80" stroke="#2b2b35" stroke-width="2.6" fill="none"/>
+    <path d="M76 42 L86 50 L96 40 L106 50 L116 40 L126 50 L136 40 L146 50" fill="${u.c2}"/>
+    <rect x="70" y="34" width="80" height="10" rx="5" fill="${u.c2}"/>
+    <path d="M74 134 Q110 150 146 134" stroke="rgba(0,0,0,.2)" stroke-width="2" fill="none"/>
+    <path d="M66 140 Q48 156 54 172 M154 140 Q172 156 166 172" stroke="url(#${u.g})" stroke-width="9" fill="none" stroke-linecap="round"/>`,
+  // Tvillingen: TO ens figurer — alt kommer i par.
+  tvilling: u => `
+    <ellipse cx="72" cy="176" rx="30" ry="6" fill="rgba(0,0,0,.3)"/>
+    <ellipse cx="150" cy="176" rx="30" ry="6" fill="rgba(0,0,0,.3)"/>
+    <ellipse cx="72" cy="128" rx="30" ry="36" fill="url(#${u.g})"/>
+    <circle cx="72" cy="76" r="22" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 64, 74, 5)}${monsterEyes(u, 80, 74, 5)}
+    <path d="M64 88 Q72 94 80 88" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <path d="M56 60 Q52 44 68 44 Q74 54 72 62 Z" fill="${u.c2}"/>
+    <rect x="56" y="158" width="14" height="16" rx="6" fill="url(#${u.g})"/>
+    <rect x="76" y="158" width="14" height="16" rx="6" fill="url(#${u.g})"/>
+    <ellipse cx="150" cy="128" rx="30" ry="36" fill="url(#${u.g})"/>
+    <circle cx="150" cy="76" r="22" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 142, 74, 5)}${monsterEyes(u, 158, 74, 5)}
+    <path d="M142 88 Q150 94 158 88" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <path d="M134 60 Q130 44 146 44 Q152 54 150 62 Z" fill="${u.c2}"/>
+    <rect x="134" y="158" width="14" height="16" rx="6" fill="url(#${u.g})"/>
+    <rect x="154" y="158" width="14" height="16" rx="6" fill="url(#${u.g})"/>
+    <path d="M100 104 Q110 96 120 104" stroke="${u.c1}" stroke-width="3" fill="none" opacity=".8"/>
+    <path d="M104 112 L110 122 L116 112" stroke="${u.c2}" stroke-width="3" fill="none"/>`,
+  // Troldmands-kongen: spids hat med stjerner, langt skæg, stav.
+  troldmand: u => monsterShadow(56) + `
+    <path d="M62 118 Q56 92 110 88 Q164 92 158 118 Q160 156 110 162 Q60 156 62 118 Z" fill="url(#${u.g})"/>
+    <path d="M74 96 Q110 108 146 96" stroke="${u.c2}" stroke-width="3" fill="none"/>
+    <circle cx="110" cy="78" r="24" fill="${u.c2}" opacity=".95"/>
+    ${monsterEyes(u, 100, 74, 5.5)}${monsterEyes(u, 122, 74, 5.5)}
+    <path d="M96 92 Q110 84 124 92" stroke="rgba(0,0,0,.35)" stroke-width="2" fill="none"/>
+    <path d="M64 62 L110 4 L156 62 Q110 74 64 62 Z" fill="${u.c1}"/>
+    <path d="M64 62 Q110 74 156 62 L158 70 Q110 82 62 70 Z" fill="${u.c2}"/>
+    <path d="M96 34 L100 42 L108 44 L100 48 L96 56 L92 48 L84 44 L92 42 Z" fill="${u.c2}"/>
+    <circle cx="130" cy="44" r="3" fill="${u.c2}"/>
+    <path d="M92 104 Q84 130 96 156 Q104 140 106 108 Z" fill="#f8fafc" opacity=".9"/>
+    <path d="M128 104 Q136 130 124 156 Q116 140 114 108 Z" fill="#f8fafc" opacity=".9"/>
+    <rect x="158" y="60" width="9" height="106" rx="4" fill="#6b4f2a"/>
+    <circle cx="162" cy="52" r="13" fill="${u.c1}"/>
+    <path d="M162 42 Q166 52 162 60 Q158 52 162 42 Z" fill="#fff" opacity=".5"/>`,
+
+  /* ---------- ÅND / SPØGELSE / SKYGGE / DRØM ---------- */
+  // Månemanden: et ANSIGT på månen med kratere.
+  maanemand: u => `
+    <circle cx="110" cy="106" r="62" fill="url(#${u.g})"/>
+    <circle cx="86" cy="76" r="13" fill="${u.c2}" opacity=".35"/>
+    <circle cx="138" cy="94" r="9" fill="${u.c2}" opacity=".3"/>
+    <circle cx="104" cy="150" r="11" fill="${u.c2}" opacity=".28"/>
+    <circle cx="146" cy="140" r="6" fill="${u.c2}" opacity=".3"/>
+    <circle cx="74" cy="126" r="7" fill="${u.c2}" opacity=".28"/>
+    ${monsterEyes(u, 88, 100, 8)}${monsterEyes(u, 132, 100, 8)}
+    <path d="M78 88 Q88 80 98 88" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <path d="M122 88 Q132 80 142 88" stroke="rgba(0,0,0,.4)" stroke-width="2.4" fill="none"/>
+    <path d="M84 124 Q110 146 136 124" stroke="rgba(0,0,0,.45)" stroke-width="3.4" fill="none"/>
+    <path d="M48 74 L44 84 L34 86 L44 90 L48 100 L52 90 L62 86 L52 84 Z" fill="${u.c1}"/>
+    <circle cx="176" cy="66" r="3.4" fill="${u.c1}"/><circle cx="40" cy="128" r="3" fill="${u.c1}"/>`,
+  // Stilheds-ånden: diset skikkelse UDEN mund — den siger ingenting.
+  stilhedsaand: u => `
+    <ellipse cx="110" cy="178" rx="44" ry="6" fill="rgba(0,0,0,.25)"/>
+    <path d="M110 24 Q60 40 62 96 Q64 132 52 152 Q76 142 90 154 Q110 166 130 154 Q144 142 168 152 Q156 132 158 96 Q160 40 110 24 Z" fill="url(#${u.g})" opacity=".92"/>
+    <path d="M78 70 Q74 110 84 140 M142 70 Q146 110 136 140" stroke="#fff" stroke-width="2" fill="none" opacity=".28"/>
+    ${monsterEyes(u, 92, 78, 7)}${monsterEyes(u, 128, 78, 7)}
+    <path d="M96 76 Q104 70 110 78" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <path d="M110 78 Q116 70 124 76" stroke="rgba(0,0,0,.4)" stroke-width="2" fill="none"/>
+    <path d="M92 104 Q110 108 128 104" stroke="rgba(255,255,255,.5)" stroke-width="2" fill="none"/>
+    <path d="M84 92 Q110 100 136 92" stroke="${u.c2}" stroke-width="3" fill="none" opacity=".55"/>
+    <path d="M42 44 L46 54 L56 56 L46 60 L42 70 L38 60 L28 56 L38 54 Z" fill="${u.c1}" opacity=".7"/>
+    <circle cx="182" cy="96" r="3.4" fill="#fff" opacity=".7"/><circle cx="34" cy="112" r="3" fill="#fff" opacity=".6"/>`,
+  // Klassens Spøgelse: spøgelse med studenterhue og tavle-mave.
+  spoegelse: u => `
+    <ellipse cx="110" cy="178" rx="44" ry="6" fill="rgba(0,0,0,.25)"/>
+    <path d="M110 46 Q64 52 62 110 Q62 140 50 158 Q76 150 92 160 Q110 170 128 160 Q144 150 170 158 Q158 140 158 110 Q156 52 110 46 Z" fill="url(#${u.g})"/>
+    <path d="M58 66 Q54 78 58 90 M162 66 Q166 78 162 90" stroke="#fff" stroke-width="2" fill="none" opacity=".3"/>
+    ${monsterEyes(u, 92, 92, 7)}${monsterEyes(u, 128, 92, 7)}
+    <ellipse cx="110" cy="118" rx="10" ry="7" fill="rgba(0,0,0,.3)"/>
+    <path d="M96 138 Q110 148 124 138" stroke="rgba(0,0,0,.35)" stroke-width="2.4" fill="none"/>
+    <rect x="62" y="34" width="96" height="10" rx="4" fill="#1f2937"/>
+    <path d="M110 34 L110 16" stroke="#1f2937" stroke-width="4"/>
+    <path d="M110 14 L134 22 L110 30 Z" fill="${u.c2}"/>
+    <rect x="86" y="140" width="48" height="30" rx="4" fill="#14532d" opacity=".85"/>
+    <path d="M94 150 Q104 146 112 152 M120 158 Q130 154 128 148" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/>
+    <path d="M130 160 Q146 152 158 160" stroke="${u.c2}" stroke-width="4" fill="none"/>`,
+  // Sorgens Skygge: hængende skygge med tårer.
+  skygge: u => `
+    <ellipse cx="110" cy="178" rx="46" ry="6" fill="rgba(0,0,0,.3)"/>
+    <path d="M110 22 Q66 34 64 92 Q62 130 44 156 Q70 148 88 160 Q110 172 132 160 Q150 148 176 156 Q158 130 156 92 Q154 34 110 22 Z" fill="url(#${u.g})"/>
+    <path d="M76 60 Q60 96 66 140" stroke="${u.c2}" stroke-width="4" fill="none" opacity=".6"/>
+    <path d="M144 60 Q160 96 154 140" stroke="${u.c2}" stroke-width="4" fill="none" opacity=".6"/>
+    ${monsterEyes(u, 92, 78, 7)}${monsterEyes(u, 128, 78, 7)}
+    <path d="M84 92 Q92 86 100 92" stroke="rgba(0,0,0,.45)" stroke-width="2.4" fill="none"/>
+    <path d="M120 92 Q128 86 136 92" stroke="rgba(0,0,0,.45)" stroke-width="2.4" fill="none"/>
+    <path d="M92 112 Q110 100 128 112" stroke="rgba(0,0,0,.5)" stroke-width="3" fill="none"/>
+    <path d="M86 96 Q82 116 86 124 Q90 116 86 96 Z" fill="#7dd3fc"/>
+    <path d="M134 96 Q130 116 134 124 Q138 116 134 96 Z" fill="#7dd3fc"/>
+    <path d="M104 132 Q100 150 104 158 Q108 150 104 132 Z" fill="#7dd3fc" opacity=".8"/>`,
+  // Drømme-kejseren: kosmisk skikkelse med krone af stjerner (sidste verden).
+  droemme: u => `
+    <ellipse cx="110" cy="178" rx="52" ry="6" fill="rgba(0,0,0,.28)"/>
+    <ellipse cx="110" cy="112" rx="58" ry="54" fill="url(#${u.g})"/>
+    <path d="M60 96 Q88 74 110 96 Q132 74 160 96" stroke="${u.c1}" stroke-width="4" fill="none" opacity=".7"/>
+    <ellipse cx="110" cy="112" rx="58" ry="54" fill="none" stroke="${u.c2}" stroke-width="2" opacity=".6"/>
+    <circle cx="78" cy="86" r="4" fill="#fff" opacity=".85"/>
+    <circle cx="146" cy="132" r="5" fill="#fff" opacity=".8"/>
+    <circle cx="126" cy="72" r="3" fill="${u.c1}"/>
+    <circle cx="66" cy="140" r="3.4" fill="${u.c1}"/>
+    ${monsterEyes(u, 92, 106, 7)}${monsterEyes(u, 128, 106, 7)}
+    <path d="M96 92 Q104 86 112 92" stroke="rgba(0,0,0,.35)" stroke-width="2" fill="none"/>
+    <path d="M120 92 Q128 86 136 92" stroke="rgba(0,0,0,.35)" stroke-width="2" fill="none"/>
+    <path d="M94 128 Q110 138 126 128" stroke="rgba(255,255,255,.6)" stroke-width="3" fill="none"/>
+    <path d="M76 52 L84 62 L96 54 L108 64 L120 54 L132 64 L144 52" fill="${u.c1}"/>
+    <rect x="72" y="44" width="76" height="10" rx="5" fill="${u.c1}"/>
+    <path d="M62 154 Q86 168 110 168 Q134 168 158 154" stroke="${u.c2}" stroke-width="4" fill="none"/>`,
+
+  /* ---------- DRAGE (den ENESTE) ---------- */
+  // Mester-dragen: vinger, horn og ild — og guld-trofæet fra Mesterskabet.
+  drage: u => `
+    <ellipse cx="104" cy="176" rx="56" ry="7" fill="rgba(0,0,0,.32)"/>
+    <path d="M28 150 Q10 140 6 120 Q4 106 16 100 Q26 96 30 108 L52 132 Z" fill="url(#${u.g})"/>
+    <ellipse cx="100" cy="128" rx="52" ry="33" fill="url(#${u.g})"/>
+    <path d="M84 140 Q100 150 116 140" stroke="rgba(0,0,0,.25)" stroke-width="2" fill="none"/>
+    <path d="M120 150 Q130 162 122 172 L138 174 Q144 164 136 152 Z" fill="url(#${u.g})"/>
+    <path d="M74 150 Q66 162 74 172 L58 174 Q52 162 62 150 Z" fill="url(#${u.g})"/>
+    <path d="M96 96 L102 82 L110 98 M116 100 L122 86 L130 102 M136 106 L140 94 L146 108" fill="${u.c2}" opacity=".85"/>
+    <path d="M118 108 Q150 74 192 66 Q176 88 166 94 Q188 94 200 102 Q170 106 150 110 Q138 118 126 120 Z" fill="url(#${u.g})" opacity=".95"/>
+    <path d="M126 112 Q140 100 158 96" stroke="${u.c2}" stroke-width="2" fill="none" opacity=".5"/>
+    <path d="M120 96 Q132 76 142 60 Q148 50 154 52" fill="url(#${u.g})"/>
+    <path d="M138 62 Q150 48 158 44 Q166 42 170 48 Q172 58 164 66 Q158 72 150 72 Z" fill="url(#${u.g})"/>
+    ${monsterEyes(u, 158, 52, 5.5)}
+    <circle cx="170" cy="52" r="1.6" fill="${u.c2}"/>
+    <path d="M150 46 Q146 32 154 28 Q158 34 156 44 Z" fill="${u.c2}"/>
+    <path d="M162 42 Q164 28 172 26 Q174 34 170 44 Z" fill="${u.c2}"/>
+    <path d="M174 56 Q182 54 188 48 Q184 58 176 62 Q182 62 186 66 Q176 66 170 60 Z" fill="#f97316" opacity=".9"/>
+    <path d="M64 116 Q62 130 68 140 Q56 132 54 118 Z" fill="#fbbf24"/>
+    <ellipse cx="66" cy="112" rx="14" ry="10" fill="#fbbf24"/>
+    <path d="M60 104 L66 96 L72 104" fill="#fbbf24"/>
+    <path d="M58 112 L44 106 L52 120 Z" fill="#fde68a"/>
+    <path d="M72 112 L86 106 L78 120 Z" fill="#fde68a"/>
+    <rect x="58" y="104" width="16" height="6" rx="3" fill="#b45309"/>
+    <circle cx="66" cy="112" r="4" fill="#b45309"/>`,
+};
+function monsterSvgMarkup(worldIdx) {
+  const b = (typeof worldIdx === "number" ? BOSSES[worldIdx] : worldIdx) || BOSSES[0];
+  const c1 = b.c1 || "#6ee7b7";
+  const c2 = b.c2 || "#059669";
+  const gid = "mg" + Math.random().toString(36).slice(2, 7);
+  const u = { c1: c1, c2: c2, g: gid, e: gid + "e" };
+  const form = (b.form && MONSTER_FORMS[b.form]) ? b.form : "dino";
   return `
-    <svg viewBox="0 0 220 190" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 220 190" xmlns="http://www.w3.org/2000/svg" data-form="${form}" role="img" aria-label="${b.name || "Monster"}">
       <defs>
         <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
@@ -4281,39 +5182,15 @@ function dragonSvgMarkup(c1, c2) {
           <stop offset="0%" stop-color="#fff"/><stop offset="40%" stop-color="#fde047"/><stop offset="100%" stop-color="#b45309"/>
         </radialGradient>
       </defs>
-      <!-- Hale -->
-      <path d="M30 150 Q10 140 6 120 Q4 106 14 100 Q22 94 30 102 Q36 108 34 118 L52 132" fill="url(#${gid})"/>
-      <path d="M6 120 L0 108 L8 112 Z" fill="${c2}"/>
-      <!-- Krop -->
-      <ellipse cx="100" cy="128" rx="52" ry="34" fill="url(#${gid})"/>
-      <path d="M60 118 Q58 104 70 100 Q82 97 88 108" fill="${c1}" opacity=".5"/>
-      <!-- Bug-skæl -->
-      <path d="M84 142 Q100 152 116 142 M78 132 Q100 144 122 132" stroke="rgba(0,0,0,.25)" stroke-width="2" fill="none"/>
-      <!-- Bagben -->
-      <path d="M120 150 Q128 162 122 170 L136 174 Q142 166 138 156 Z" fill="url(#${gid})"/>
-      <path d="M122 170 L116 178 L128 174 Z" fill="${c2}"/>
-      <!-- Forben -->
-      <path d="M72 148 Q64 160 70 168 L56 174 Q50 164 56 152 Z" fill="url(#${gid})"/>
-      <path d="M70 168 L62 176 L76 172 Z" fill="${c2}"/>
-      <!-- Vinge -->
-      <path d="M118 108 Q150 78 190 70 Q176 90 168 96 Q188 96 198 104 Q170 108 150 110 Q138 118 126 120 Z" fill="url(#${gid})" opacity=".9"/>
-      <path d="M126 112 Q140 100 156 96" stroke="${c2}" stroke-width="2" fill="none" opacity=".5"/>
-      <!-- Hals + hoved -->
-      <path d="M120 96 Q132 78 140 62 Q146 52 152 54" fill="url(#${gid})"/>
-      <path d="M138 66 Q150 50 158 46 Q166 44 170 50 Q172 58 166 66 Q160 74 152 74 Z" fill="url(#${gid})"/>
-      <!-- Øje -->
-      <circle cx="158" cy="54" r="6" fill="url(#${gid}e)"/>
-      <circle cx="158" cy="54" r="3" fill="#1f1300"/>
-      <!-- Næsebor -->
-      <circle cx="170" cy="54" r="1.6" fill="${c2}"/>
-      <!-- Horn -->
-      <path d="M150 48 Q146 34 154 30 Q158 36 156 46 Z" fill="${c2}"/>
-      <path d="M162 44 Q164 30 172 28 Q174 36 170 46 Z" fill="${c2}"/>
-      <!-- Ryg-pigge -->
-      <path d="M96 96 L102 82 L110 98 M116 100 L122 86 L130 102 M136 106 L140 94 L146 108" fill="${c2}" opacity=".85"/>
-      <!-- Ildglimt -->
-      <path d="M174 58 Q182 56 188 50 Q184 60 176 64 Q182 64 186 68 Q176 68 170 62 Z" fill="#f97316" opacity=".9"/>
+      ${MONSTER_FORMS[form](u)}
     </svg>`;
+}
+/* Bagud-kompatibel skal: den gamle funktion tegnede én drage ud fra to farver.
+   Kaldes den stadig uden verden, tegnes verden 1's skabning med de givne farver,
+   saa en gammel kalder ikke braekker. */
+function dragonSvgMarkup(c1, c2) {
+  const b = BOSSES[0];
+  return monsterSvgMarkup({ form: b.form, c1: c1 || b.c1, c2: c2 || b.c2 });
 }
 // --- Effekter ---
 function fxProjectile(fromX, fromY, toX, toY, icon) {
@@ -4471,6 +5348,7 @@ function bossDefend() {
     const dmg = Math.max(1, Math.round(full * 0.2));        // kun 20 % skade
     const reflect = Math.max(2, Math.round(full * 0.35));   // 35 % tilbage paa monsteret
     heroReact("guard"); dragonCounter();
+    arenaQuake();                       // paraden kastes tilbage — arenaen maerker det
     b.playerHp = Math.max(0, b.playerHp - dmg);
     statusEl.textContent = "⚔️ Du parerer " + b.charge.name + "! Kun -" + dmg + " liv — og monsteret tager -" + reflect + ".";
     fxBanner("⚔️ PARERET!", b.charge.name + " blev sendt tilbage", "#38bdf8", 1400);
@@ -4546,7 +5424,8 @@ function bossSignature() {
         fxSparks(to.x, to.y, sig.flash, 22);
         fxSlash(to.x, to.y, sig.flash);
         fxDmg(to.x + 30 + i * 24, to.y - 30 - i * 12, dmg, sig.flash);
-        shakeEl("bossDragonEmoji");
+        monsterKnockback();                 // monsteret kastes baglaens af slaget
+        arenaQuake("big");
         flashHit("bossDragonEmoji", sig.flash);
         sfxCrit();
         renderBossHp();
@@ -4618,7 +5497,10 @@ function bossAttack(attack) {
   function chargedImpact(then) {
     if (!bossState.charge) { then(); return; }
     const full = chargedDamage();
-    heroReact("recoil"); dragonCounter();
+    heroReact("recoil");
+    dragonCounter();                // spring med tilloeb
+    monsterLeap(true);              // det STORE spring (opladet angreb) vinder visuelt
+    arenaQuake("big");
     bossState.playerHp = Math.max(0, bossState.playerHp - full);
     const hTo = centerOf("bossHeroSvg");
     statusEl.textContent = "⚠️ " + bossState.charge.name + " rammer ubeskyttet! -" + full;
@@ -4658,7 +5540,8 @@ function bossAttack(attack) {
           fxRing(to.x, to.y, att.color, isCrit ? 200 : 130);
           fxSparks(to.x, to.y, att.color, isCrit ? 24 : 12);
           fxDmg(to.x + 30, to.y - 30, (isCrit ? "💥 " : "") + dmg, isCrit ? "#ff4ecd" : att.color);
-          shakeEl("bossDragonEmoji");
+          monsterKnockback();               // ramte figurer reagerer: rekyl + glimt
+          arenaQuake(isCrit ? "big" : "");
           flashHit("bossDragonEmoji", att.color);
           if (isCrit) {
             sfxCrit(); shakeScreen("big"); fxHitStop(110); fxFlash("#ff4ecd", 380); fxSlash(to.x, to.y, "#ff4ecd");
@@ -4680,11 +5563,13 @@ function bossAttack(attack) {
       const f2 = centerOf("bossDragonEmoji");
       const t2 = centerOf("bossHeroSvg");
       setTimeout(() => {
+        dragonCounter();               // monsteret SPRINGER frem — springet kommer foer slaget
         fxProjectile(f2.x, f2.y, t2.x, t2.y, bossState.el.icon || "🐲");
         setTimeout(() => {
           chargedImpact(() => {
             if (!bossState || bossState.over) return;
-            heroReact("recoil"); dragonCounter();
+            heroReact("recoil");
+            arenaQuake();
             bossState.playerHp = Math.max(0, bossState.playerHp - ddmg);
             fxDmg(t2.x + 30, t2.y - 30, ddmg, "#f87171");
             fxSparks(t2.x, t2.y, bossState.el.color, 14);
@@ -6316,11 +7201,8 @@ const MAP_POS = [
 const MAP_BIOMES = ["skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne",
   "skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne",
   "skov","bjerg","dal","skov","ø","flod","hule","tårn","mark","by","hav","kerne"]; // 24 = den svære skov · 35 = kerne (sidste verden)
-const MAP_COLORS = {
-  skov: "#2d5a3d", bjerg: "#5a4a3a", dal: "#3d5a2a", ø: "#2a4a5a",
-  flod: "#1f5f8f", hule: "#3a2a3a", tårn: "#4a3a5a", mark: "#5a4a1a",
-  by: "#5a3a2a", hav: "#1a3a5f", kerne: "#6a2a1a"
-};
+// (MAP_COLORS laa her og blev ALDRIG brugt — dødt data. Farvetonen pr. kort-side ligger
+//  nu i renderMapPanel sammen med resten af sidens tema, saa der er ét sted at rette.)
 function terrainMarkup(biome, x, y) {
   const parts = [];
   const cx = (x / 100) * 1200, cy = (y / 100) * 760;
@@ -6365,17 +7247,93 @@ function terrainMarkup(biome, x, y) {
   }
   return parts.join("");
 }
+/* ============ BAGGRUND PR. KORT-SIDE (temaet skal kunne SES) ============
+   Foer havde alle tre kort samme terræn og kun forskellig himmel — derfor føltes
+   siderne som "mere af det samme" (Kenneth: "alt for AI agtigt"). Nu tegner hver side
+   sin EGEN verden bag kortene: et kvarter i solnedgang (den levende hverdag) og
+   underverdenen med lava, stalagmitter og tåge.
+   Alle tal er faste (ingen Math.random): et kort der skifter udseende hver gang man
+   åbner det, ser ud som en fejl for et barn. */
+function pageBackdropMarkup(kind) {
+  const p = [];
+  if (kind === "hverdag") {
+    // Solnedgang over kvarteret: sol, skyer, bakker, huse med tændte vinduer, gadelygter
+    p.push('<circle cx="300" cy="520" r="70" fill="#ffcf7a" opacity=".85"/>');
+    p.push('<circle cx="300" cy="520" r="112" fill="#ffb15a" opacity=".16"/>');
+    p.push('<ellipse cx="820" cy="150" rx="120" ry="30" fill="#ffffff" opacity=".12"/>');
+    p.push('<ellipse cx="960" cy="185" rx="90" ry="22" fill="#ffffff" opacity=".10"/>');
+    p.push('<path d="M0 644 Q220 566 460 636 Q700 702 1200 624 L1200 760 L0 760 Z" fill="#3a2a4a" opacity=".5"/>');
+    // Huse langs bunden (samme formsprog som terrænets "by")
+    [70, 200, 330, 470, 610, 750, 880, 1010, 1130].forEach((x, i) => {
+      const h = 54 + (i % 3) * 22;
+      p.push(`<rect x="${x}" y="${750 - h}" width="86" height="${h}" rx="4" fill="#241a33" opacity=".92"/>`);
+      p.push(`<polygon points="${x-8},${750-h} ${x+43},${750-h-26} ${x+94},${750-h}" fill="#3a2748" opacity=".95"/>`);
+      p.push(`<rect x="${x+14}" y="${762-h}" width="18" height="15" fill="#ffd76a" opacity=".9"/>`);
+      p.push(`<rect x="${x+54}" y="${762-h}" width="18" height="15" fill="#ffd76a" opacity=".7"/>`);
+      if (i % 2 === 0) p.push(`<rect x="${x+38}" y="${728-h}" width="12" height="20" rx="2" fill="#1a1226"/>`);
+    });
+    // Gadelygter: varme lys i kvarteret
+    [140, 520, 900].forEach(x => {
+      p.push(`<rect x="${x}" y="676" width="5" height="74" fill="#1a1226" opacity=".8"/>`);
+      p.push(`<circle cx="${x+3}" cy="672" r="9" fill="#ffe9a8" opacity=".85"/>`);
+    });
+  } else if (kind === "underverden") {
+    // Stalagmitter, lavaspraekker, taagebaand og et blegt maanehul i taget
+    [40, 180, 320, 520, 680, 860, 1010, 1150].forEach((x, i) => {
+      const h = 90 + (i % 4) * 40;
+      p.push(`<polygon points="${x-38},760 ${x},${760-h} ${x+38},760" fill="#1a0f16" opacity=".85"/>`);
+      p.push(`<polygon points="${x-14},760 ${x},${760-h} ${x+14},760" fill="#2a1620" opacity=".7"/>`);
+    });
+    p.push('<ellipse cx="600" cy="704" rx="300" ry="46" fill="#2a0d10" opacity=".7"/>');
+    p.push('<path d="M300 704 Q450 680 600 704 Q750 728 900 704" stroke="#ff6a3a" stroke-width="5" fill="none" opacity=".5"/>');
+    p.push('<path d="M120 560 Q420 500 700 560 Q980 620 1200 560" stroke="#ff4d2a" stroke-width="3" fill="none" opacity=".26"/>');
+    p.push('<ellipse cx="600" cy="250" rx="420" ry="70" fill="#6a1030" opacity=".18"/>');
+    p.push('<ellipse cx="860" cy="420" rx="360" ry="46" fill="#8a1430" opacity=".14"/>');
+    p.push('<circle cx="980" cy="120" r="46" fill="#e8d8c0" opacity=".16"/>');
+  } else {
+    // Rummet (Kenneth: "galaksen er rigtig god" — derfor kun stjerner/planeter som før)
+    [[90,90],[220,180],[360,80],[520,150],[700,90],[880,170],[1040,110],[1150,220],[160,300],[420,260],[760,300],[1010,330]]
+      .forEach(([x, y], i) => p.push(`<circle cx="${x}" cy="${y}" r="${i % 3 === 0 ? 3 : 2}" fill="#fff" opacity="${i % 2 ? .5 : .8}"/>`));
+    p.push('<circle cx="980" cy="150" r="58" fill="#7a5adf" opacity=".35"/>');
+    p.push('<ellipse cx="980" cy="150" rx="96" ry="18" fill="none" stroke="#c4b5fd" stroke-width="4" opacity=".4" transform="rotate(-18 980 150)"/>');
+    p.push('<ellipse cx="300" cy="300" rx="260" ry="90" fill="#4a2a9a" opacity=".2"/>');
+    p.push('<ellipse cx="820" cy="480" rx="300" ry="110" fill="#2a4a9a" opacity=".16"/>');
+  }
+  return p.join("");
+}
 /* ============ KORT-SIDERNE ============
    Tre kort, bygget efter PRÆCIS samme mønster (renderMapPanel + swipe):
      side 0 = Galaksen (verden 1-12), side 1 = Ord-akademiet (13-24),
      side 2 = Mester-riget (verden 25-36).
    Kenneth har insisteret på at kortene er identiske i layout — derfor har hver side
    sine EGNE 12 positioner (se MAP_POS), så verden 25-36 ikke lægges oveni verden 1-12.
-   Alle tre sider har nu 12 verdener; siden ≥ 24 hører til side 2. */
+   Alle tre sider har nu 12 verdener; siden ≥ 24 hører til side 2.
+
+   TEMA (Kenneth 17. sep, om aftenen): "vores første verden galaksen er rigtig god …
+   de andre 2 er ikke gennemtænkt og virker alt for AI agtigt. Et andet tema kunne være
+   Underverdenen."
+   Siderne har derfor fået hver sin GENNEMTÆNKTE identitet — og det er ikke kosmetik:
+     A  rummet: ude i rummet bor de første ord (uændret — den virker)
+     B  den levende hverdag: alle tingene omkring barnet ER levende. Det er ikke et
+        tilfælde: alle 12 monstre på siden er netop hverdagsting der er blevet levende
+        (bogen bider, sokken snapper, uret løber, maden gnaver). Det giver barnet en
+        historie i stedet for en liste af emner.
+     C  Underverdenen: det mørke spejlbillede UNDER byen. Siden har byens gader, skolens
+        loft og samfundet som SPEJLBILLEDER (derfor "Spejl-søen"), og monstrene er
+        underverdenens egne: trolde, spøgelser, skygger, ulveflok, troldmanden — og til
+        sidst Mester-dragen, som er den eneste drage i spillet.
+   Titlen ("Ord-akademiet", "Mester-riget") er aftalen med Kenneth og står uændret;
+   temaet er den historie barnet møder. Se Docs/verdener-tema-og-qol.md. */
 const MAP_PAGES = [
-  { title: "🌌 Galaksen",      start: 0,  end: 12, letter: "A", hint: "Skift kort med ◀ ▶ — næste: Ord-akademiet 🎓" },
-  { title: "🎓 Ord-akademiet", start: 12, end: 24, letter: "B", hint: "Skift kort med ◀ ▶ — næste: Mester-riget 🏆" },
-  { title: "🏆 Mester-riget",  start: 24, end: 36, letter: "C", hint: "Skift kort med ◀ ▶ — tilbage: Ord-akademiet 🎓" }
+  { title: "🌌 Galaksen",      theme: "🌌 Galaksen",            sky: "rum",
+    line: "Ude i rummet bor de første ord — og de monstre der vogter dem.",
+    start: 0,  end: 12, letter: "A", hint: "◀ ▶ skifter kort · næste: Den levende hverdag 🏡" },
+  { title: "🎓 Ord-akademiet", theme: "🏡 Den levende hverdag", sky: "hverdag",
+    line: "Her er ALT levende: bogen bider, sokken snapper, uret løber.",
+    start: 12, end: 24, letter: "B", hint: "◀ ▶ skifter kort · næste: Underverdenen 🌑" },
+  { title: "🏆 Mester-riget",  theme: "🌑 Underverdenen",       sky: "underverden",
+    line: "Det mørke spejlbillede under byen — hvor de sværeste ord og den sidste drage bor.",
+    start: 24, end: 36, letter: "C", hint: "◀ ▶ skifter kort · tilbage: Den levende hverdag 🏡" }
 ];
 // Hvilket kort hører en verden til? (verden 25-36 ligger på den tredje side)
 function mapPageForWorld(i) { return i >= 24 ? 2 : i >= 12 ? 1 : 0; }
@@ -6449,15 +7407,30 @@ function renderMapPanel(elId, start, end, title) {
     if (open) paths += `<circle cx="${(x1+x2)/2}" cy="${my}" r="4" fill="#ffd76a" opacity=".9"/>`;
   }
   // Hvert kort får sin egen himmel-gradient (akademiet er varmere, Mester-riget gyldent)
+  // HVERT KORT ER SIN EGEN VERDEN (se MAP_PAGES): himmel, baggrund OG farvetone
+  // foelger temaet, saa barnet kan SE at det er et andet sted — ikke bare et nyt navn.
   const skyIdx = mapPageForWorld(start);
-  const sky = [
-    '<linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient>',
-    '<linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2a1a3a"/><stop offset="55%" stop-color="#3a2040"/><stop offset="100%" stop-color="#4a2a35"/></linearGradient>',
-    // Mester-riget: guld-hvid horisont — det sidste kort skal se ud som noget særligt
-    '<linearGradient id="skyC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#20142a"/><stop offset="50%" stop-color="#4a3218"/><stop offset="100%" stop-color="#8a6220"/></linearGradient>'
-  ][skyIdx];
-  const skyId = ["skyA", "skyB", "skyC"][skyIdx];
-  map.innerHTML = `<svg class="map-svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice"><defs>${sky}</defs><rect width="1200" height="760" fill="url(#${skyId})"/>${terr}${paths}</svg>`;
+  const page = MAP_PAGES[skyIdx] || MAP_PAGES[0];
+  const kind = page.sky || "rum";
+  const skyDefs = {
+    rum: '<linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a1035"/><stop offset="60%" stop-color="#2a1a4a"/><stop offset="100%" stop-color="#3a2a5a"/></linearGradient>',
+    // Den levende hverdag: solnedgang over kvarteret — varmt, men moerkt nok til at
+    // kortenes hvide tekst kan laeses.
+    hverdag: '<linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1d2a5a"/><stop offset="52%" stop-color="#6a4a7a"/><stop offset="100%" stop-color="#d9924f"/></linearGradient>',
+    // Underverdenen: naesten sort med gloede fra lavaen nederst.
+    underverden: '<linearGradient id="skyC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d0710"/><stop offset="45%" stop-color="#3a1018"/><stop offset="100%" stop-color="#7a2412"/></linearGradient>'
+  };
+  const skyId = { rum: "skyA", hverdag: "skyB", underverden: "skyC" }[kind];
+  // Farvetonen binder terrænet sammen med temaet (samme layout, forskellig verden)
+  const tint = { rum: "rgba(70,50,150,.10)", hverdag: "rgba(255,175,105,.13)", underverden: "rgba(150,10,25,.28)" }[kind];
+  map.innerHTML = `<svg class="map-svg" data-page="${kind}" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice">` +
+    `<defs>${skyDefs[kind]}</defs>` +
+    `<rect width="1200" height="760" fill="url(#${skyId})"/>` +
+    pageBackdropMarkup(kind) +
+    terr +
+    `<rect width="1200" height="760" fill="${tint}"/>` +
+    paths +
+    `</svg>`;
   // 2) Verdener — absolut positionerede kort oven på landskabet
   for (let i = start; i < end; i++) {
     const d = document.createElement("div");
@@ -6553,6 +7526,11 @@ function updateMapChrome() {
   const p = MAP_PAGES[curMapPage] || MAP_PAGES[0];
   const t = document.getElementById("mapTitle");
   if (t) t.textContent = p.title;
+  /* TEMAET under titlen: barnet skal vide HVILKEN verden det er i — ikke bare hvilken
+     "side" det er. Titlen er aftalen ("Ord-akademiet"), temaet er historien
+     ("Den levende hverdag"). Se Docs/verdener-tema-og-qol.md. */
+  const th = document.getElementById("mapTheme");
+  if (th) th.innerHTML = `<span class="mt-theme">${p.theme}</span><span class="mt-line">${p.line || ""}</span>`;
   const hint = document.querySelector(".map-swipe-hint");
   if (hint) hint.textContent = p.hint;
   const dots = document.getElementById("mapDots");
@@ -6654,8 +7632,13 @@ renderXpBar();
   const m = location.search.match(/[?&]screen=([a-z]+)/);
   if (!m) return;
   const s = m[1];
+  // ?screen=boss&world=12 → vis en BESTEMT verdens skabning (bruges til at tage
+  // skaermbilleder af de 36 skabninger og se at de ikke ligner hinanden).
+  const wm = location.search.match(/[?&]world=(\d+)/);
+  const wa = wm ? Number(wm[1]) : 0;
+  const wIdx = (Number.isInteger(wa) && wa >= 0 && wa < WORLDS.length) ? wa : 0;
   try {
-    if (s === "boss")     { cur.world = 0; startBoss(0); }
+    if (s === "boss")     { cur.world = wIdx; startBoss(wIdx); }
     // De tre spil + resultatet: saa skaermene kan tages skaermbillede af og tjekkes
     else if (s === "hear")   { startGame(0, "hear"); }
     else if (s === "type")   { startGame(0, "type"); }
@@ -6663,7 +7646,7 @@ renderXpBar();
     else if (s === "read")   { startGame(0, "read"); }
     else if (s === "stats")    showStats();
     else if (s === "hero")     showHero();
-    else if (s === "map")      showWorldMap();
+    else if (s === "map")      { if (wm) { state.mapAt = wIdx; } showWorldMap(); }
     else if (s === "achieve")  showAchievements();
     else if (s === "profiles") showProfiles();
     else if (s === "start")    goHome();
