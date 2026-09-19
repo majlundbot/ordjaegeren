@@ -147,13 +147,13 @@ const fuldtUnderstoettet = (f, tekst) => {
   return k.length > 0 && k.every(w => ordFindes(w, tekst));
 };
 
-console.log('--- 1. Dataene: 36 verdener x 3 opgaver ---');
+console.log('--- 1. Dataene: 36 verdener x 5 opgaver ---');
 check('READ_TASKS findes', typeof READ_TASKS !== 'undefined');
 check('én opgavesaet pr. verden', READ_TASKS.length === 36, READ_TASKS.length);
-check('hver verden har 3 opgaver (3-4 pr. verden)',
-  READ_TASKS.every(a => Array.isArray(a) && a.length === 3), JSON.stringify(READ_TASKS.map(a => a.length)));
+check('hver verden har 5 opgaver (Kenneth 18. sep: alle fire missioner er 5)',
+  READ_TASKS.every(a => Array.isArray(a) && a.length === 5), JSON.stringify(READ_TASKS.map(a => a.length)));
 const alle = READ_TASKS.reduce((n, a) => n.concat(a), []);
-check('108 opgaver i alt', alle.length === 108, alle.length);
+check('180 opgaver i alt', alle.length === 180, alle.length);
 check('hvert opgave har lv/tekst/q/svar/forkert',
   alle.every(x => x.lv && x.tekst && x.q && x.svar && Array.isArray(x.forkert)),
   JSON.stringify(alle.filter(x => !(x.lv && x.tekst && x.q && x.svar && Array.isArray(x.forkert))).slice(0,2)));
@@ -381,10 +381,10 @@ console.log('--- 7. Runden: samme struktur som de tre andre missioner ---');
 cur = { world: 0, game: 'read', idx: 0, words: [], readTasks: READ_TASKS[0], errors: 0, answered: false, wrongWords: [] };
 startGame(0, 'read');
 check('startGame("read") saetter cur.game', cur.game === 'read');
-check('runden bestaar af verdens opgaver', cur.readTasks && cur.readTasks.length === 3, cur.readTasks && cur.readTasks.length);
+check('runden bestaar af 5 af verdens opgaver', cur.readTasks && cur.readTasks.length === 5, cur.readTasks && cur.readTasks.length);
 check('cur.words er ét ord pr. opgave (saa statistik/loot virker som de andre)',
   cur.words.length === cur.readTasks.length && cur.words.every(w => WORLDS[0].words.includes(w)), JSON.stringify(cur.words));
-check('alle opgavernes ord er med — runden kan afsluttes', cur.words.length === 3);
+check('alle opgavernes ord er med — runden kan afsluttes', cur.words.length === 5);
 const ws0 = worldState(0);
 check('verdens-fremskridt har 4 missioner + monster = 5 pladser i done',
   Array.isArray(ws0.done) && ws0.done.length === 4, JSON.stringify(ws0.done));

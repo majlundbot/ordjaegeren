@@ -8,6 +8,32 @@ Kenneth, 18. september 2026, efter at have set Robin spille:
 
 Det er to forskellige problemer i én sætning — og kun det ene var det barnet selv gjorde.
 
+## 0. RETTELSE: ALLE FIRE MISSIONER ER 5 — OGSÅ LÆS (Kenneth, senere samme aften)
+
+> *"Opgaverne skal være 5 alle 4. Også læs og står. Robin siger nogle er 7 nu."*
+
+Robin så 7, og det var en fejl jeg selv havde lavet: `adaptiveWordCount` lagde **+2** på når det
+gik godt. Antallet er nu **fast 5** i alle fire missioner:
+
+- `adaptiveWordCount` er **fjernet helt** (den styrerede kun antallet).
+- Hør & Slå / Fang ordet / Sætnings-gåden: `buildWordList(worldIdx, TASKS_PER_MISSION)`.
+- **Forstå det!** havde kun **3** læse-opgaver pr. verden — så den runde var 3, ikke 7. For at
+  gøre den til 5 er der skrevet **2 nye læse-opgaver pr. verden = 72 nye opgaver**, nu i alt
+  **180** (36 × 5). Hver ny opgave er enten `find` eller `forstaa` (ingen nye `vurder`), bruger
+  to ord fra verdens egen ordliste der ikke var brugt før, og overholder alle de gamle krav:
+  1-2 sætninger · bevis-ordet står i både teksten og svaret · distraktorerne bærer ikke beviset
+  og har mindst ét ord teksten ikke nævner.
+
+Den adaptive tilpasning lever stadig — den bestemmer nu bare **hvilke ord** der kommer med
+(svage ord og mønstre), ikke hvor mange. Noten under resultatet sagde *"derfor får du flere
+ord"* (en løgn efter ændringen) og siger nu hvad der faktisk sker:
+*"🔁 Dine svære ord kommer igen i næste runde: …"*.
+
+Tests: kontrakterne i `ordj_forstaa.js` er opdateret fra 3 → 5 opgaver pr. verden (108 → 180) —
+inklusive den vigtigste: 200 tilfældige træk pr. opgave skal stadig vise at svaret kan udledes
+af teksten OG at ingen distraktor kan. `ordj_adaptiv2.js` og `ordj_selv3.js` tester nu det nye
+løfte (fast 5 ved både fremgang og problemer) i stedet for det gamle (+2/-2).
+
 ## 1. Problemet bag problemet
 
 Robins adfærd var ikke et tegn på at opgaverne var svære. Den var et **svar på incitamentet**:

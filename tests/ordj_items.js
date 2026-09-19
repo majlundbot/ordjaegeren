@@ -1,4 +1,5 @@
-// ITEMS: 10x flere navne, random styrke, og kubens chancer (10 % / 10 % / 80 %).
+// ITEMS: 10x flere navne, random styrke, og kubens GRUND-chancer (7 % / 3 % / 90 %
+// naar der ikke er mytiske items i kuben — chancerne MED mytiske items ligger i ordj_kube.js).
 const fs = require('fs');
 const src = fs.readFileSync('/tmp/ordj_script.js', 'utf-8');
 global.__html = fs.readFileSync('/Users/kennethmajlund/.openclaw/workspace/Projects/Ordjægeren/index.html', 'utf-8');
@@ -98,12 +99,26 @@ check('mythic ~7 %', Math.abs(pm - 0.07) < 0.012, (pm*100).toFixed(2) + ' %');
 check('secret ~3 %', Math.abs(ps - 0.03) < 0.010, (ps*100).toFixed(2) + ' %');
 check('trin-op ~90 %', Math.abs(po - 0.90) < 0.012, (po*100).toFixed(2) + ' %');
 
-// Kubens kildekode skal indeholde de praecise graenser
+// Kubens kildekode skal indeholde de praecise graenser for den GAMLE regel (uden mytiske
+// items i kuben). KUBENS CHANCER MED MYTISKE ITEMS (10/20/50 %) er testet i ordj_kube.js.
+// Laes hele funktionskroppen — ikke et udsnit paa 900 tegn: reglen for mytiske items staar
+// nu FOER de tre gamle grene, saa de ligger laengere nede i funktionen.
 const html = fs.readFileSync('/Users/kennethmajlund/.openclaw/workspace/Projects/Ordjægeren/index.html', 'utf-8');
-const kub = html.slice(html.indexOf('function cubeTransmute'), html.indexOf('function cubeTransmute') + 900);
-check('kuben ruller mythic ved r < 0.07', kub.includes('if (r < 0.07)') && kub.includes('mythic'));
-check('kuben ruller secret ved 0.07 <= r < 0.10', kub.includes('else if (r < 0.10)') && kub.includes('secret'));
-check('kuben bruger ét rul (const r = Math.random())', /const r = Math\\.random\\(\\);[\\s\\S]{0,200}if \\(r < 0\\.10\\)/.test(html));
+const kub = (function () {
+  const i = html.indexOf('function cubeTransmute');
+  let d = 0, j = i;
+  for (; j < html.length; j++) {
+    if (html[j] === '{') d++;
+    else if (html[j] === '}') { d--; if (d === 0) break; }
+  }
+  return html.slice(i, j + 1);
+})();
+check('kuben ruller mythic ved r < 0.07 (reglen uden mytiske items)', kub.includes('else if (r < 0.07)') && kub.includes('"mythic"'));
+check('kuben ruller secret ved 0.07 <= r < 0.10 (reglen uden mytiske items)', kub.includes('else if (r < 0.10)') && kub.includes('"secret"'));
+check('kuben bruger ét rul til baade den nye og den gamle regel',
+  kub.split('const r = Math.random();').length === 2 && kub.indexOf('if (r < chance)') >= 0);
+check('den gamle regel bruges KUN naar der ikke er mytiske items i kuben',
+  kub.indexOf('if (antalMytiske > 0)') >= 0 && kub.indexOf('} else if (r < 0.07)') >= 0);
 
 console.log(F === 0 ? '\\nITEMS OK' : '\\n' + F + ' FEJL');
 console.log('--- 6. Kosmetik: man kan SE hvor godt et item er ---');

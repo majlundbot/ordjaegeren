@@ -93,13 +93,16 @@ startPatternDrill('hv');
 check('drill med 6 ord ved let svaghed', cur.words.length === 6, cur.words.length);
 check('drill nulstiller patternMisses', cur.patternMisses && Object.keys(cur.patternMisses).length === 0);
 
-// ===== 4) ADAPTIV SVÆRHEDSGRAD i startGame =====
+// ===== 4) FAST ANTAL OPGAVER (Kenneth 18. sep) =====
+// Antallet er 5 i alle fire missioner, uanset hvor godt det går (adaptiveWordCount er fjernet).
 reset();
-check('basis 8 ved ingen data', adaptiveWordCount(8) === 8);
+check('TASKS_PER_MISSION er 5', TASKS_PER_MISSION === 5, TASKS_PER_MISSION);
+check('adaptiveWordCount er fjernet', typeof adaptiveWordCount === 'undefined');
+check('startGame giver 5 ord', (function(){ startGame(0, 'hear'); return cur.words.length === 5; })());
 state.stats.history=[{stars:3,wrong:[],total:8},{stars:3,wrong:[],total:8},{stars:3,wrong:[],total:8}];
-check('+2 ved fremgang', adaptiveWordCount(8) === 10);
+check('ogsaa ved fremgang: 5 ord (foer 7)', (function(){ startGame(0, 'fill'); return cur.words.length === 5; })());
 state.stats.history=[{stars:1,wrong:['a','b','c','d'],total:8},{stars:1,wrong:['a','b','c'],total:8}];
-check('-2 ved problemer', adaptiveWordCount(8) === 6);
+check('ogsaa ved problemer: 5 ord', (function(){ startGame(0, 'type'); return cur.words.length === 5; })());
 
 // ===== 5) ALLE MØNSTRE ER BRUGBARE =====
 reset();

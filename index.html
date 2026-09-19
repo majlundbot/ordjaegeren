@@ -377,6 +377,12 @@
   /* KRAV OM RIGTIGT SVAR (Kenneth 18. sep): efter et forkert svar springer runden IKKE
      videre af sig selv — barnet skal give det rigtige svar. Linjen her siger hvad der skal
      goeres, saa kravet ikke bare foeles som en laast skaerm. */
+  /* Kubens chance-linje: lille, tydelig, guldkantet — den skal kunne læses på en iPad. */
+  .cube-chance { margin: 8px 0 6px; font-size: 12px; line-height: 1.35; color: #ffe9a8;
+    background: rgba(255,215,106,.10); border: 1px solid rgba(255,215,106,.32);
+    border-radius: 10px; padding: 6px 8px; text-align: center; }
+  .cube-chance b { color: #ffd76a; }
+  .co-chance { margin-top: 8px; font-size: 13px; font-weight: 700; color: #ffe9a8; }
   .fix-krav { display: inline-block; margin-top: 7px; font-weight: 800; color: #ffd76a;
     background: rgba(255,215,106,.12); border: 1px solid rgba(255,215,106,.4);
     border-radius: 10px; padding: 4px 10px; }
@@ -1445,6 +1451,7 @@
         <div class="co-rarity" id="coRarity"></div>
         <div class="co-name" id="coName"></div>
         <div class="co-sub" id="coSub"></div>
+        <div class="co-chance" id="coChance"></div>
       </div>
     </div>
     <button class="btn" onclick="closeCubeOverlay()">✨ Fantastisk!</button>
@@ -1778,6 +1785,9 @@
           <h3>🧪 Horadric-kuben</h3>
           <div class="ta" style="font-size:11px;color:#9fb0e8">Tryk på 3 items i rygsækken → kuben laver ét bedre!</div>
           <div class="cube-row" id="cubeSlots"></div>
+          <!-- CHANCEN SKAL KUNNE SES (Kenneth 18. sep): antallet af mytiske items i kuben
+               bestemmer chancen for en opgradering. Se Docs/kubens-chancer.md. -->
+          <div class="cube-chance" id="cubeChance"></div>
           <button class="btn small" id="cubeBtn" onclick="cubeTransmute()">Læg 3 items i kuben</button>
         </div>
       </div>
@@ -2800,216 +2810,288 @@ const READ_TASKS = [
     { lv:"find", ord:"jeg", tekst:"Jeg har en rød bold i tasken.", q:"Hvilken farve har bolden?", svar:"Rød", forkert:["Grøn", "Blå"], bevis:"rød" },
     { lv:"forstaa", ord:"har", tekst:"Det regner, så jeg har en hue på.", q:"Hvorfor har jeg hue på?", svar:"Fordi det regner", forkert:["Fordi jeg fryser", "Fordi det er aften"], bevis:"regner" },
     { lv:"forstaa", ord:"og", tekst:"Jeg har en blyant og et stykke papir, så jeg kan tegne.", q:"Hvorfor kan jeg tegne?", svar:"Fordi jeg har blyant og papir", forkert:["Fordi jeg er glad", "Fordi det er mørkt"], bevis:"blyant" },
+    { lv:"find", ord:"en", tekst:"Jeg ser en kat i haven.", q:"Hvad ser jeg i haven?", svar:"En kat", forkert:["En hund", "En hest"], bevis:"kat" },
+    { lv:"forstaa", ord:"er", tekst:"Bolden er rød, så jeg kan finde den i græsset.", q:"Hvorfor kan jeg finde bolden?", svar:"Fordi den er rød", forkert:["Fordi den er stor", "Fordi den er ny"], bevis:"rød" },
   ],
   /* 1 · Ord-bjergene */
   [
     { lv:"find", ord:"vi", tekst:"Vi går på bjerget med en stor taske.", q:"Hvad har vi med os?", svar:"En taske", forkert:["En hund", "En stol"], bevis:"taske" },
     { lv:"forstaa", ord:"på", tekst:"Det er koldt på bjerget, så vi har varme trøjer på.", q:"Hvorfor har vi varme trøjer på?", svar:"Fordi det er koldt", forkert:["Fordi vi skal sove", "Fordi det er sommer"], bevis:"koldt" },
     { lv:"forstaa", ord:"han", tekst:"Han tager mig med til bjerget, for han kender vejen.", q:"Hvorfor tager han mig med?", svar:"Fordi han kender vejen", forkert:["Fordi han er træt", "Fordi han er sulten"], bevis:"vejen" },
+    { lv:"find", ord:"med", tekst:"Vi leger med bolden på plænen.", q:"Hvad leger vi med?", svar:"Med bolden", forkert:["Med tovet", "Med bilen"], bevis:"bolden" },
+    { lv:"forstaa", ord:"så", tekst:"Det er koldt, så vi tager jakken på.", q:"Hvorfor tager vi jakken på?", svar:"Fordi det er koldt", forkert:["Fordi det er varmt", "Fordi vi skal sove"], bevis:"koldt" },
   ],
   /* 2 · Lyd-dalen */
   [
     { lv:"find", ord:"den", tekst:"Den lille fugl synger her i dalen.", q:"Hvad gør fuglen?", svar:"Synger", forkert:["Flyver", "Sover"], bevis:"synger" },
     { lv:"forstaa", ord:"var", tekst:"Det var tåge i dalen, så vi kunne ikke se noget.", q:"Hvorfor kunne vi ikke se noget?", svar:"Fordi der var tåge", forkert:["Fordi det var mørkt", "Fordi vi var trætte"], bevis:"tåge" },
     { lv:"forstaa", ord:"igennem", tekst:"Vi skal igennem dalen, for den er den korteste vej.", q:"Hvorfor skal vi igennem dalen?", svar:"Fordi den er den korteste vej", forkert:["Fordi den er smukkest", "Fordi vi elsker bakker"], bevis:"korteste" },
+    { lv:"find", ord:"her", tekst:"Her ligger et kort på bordet.", q:"Hvor ligger kortet?", svar:"Her på bordet", forkert:["Under sengen", "I tasken"], bevis:"bordet" },
+    { lv:"forstaa", ord:"kan", tekst:"Jeg kan ikke løbe, fordi jeg har ondt i benet.", q:"Hvorfor kan jeg ikke løbe?", svar:"Fordi jeg har ondt i benet", forkert:["Fordi jeg er træt", "Fordi det regner"], bevis:"benet" },
   ],
   /* 3 · Sætnings-skoven */
   [
     { lv:"find", ord:"hun", tekst:"Hun har en lille kanin i sin taske.", q:"Hvilket dyr har hun?", svar:"En kanin", forkert:["En hest", "En hund"], bevis:"kanin" },
     { lv:"forstaa", ord:"nu", tekst:"Det er blevet mørkt, så nu går hun hjem.", q:"Hvorfor går hun hjem?", svar:"Fordi det er blevet mørkt", forkert:["Fordi hun er sulten", "Fordi hun skal i skole"], bevis:"mørkt" },
     { lv:"forstaa", ord:"min", tekst:"Hun tager ikke hunden med i skoven, fordi den jager ræve.", q:"Hvorfor tager hun ikke hunden med?", svar:"Fordi den jager ræve", forkert:["Fordi den er træt", "Fordi den er bange"], bevis:"jager" },
+    { lv:"find", ord:"som", tekst:"Hun har en hat, som er blå.", q:"Hvilken farve har hatten?", svar:"Den er blå", forkert:["Den er grøn", "Den er sort"], bevis:"blå" },
+    { lv:"forstaa", ord:"ved", tekst:"Jeg ved, hvor nøglen er, for jeg lagde den selv.", q:"Hvorfor ved jeg, hvor nøglen er?", svar:"Fordi jeg lagde den selv", forkert:["Fordi min bror sagde det", "Fordi jeg har læst det"], bevis:"selv" },
   ],
   /* 4 · Gåde-øen */
   [
     { lv:"find", ord:"ud", tekst:"Kom ud til øen, hvor der er en skat.", q:"Hvad findes der på øen?", svar:"En skat", forkert:["En drage", "Et slot"], bevis:"skat" },
     { lv:"forstaa", ord:"må", tekst:"Båden er tung, så vi må ikke være for mange om bord.", q:"Hvorfor må vi ikke være for mange om bord?", svar:"Fordi båden er tung", forkert:["Fordi den er gammel", "Fordi det regner"], bevis:"tung" },
     { lv:"forstaa", ord:"hvis", tekst:"Hvis du vil finde skatten, må du komme ud til øen.", q:"Hvad skal du gøre for at finde skatten?", svar:"Komme ud til øen", forkert:["Vente på stranden", "Synge en sang"], bevis:"øen" },
+    { lv:"find", ord:"hvor", tekst:"Jeg spørger, hvor skolen ligger.", q:"Hvad spørger jeg om?", svar:"Hvor skolen ligger", forkert:["Hvornår vi skal spise frokost", "Hvem der ejer cyklen"], bevis:"skolen" },
+    { lv:"forstaa", ord:"kom", tekst:"Kom her, for maden er klar.", q:"Hvorfor skal du komme?", svar:"Fordi maden er klar", forkert:["Fordi det er nat", "Fordi vi skal lege"], bevis:"klar" },
   ],
   /* 5 · Fart-floden */
   [
     { lv:"find", ord:"alle", tekst:"Alle børnene ville se båden fra broen.", q:"Hvor ville børnene se båden fra?", svar:"Fra broen", forkert:["Fra stranden", "Fra skoven"], bevis:"broen" },
     { lv:"forstaa", ord:"ville", tekst:"Floden var fyldt med vand, så vi kunne ikke se bunden.", q:"Hvorfor kunne vi ikke se bunden?", svar:"Fordi floden var fyldt med vand", forkert:["Fordi vandet var koldt", "Fordi det var mørkt"], bevis:"fyldt" },
     { lv:"forstaa", ord:"se", tekst:"Vi ville godt se fiskene, så vi lagde os stille på broen.", q:"Hvorfor lagde vi os stille?", svar:"For at se fiskene", forkert:["For at sove lidt", "For at fange fisk"], bevis:"fiskene" },
+    { lv:"find", ord:"fra", tekst:"Bilen kommer fra byen klokken otte.", q:"Hvor kommer bilen fra?", svar:"Fra byen", forkert:["Fra skoven", "Fra stranden"], bevis:"byen" },
+    { lv:"forstaa", ord:"dem", tekst:"Børnene er sultne, så de spiser maden.", q:"Hvorfor spiser børnene?", svar:"Fordi de er sultne", forkert:["Fordi de er trætte", "Fordi maden er kold"], bevis:"sultne" },
   ],
   /* 6 · Hemmelige-hulen */
   [
     { lv:"find", ord:"lige", tekst:"Hulen ligger lige bag det store træ.", q:"Hvor ligger hulen?", svar:"Bag det store træ", forkert:["Foran en sten", "Oppe på bakken"], bevis:"træ" },
     { lv:"forstaa", ord:"op", tekst:"Hulen er mørk, så vi tænder en lygte.", q:"Hvorfor tænder vi en lygte?", svar:"Fordi hulen er mørk", forkert:["Fordi vi skal sove", "Fordi det er koldt"], bevis:"mørk" },
     { lv:"forstaa", ord:"hvordan", tekst:"Hun viser os, hvordan man finder ind, så vi kan gøre det selv.", q:"Hvorfor viser hun os, hvordan man finder ind?", svar:"Så vi kan finde ind selv", forkert:["Fordi hun skal hjem", "Fordi vi betaler hende"], bevis:"selv" },
+    { lv:"find", ord:"hende", tekst:"Jeg giver hende bogen i morgen.", q:"Hvad giver jeg hende?", svar:"Bogen", forkert:["Blomsterne", "Tasken"], bevis:"bogen" },
+    { lv:"forstaa", ord:"tror", tekst:"Jeg tror, det bliver regnvejr, for himlen er grå.", q:"Hvorfor tror jeg, det bliver regnvejr?", svar:"Fordi himlen er grå", forkert:["Fordi solen skinner", "Fordi det er blevet nat"], bevis:"grå" },
   ],
   /* 7 · Tids-tårnet */
   [
     { lv:"find", ord:"meget", tekst:"Det er meget tidligt, da tårnet åbner.", q:"Hvornår åbner tårnet?", svar:"Tidligt", forkert:["Sent", "Om natten"], bevis:"tidligt" },
     { lv:"forstaa", ord:"havde", tekst:"Vi havde god tid, så vi gik op ad trappen.", q:"Hvorfor gik vi op ad trappen?", svar:"Fordi vi havde god tid", forkert:["Fordi vi skulle træne", "Fordi elevatoren var i stykker"], bevis:"tid" },
     { lv:"forstaa", ord:"man", tekst:"Ingen ved, hvor mange trin der er, men man kan tælle dem.", q:"Hvad kan man gøre ved trinene?", svar:"Tælle dem", forkert:["Male dem", "Fjerne dem"], bevis:"tælle" },
+    { lv:"find", ord:"kommer", tekst:"Min ven kommer klokken fem.", q:"Hvornår kommer min ven?", svar:"Klokken fem", forkert:["Sent i aften", "Klokken kvart over otte"], bevis:"fem" },
+    { lv:"forstaa", ord:"ingen", tekst:"Der er ingen busser, så vi går hjem.", q:"Hvorfor går vi hjem?", svar:"Fordi der ingen busser er", forkert:["Fordi vi er trætte", "Fordi det regner"], bevis:"busser" },
   ],
   /* 8 · Stjernemarken */
   [
     { lv:"find", ord:"når", tekst:"Vi går hjem, når det bliver mørkt.", q:"Hvornår går vi hjem?", svar:"Når det bliver mørkt", forkert:["Når det bliver lyst", "Når vi har spist"], bevis:"mørkt" },
     { lv:"forstaa", ord:"alt", tekst:"Stjernerne er svære at se, fordi månen lyser så stærkt.", q:"Hvorfor er stjernerne svære at se?", svar:"Fordi månen lyser stærkt", forkert:["Fordi det regner", "Fordi vi er trætte"], bevis:"lyser" },
     { lv:"forstaa", ord:"sagde", tekst:"Han sagde, at vi også kunne komme med, så vi gik efter ham.", q:"Hvorfor gik vi efter ham?", svar:"Fordi han sagde, vi kunne komme med", forkert:["Fordi vi var bange", "Fordi vi ville hjem"], bevis:"sagde" },
+    { lv:"find", ord:"hvem", tekst:"Jeg ved ikke, hvem der har min hue.", q:"Hvad ved jeg ikke?", svar:"Hvem der har min hue", forkert:["Hvornår vi skal spise", "Hvor bussen kører"], bevis:"hue" },
+    { lv:"forstaa", ord:"efter", tekst:"Efter maden løber vi ud i haven.", q:"Hvornår løber vi ud?", svar:"Efter maden", forkert:["Før vi spiser aftensmad", "Midt om natten"], bevis:"maden" },
   ],
   /* 9 · Måne-byen */
   [
     { lv:"find", ord:"hej", tekst:"Hej, mit navn står på døren til vores hus.", q:"Hvor står navnet?", svar:"På døren", forkert:["På gulvet", "I vinduet"], bevis:"døren" },
     { lv:"forstaa", ord:"blev", tekst:"Det blev sent, så vi skulle ind i huset.", q:"Hvorfor skulle vi ind i huset?", svar:"Fordi det blev sent", forkert:["Fordi det regnede", "Fordi vi var sultne"], bevis:"sent" },
     { lv:"forstaa", ord:"hans", tekst:"Hans cykel var i stykker, så han lånte min.", q:"Hvorfor lånte han min cykel?", svar:"Fordi hans cykel var i stykker", forkert:["Fordi han ikke havde nogen", "Fordi han skulle skynde sig"], bevis:"stykker" },
+    { lv:"find", ord:"mit", tekst:"Mit skrivebord står ved vinduet.", q:"Hvor står mit skrivebord?", svar:"Ved vinduet", forkert:["I kælderen", "Bag døren"], bevis:"vinduet" },
+    { lv:"forstaa", ord:"mere", tekst:"Suppen smager godt, så jeg tager et stykke mere.", q:"Hvorfor tager jeg et stykke mere?", svar:"Fordi suppen smager godt", forkert:["Fordi suppen er kold", "Fordi jeg er mæt"], bevis:"godt" },
   ],
   /* 10 · Raket-havet */
   [
     { lv:"find", ord:"over", tekst:"Raketten flyver over havet på kun to timer.", q:"Hvor lang tid tager turen?", svar:"To timer", forkert:["Fem minutter", "Et helt døgn"], bevis:"timer" },
     { lv:"forstaa", ord:"aldrig", tekst:"Far siger, at vi aldrig må flyve selv, fordi raketten er ny.", q:"Hvorfor må vi ikke flyve selv?", svar:"Fordi raketten er ny", forkert:["Fordi far er træt", "Fordi havet er dybt"], bevis:"raketten" },
     { lv:"forstaa", ord:"lidt", tekst:"Der er kun lidt mad om bord, så vi får ikke meget at spise.", q:"Hvorfor får vi ikke meget mad?", svar:"Fordi der er lidt mad", forkert:["Fordi maden er dårlig", "Fordi vi er trætte"], bevis:"lidt" },
+    { lv:"find", ord:"far", tekst:"Far henter mig i skolen i dag.", q:"Hvem henter mig i skolen?", svar:"Far", forkert:["Min søster", "Bedstemor"], bevis:"far" },
+    { lv:"forstaa", ord:"kun", tekst:"Vi har kun en kage, så vi deler den.", q:"Hvorfor deler vi kagen?", svar:"Fordi vi kun har en kage", forkert:["Fordi vi ikke kan lide den", "Fordi den er gammel"], bevis:"kage" },
   ],
   /* 11 · Galaksens kerne */
   [
     { lv:"find", ord:"mand", tekst:"En mand tager sin hund med ud i hele galaksen.", q:"Hvem tager en hund med?", svar:"En mand", forkert:["En dreng", "En pige"], bevis:"mand" },
     { lv:"forstaa", ord:"mor", tekst:"Vi ser dit billede igen, fordi mor vil se det sammen med jer.", q:"Hvorfor ser vi billedet igen?", svar:"Fordi mor vil se det", forkert:["Fordi det er nyt", "Fordi vi skal sove"], bevis:"mor" },
     { lv:"forstaa", ord:"deres", tekst:"Deres raket er tung, så den tager lang tid om at lette.", q:"Hvorfor tager det lang tid at lette?", svar:"Fordi raketten er tung", forkert:["Fordi det blæser", "Fordi de er bange"], bevis:"tung" },
+    { lv:"find", ord:"tager", tekst:"Tager du toget klokken otte?", q:"Hvad tager jeg klokken otte?", svar:"Toget", forkert:["Bussen", "Cyklen"], bevis:"toget" },
+    { lv:"forstaa", ord:"sammen", tekst:"Vi bygger en hytte sammen, så den bliver færdig i dag.", q:"Hvorfor bliver hytten færdig i dag?", svar:"Fordi vi bygger den sammen", forkert:["Fordi vi har travlt", "Fordi den er lille"], bevis:"sammen" },
   ],
   /* 12 · Bog-klassen */
   [
     { lv:"find", ord:"tavle", tekst:"Læreren skriver på tavlen i den første time.", q:"Hvad skriver læreren på?", svar:"Tavlen", forkert:["Vinduet", "Gulvet"], bevis:"tavlen" },
     { lv:"forstaa", ord:"tegne", tekst:"Vi skulle læse en side i bogen, så vi kunne tegne bagefter.", q:"Hvorfor skulle vi læse en side?", svar:"For at kunne tegne bagefter", forkert:["Fordi vi skulle sove", "Fordi læreren blev vred"], bevis:"tegne" },
     { lv:"vurder", ord:"lektie", tekst:"Mikkel siger, at lektier er spild af tid.", q:"Kan man vide ud fra sætningen, om Mikkel har ret?", svar:"Nej, det er kun noget Mikkel siger", forkert:["Ja, lektier er spild af tid","Ja, det står i sætningen"], navn:"Mikkel" },
+    { lv:"find", ord:"læse", tekst:"Jeg vil læse bogen i sengen i aften.", q:"Hvad vil jeg læse?", svar:"Bogen", forkert:["Avisen", "Brevet"], bevis:"bogen" },
+    { lv:"forstaa", ord:"lærer", tekst:"Læreren venter, så vi skynder os ind i klassen.", q:"Hvorfor skynder vi os?", svar:"Fordi læreren venter", forkert:["Fordi vi skal hjem", "Fordi det regner"], bevis:"læreren" },
   ],
   /* 13 · Skrive-værkstedet */
   [
     { lv:"find", ord:"vindue", tekst:"Der er et højt vindue i min stue.", q:"Hvad er der i stuen?", svar:"Et vindue", forkert:["En seng", "Et bord"], bevis:"vindue" },
     { lv:"forstaa", ord:"gulv", tekst:"Der var koldt på gulvet, så vi lagde et tæppe i stuen.", q:"Hvorfor lagde vi et tæppe?", svar:"Fordi gulvet var koldt", forkert:["Fordi der var beskidt", "Fordi vi skulle sove"], bevis:"koldt" },
     { lv:"vurder", ord:"væg", tekst:"Der står et skilt på væggen: Man må ikke male her.", q:"Hvad siger skiltet?", svar:"At man ikke må male", forkert:["At man gerne må male","At man skal male pænt"], navn:"skiltet" },
+    { lv:"find", ord:"køkken", tekst:"Tallerkenerne står i køkkenet.", q:"Hvor står tallerkenerne?", svar:"I køkkenet", forkert:["På loftet", "I haven"], bevis:"køkkenet" },
+    { lv:"forstaa", ord:"seng", tekst:"Jeg er træt, så jeg går i seng.", q:"Hvorfor går jeg i seng?", svar:"Fordi jeg er træt", forkert:["Fordi det er morgen", "Fordi jeg er sulten"], bevis:"træt" },
   ],
   /* 14 · Familiens hus */
   [
     { lv:"find", ord:"moster", tekst:"Min bedstefar bor i et hus med min moster.", q:"Hvem bor sammen med bedstefar?", svar:"Moster", forkert:["Onkel", "Fætter"], bevis:"moster" },
     { lv:"forstaa", ord:"familie", tekst:"Det var min kusines fødselsdag, så hele familien kom.", q:"Hvorfor kom hele familien?", svar:"Fordi det var kusinens fødselsdag", forkert:["Fordi de skulle spise", "Fordi huset var nyt"], bevis:"fødselsdag" },
     { lv:"vurder", ord:"onkel", tekst:"Min onkel siger, at vi spiser klokken seks. Klokken er seks nu.", q:"Har min onkel ret i, at vi skal spise nu?", svar:"Ja, klokken er seks", forkert:["Nej, klokken er fem","Nej, det er kun noget onkel siger"], navn:"onkel" },
+    { lv:"find", ord:"bedstefar", tekst:"Bedstefar bager boller i dag.", q:"Hvem bager boller?", svar:"Bedstefar", forkert:["Min kusine", "Min fætter"], bevis:"bedstefar" },
+    { lv:"forstaa", ord:"søster", tekst:"Min søster er syg, så jeg henter vand til hende.", q:"Hvorfor henter jeg vand?", svar:"Fordi min søster er syg", forkert:["Fordi jeg er tørstig", "Fordi det er varmt"], bevis:"syg" },
   ],
   /* 15 · Dyre-parken */
   [
     { lv:"find", ord:"ræv", tekst:"Hunden løber efter en ræv i parken.", q:"Hvilket dyr løber hunden efter?", svar:"En ræv", forkert:["En hest", "En gris"], bevis:"ræv" },
     { lv:"forstaa", ord:"høne", tekst:"Hønen var bange for hunden, så den gik ind i hønsehuset.", q:"Hvorfor gik hønen ind?", svar:"Fordi den var bange for hunden", forkert:["Fordi den var sulten", "Fordi den skulle sove"], bevis:"bange" },
     { lv:"vurder", ord:"hund", tekst:"Peter siger, at alle hunde er farlige.", q:"Kan man vide ud fra sætningen, om Peter har ret?", svar:"Nej, det er kun noget Peter siger", forkert:["Ja, alle hunde er farlige","Ja, det står i sætningen"], navn:"Peter" },
+    { lv:"find", ord:"hest", tekst:"Hesten spiser hø i stalden.", q:"Hvad spiser hesten?", svar:"Hø", forkert:["Havregrød i haven", "Kartofler og gulerødder"], bevis:"hø" },
+    { lv:"forstaa", ord:"kanin", tekst:"Kaninen gemmer sig, fordi den er bange.", q:"Hvorfor gemmer kaninen sig?", svar:"Fordi den er bange", forkert:["Fordi den er sulten", "Fordi den skal sove"], bevis:"bange" },
   ],
   /* 16 · Lege-pladsen */
   [
     { lv:"find", ord:"cykel", tekst:"Der er en rød cykel i garagen.", q:"Hvilken farve har cyklen?", svar:"Rød", forkert:["Grøn", "Blå"], bevis:"rød" },
     { lv:"forstaa", ord:"løbe", tekst:"Bolden rullede ud på vejen, så vi løb efter den.", q:"Hvorfor løb vi efter bolden?", svar:"Fordi den rullede ud på vejen", forkert:["Fordi vi skulle lege", "Fordi den var ny"], bevis:"rullede" },
     { lv:"vurder", ord:"bold", tekst:"Anna siger, at det regner ude. Solen skinner.", q:"Har Anna ret i, at det regner?", svar:"Nej, solen skinner", forkert:["Ja, det regner","Det kan man ikke vide"], navn:"Anna" },
+    { lv:"find", ord:"hoppe", tekst:"Vi hopper på trampolinen i haven.", q:"Hvor hopper vi?", svar:"På trampolinen", forkert:["I sandkassen", "På græsset ved skolen"], bevis:"trampolinen" },
+    { lv:"forstaa", ord:"lege", tekst:"Det regner, så vi leger inde i stedet.", q:"Hvorfor leger vi inde?", svar:"Fordi det regner", forkert:["Fordi vi er trætte", "Fordi det er blevet mørkt"], bevis:"regner" },
   ],
   /* 17 · Mad-markedet */
   [
     { lv:"find", ord:"mælk", tekst:"Vi køber ost og mælk i butikken.", q:"Hvad køber vi sammen med ost?", svar:"Mælk", forkert:["Smør", "Brød"], bevis:"mælk" },
     { lv:"forstaa", ord:"brød", tekst:"Der var ikke mere brød, så vi købte en banan i stedet.", q:"Hvorfor købte vi en banan?", svar:"Fordi der ikke var mere brød", forkert:["Fordi bananen var billig", "Fordi vi ikke kunne lide ost"], bevis:"brød" },
     { lv:"vurder", ord:"sukker", tekst:"Min fætter siger, at sukker er godt for tænderne. Tandlægen siger det modsatte.", q:"Hvem har ret?", svar:"Det kan man ikke vide ud fra sætningen", forkert:["Min fætter har ret","Tandlægen har ret"], navn:"fætter" },
+    { lv:"find", ord:"ost", tekst:"Jeg lægger ost på brødet.", q:"Hvad lægger jeg på brødet?", svar:"Ost", forkert:["Sukker", "Honning"], bevis:"ost" },
+    { lv:"forstaa", ord:"gulerod", tekst:"Guleroden er hård, så jeg skærer den i skiver.", q:"Hvorfor skærer jeg guleroden?", svar:"Fordi den er hård", forkert:["Fordi den er blød", "Fordi den er snavset"], bevis:"hård" },
   ],
   /* 18 · Tøj-kammeret */
   [
     { lv:"find", ord:"hue", tekst:"Jeg har en blå hue og et grønt bælte.", q:"Hvilken farve har huen?", svar:"Blå", forkert:["Rød", "Gul"], bevis:"blå" },
     { lv:"forstaa", ord:"vanter", tekst:"Det var koldt udenfor, så jeg tog vanter på.", q:"Hvorfor tog jeg vanter på?", svar:"Fordi det var koldt", forkert:["Fordi de var nye", "Fordi jeg skulle i skole"], bevis:"koldt" },
     { lv:"vurder", ord:"jakke", tekst:"Der står i avisen: I morgen kommer der regn.", q:"Hvad skriver avisen om i morgen?", svar:"At det regner", forkert:["At solen skinner","At det sner"], navn:"avisen" },
+    { lv:"find", ord:"bukser", tekst:"Jeg tager bukser på, fordi det er koldt.", q:"Hvad tager jeg på?", svar:"Bukser", forkert:["Sandalerne", "Regnbuen"], bevis:"bukser" },
+    { lv:"forstaa", ord:"sko", tekst:"Mine sko er våde, så jeg stiller dem til tørre.", q:"Hvorfor stiller jeg skoene til tørre?", svar:"Fordi de er våde", forkert:["Fordi de er nye", "Fordi de er for små"], bevis:"våde" },
   ],
   /* 19 · Krop-værkstedet */
   [
     { lv:"find", ord:"øje", tekst:"Jeg har et øje, der klør.", q:"Hvad klør?", svar:"Mit øje", forkert:["Min næse", "Min mund"], bevis:"øje" },
     { lv:"forstaa", ord:"hånd", tekst:"Jeg bar en tung kasse, så min hånd blev træt.", q:"Hvorfor blev hånden træt?", svar:"Fordi jeg bar en tung kasse", forkert:["Fordi jeg skrev meget", "Fordi det var koldt"], bevis:"kasse" },
     { lv:"vurder", ord:"tand", tekst:"På sedlen står: Husk at børste tænder både morgen og aften.", q:"Står der på sedlen, at man skal børste tænder om aftenen?", svar:"Ja, det står på sedlen", forkert:["Nej, kun om morgenen","Nej, sedlen siger ingenting"], navn:"sedlen" },
+    { lv:"find", ord:"mund", tekst:"Jeg bruger munden, når jeg spiser.", q:"Hvad bruger jeg, når jeg spiser?", svar:"Munden", forkert:["Albuerne", "Knæene"], bevis:"munden" },
+    { lv:"forstaa", ord:"øre", tekst:"Musikken er høj, så jeg holder for mine ører.", q:"Hvorfor holder jeg for ørerne?", svar:"Fordi musikken er høj", forkert:["Fordi det er koldt", "Fordi jeg er træt"], bevis:"høj" },
   ],
   /* 20 · Natur-haven */
   [
     { lv:"find", ord:"måne", tekst:"Om natten kan man se månen og én stjerne.", q:"Hvad kan man se om natten?", svar:"Månen og en stjerne", forkert:["Solen", "Regnen"], bevis:"månen" },
     { lv:"forstaa", ord:"vind", tekst:"Det blæste stærkt, så blomsterne bøjede sig.", q:"Hvorfor bøjede blomsterne sig?", svar:"Fordi det blæste stærkt", forkert:["Fordi de var tørre", "Fordi det regnede"], bevis:"blæste" },
     { lv:"vurder", ord:"regn", tekst:"Der står på skiltet: Her må man ikke gå på græsset.", q:"Hvor må man ikke gå hen?", svar:"På græsset", forkert:["På stien","Ind i huset"], navn:"skiltet" },
+    { lv:"find", ord:"stjerne", tekst:"Om natten kan jeg se en stjerne på himlen.", q:"Hvad kan jeg se på himlen?", svar:"En stjerne", forkert:["En fugl", "En slange"], bevis:"stjerne" },
+    { lv:"forstaa", ord:"sne", tekst:"Det har sneet hele natten, så vejen er hvid.", q:"Hvorfor er vejen hvid?", svar:"Fordi det har sneet", forkert:["Fordi den er ny", "Fordi solen skinner"], bevis:"sneet" },
   ],
   /* 21 · Handle-hallen */
   [
     { lv:"find", ord:"bygge", tekst:"Vi kan bygge en hytte af gamle kasser.", q:"Hvad kan vi bygge hytten af?", svar:"Kasser", forkert:["Sten", "Bretter"], bevis:"kasser" },
     { lv:"forstaa", ord:"danse", tekst:"Vi havde danset hele dagen, så vi måtte sidde ned og hvile.", q:"Hvorfor måtte vi sidde ned?", svar:"Fordi vi havde danset hele dagen", forkert:["Fordi vi skulle spise", "Fordi det var tidligt"], bevis:"danset" },
     { lv:"vurder", ord:"synge", tekst:"I programmet står: Koncerten begynder klokken otte.", q:"Hvornår begynder koncerten?", svar:"Klokken otte", forkert:["Klokken ni","Det står der ikke noget om"], navn:"programmet" },
+    { lv:"find", ord:"spise", tekst:"Vi skal spise klokken seks.", q:"Hvornår skal vi spise?", svar:"Klokken seks", forkert:["Klokken elleve", "Om en uge"], bevis:"seks" },
+    { lv:"forstaa", ord:"sove", tekst:"Jeg er meget træt, så jeg vil sove nu.", q:"Hvorfor vil jeg sove nu?", svar:"Fordi jeg er meget træt", forkert:["Fordi det er sjovt", "Fordi jeg er sulten"], bevis:"træt" },
   ],
   /* 22 · Tids-uret */
   [
     { lv:"find", ord:"uge", tekst:"Ugen har syv dage, og dagen har fireogtyve timer.", q:"Hvor mange dage har en uge?", svar:"Syv", forkert:["Tolv", "Femten"], bevis:"syv" },
     { lv:"forstaa", ord:"aften", tekst:"Det var blevet aften, så vi gik i seng.", q:"Hvorfor gik vi i seng?", svar:"Fordi det var blevet aften", forkert:["Fordi vi var trætte", "Fordi det var søndag"], bevis:"aften" },
     { lv:"vurder", ord:"måned", tekst:"Min onkel siger, at et år har ti måneder. Der er tolv måneder i et år.", q:"Har min onkel ret?", svar:"Nej, der er tolv måneder", forkert:["Ja, der er ti","Det kan man ikke vide"], navn:"onkel" },
+    { lv:"find", ord:"dag", tekst:"I dag skinner solen fra morgenen af.", q:"Hvornår skinner solen?", svar:"I dag", forkert:["I går aftes", "Om vinteren"], bevis:"dag" },
+    { lv:"forstaa", ord:"klokken", tekst:"Klokken er otte, så vi skynder os i skole.", q:"Hvorfor skynder vi os i skole?", svar:"Fordi klokken er otte", forkert:["Fordi skolen er lukket", "Fordi vi skal i biografen"], bevis:"otte" },
   ],
   /* 23 · Følelses-skoven */
   [
     { lv:"find", ord:"glad", tekst:"Da hun fik sin gave, blev hun meget glad.", q:"Hvordan blev hun, da hun fik gaven?", svar:"Glad", forkert:["Vred", "Trist"], bevis:"glad" },
     { lv:"forstaa", ord:"sulten", tekst:"Han havde ikke spist hele dagen, så han var sulten.", q:"Hvorfor var han sulten?", svar:"Fordi han ikke havde spist", forkert:["Fordi han var træt", "Fordi maden var kold"], bevis:"spist" },
     { lv:"vurder", ord:"modig", tekst:"Min ven siger, at man ikke kan være modig, hvis man er bange.", q:"Kan man vide ud fra sætningen, om han har ret?", svar:"Nej, det er kun noget min ven siger", forkert:["Ja, man kan ikke være begge","Ja, det står i sætningen"], navn:"min ven" },
+    { lv:"find", ord:"vred", tekst:"Hunden knurrer, fordi den er vred.", q:"Hvorfor knurrer hunden?", svar:"Fordi den er vred", forkert:["Fordi den er glad", "Fordi den sover"], bevis:"vred" },
+    { lv:"forstaa", ord:"træt", tekst:"Jeg gaber hele tiden, fordi jeg er træt.", q:"Hvorfor gaber jeg?", svar:"Fordi jeg er træt", forkert:["Fordi jeg er bange", "Fordi jeg er ivrig"], bevis:"træt" },
   ],
   /* 24 · Den svære skov */
   [
     { lv:"find", ord:"dejligt", tekst:"Det har været en dejlig dag i skoven.", q:"Hvordan har dagen været?", svar:"Dejlig", forkert:["Farlig", "Kedelig"], bevis:"dejlig" },
     { lv:"forstaa", ord:"farligt", tekst:"Stien var farlig, så vi gik en anden vej.", q:"Hvorfor gik vi en anden vej?", svar:"Fordi stien var farlig", forkert:["Fordi vi var færdige", "Fordi det var sjovt"], bevis:"farlig" },
     { lv:"vurder", ord:"sikkert", tekst:"Min fætter siger, at det er sikkert at gå alene i skoven. Skiltet siger: Gå ikke alene her.", q:"Hvad siger skiltet?", svar:"At man ikke må gå alene", forkert:["At det er sikkert at gå alene","At skoven er lukket"], navn:"skiltet" },
+    { lv:"find", ord:"færdig", tekst:"Jeg er færdig med lektierne om lidt.", q:"Hvad er jeg færdig med?", svar:"Lektierne", forkert:["Maden i køkkenet", "Tøjet i skabet"], bevis:"lektierne" },
+    { lv:"forstaa", ord:"næsten", tekst:"Vi har næsten nået toppen, så vi hviler et øjeblik.", q:"Hvorfor hviler vi?", svar:"Fordi vi næsten har nået toppen", forkert:["Fordi vi er færdige", "Fordi det er nat"], bevis:"toppen" },
   ],
   /* 25 · Mesterskabet */
   [
     { lv:"find", ord:"jordbær", tekst:"Vi spiste jordbær til aftensmad på min fødselsdag.", q:"Hvad spiste vi til aftensmad?", svar:"Jordbær", forkert:["Kartofler", "Æbler"], bevis:"jordbær" },
     { lv:"forstaa", ord:"skolegård", tekst:"Det regnede i skolegården, så vi spillede inde i stedet.", q:"Hvorfor spillede vi inde?", svar:"Fordi det regnede", forkert:["Fordi vi var færdige", "Fordi bolden var væk"], bevis:"regnede" },
     { lv:"vurder", ord:"computer", tekst:"Min ven siger, at det bliver koldt i morgen. Vejrudsigten siger det samme.", q:"Er de enige om vejret i morgen?", svar:"Ja, begge siger det bliver koldt", forkert:["Nej, de siger hver sit","Nej, min ven siger det bliver varmt"], navn:"vejrudsigten" },
+    { lv:"find", ord:"bibliotek", tekst:"Jeg låner bøger på biblioteket hver fredag.", q:"Hvor låner jeg bøger?", svar:"På biblioteket", forkert:["I skolegården", "På stationen"], bevis:"biblioteket" },
+    { lv:"forstaa", ord:"fødselsdag", tekst:"Det er min fødselsdag, så vi spiser kage.", q:"Hvorfor spiser vi kage?", svar:"Fordi det er min fødselsdag", forkert:["Fordi det er søndag", "Fordi vi er sultne"], bevis:"fødselsdag" },
   ],
   /* 26 · Dobbelt-bjerget */
   [
     { lv:"find", ord:"appelsin", tekst:"Til middag fik vi en appelsin på en tallerken.", q:"Hvad fik vi til middag?", svar:"En appelsin", forkert:["En banan", "En pære"], bevis:"appelsin" },
     { lv:"forstaa", ord:"kigge", tekst:"Vi gik op på klippen for at kigge på udsigten.", q:"Hvorfor gik vi op på klippen?", svar:"For at kigge på udsigten", forkert:["For at svømme i havet", "For at spise middag"], bevis:"kigge" },
     { lv:"vurder", ord:"svømme", tekst:"Min bror siger, at han svømmer hurtigere end en fisk. Han kan ikke engang svømme endnu.", q:"Kan min bror svømme hurtigere end en fisk?", svar:"Nej, han kan ikke engang svømme", forkert:["Ja, han er hurtigere","Det kan man ikke vide"], navn:"bror" },
+    { lv:"find", ord:"tallerken", tekst:"Tallerkenen står på bordet ved siden af glasset.", q:"Hvor står tallerkenen?", svar:"På bordet", forkert:["I vasken", "På gulvet i stuen"], bevis:"bordet" },
+    { lv:"forstaa", ord:"gætte", tekst:"Jeg kan ikke se tallet, så jeg må gætte.", q:"Hvorfor må jeg gætte?", svar:"Fordi jeg ikke kan se tallet", forkert:["Fordi jeg kender svaret", "Fordi det er let"], bevis:"tallet" },
   ],
   /* 27 · Stum-skoven */
   [
     { lv:"find", ord:"jord", tekst:"Fuglen sidder på jorden ved siden af en kugle.", q:"Hvor sidder fuglen?", svar:"På jorden", forkert:["I træet", "På taget"], bevis:"jorden" },
     { lv:"forstaa", ord:"hjul", tekst:"Hjulet var fladt, så cyklen kunne ikke køre.", q:"Hvorfor kunne cyklen ikke køre?", svar:"Fordi hjulet var fladt", forkert:["Fordi den var gammel", "Fordi det regnede"], bevis:"fladt" },
     { lv:"vurder", ord:"gæst", tekst:"Der står på skiltet: Skoven er lukket i dag.", q:"Hvad siger skiltet om skoven?", svar:"At den er lukket i dag", forkert:["At der ligger guld","At den er åben"], navn:"skiltet" },
+    { lv:"find", ord:"fugl", tekst:"En fugl sidder på grenen og synger.", q:"Hvor sidder fuglen?", svar:"På grenen", forkert:["Under bordet", "I buret"], bevis:"grenen" },
+    { lv:"forstaa", ord:"hjælpe", tekst:"Min bror kan ikke nå bogen, så jeg hjælper ham.", q:"Hvorfor hjælper jeg min bror?", svar:"Fordi han ikke kan nå bogen", forkert:["Fordi han er sulten", "Fordi han skal sove"], bevis:"bogen" },
   ],
   /* 28 · Byens gader */
   [
     { lv:"find", ord:"tog", tekst:"Vi tager toget til biografen i byen.", q:"Hvordan kommer vi til biografen?", svar:"Med toget", forkert:["Med bussen", "På cyklen"], bevis:"toget" },
     { lv:"forstaa", ord:"biograf", tekst:"Vi gik på restaurant, fordi der var lukket i biografen.", q:"Hvorfor gik vi på restaurant?", svar:"Fordi biografen var lukket", forkert:["Fordi vi var sultne", "Fordi pizzaen var billig"], bevis:"lukket" },
     { lv:"vurder", ord:"kamera", tekst:"Der står på skiltet: Biblioteket lukker klokken fire.", q:"Hvornår lukker biblioteket?", svar:"Klokken fire", forkert:["Klokken seks","Klokken to"], navn:"skiltet" },
+    { lv:"find", ord:"bus", tekst:"Bussen holder foran stationen klokken syv.", q:"Hvor holder bussen?", svar:"Foran stationen", forkert:["Bag kirken", "Ved stranden"], bevis:"stationen" },
+    { lv:"forstaa", ord:"restaurant", tekst:"Vi har ikke mad derhjemme, så vi går på restaurant.", q:"Hvorfor går vi på restaurant?", svar:"Fordi vi ikke har mad derhjemme", forkert:["Fordi vi skal fejre noget", "Fordi det er billigt"], bevis:"mad" },
   ],
   /* 29 · Skole-loftet */
   [
     { lv:"find", ord:"lineal", tekst:"I frikvarteret tegner vi med en lineal, og vi skriver med en blyant.", q:"Hvad tegner vi med?", svar:"En lineal", forkert:["En saks", "Et viskelæder"], bevis:"lineal" },
     { lv:"forstaa", ord:"gruppe", tekst:"Opgaven var svær, så vi regnede sammen i en gruppe.", q:"Hvorfor regnede vi sammen i en gruppe?", svar:"Fordi opgaven var svær", forkert:["Fordi læreren bestemte det", "Fordi vi skulle skynde sig"], bevis:"svær" },
     { lv:"vurder", ord:"matematik", tekst:"Min lærer siger, at matematik er det vigtigste fag. Dansklæreren siger, at dansk er vigtigst.", q:"Hvilket fag er det vigtigste?", svar:"Det kan man ikke vide ud fra sætningen", forkert:["Matematik er vigtigst","Dansk er vigtigst"], navn:"lærerne" },
+    { lv:"find", ord:"idræt", tekst:"I idræt løber vi rundt i hallen.", q:"Hvor løber vi i idræt?", svar:"I hallen", forkert:["På taget", "I kælderen"], bevis:"hallen" },
+    { lv:"forstaa", ord:"regne", tekst:"Opgaven er svær, så jeg bruger blyanten til at regne.", q:"Hvorfor bruger jeg blyanten?", svar:"Fordi opgaven er svær", forkert:["Fordi blyanten er ny", "Fordi jeg skal tegne"], bevis:"svær" },
   ],
   /* 30 · Vildt-reservatet */
   [
     { lv:"find", ord:"ugle", tekst:"Om natten jager uglen i den mørke skov.", q:"Hvornår jager uglen?", svar:"Om natten", forkert:["Om morgenen", "Om eftermiddagen"], bevis:"natten" },
     { lv:"forstaa", ord:"skildpadde", tekst:"Skildpadden går langsomt, men den kan blive meget gammel.", q:"Hvad kan skildpadden, selv om den går langsomt?", svar:"Den kan blive meget gammel", forkert:["Den kan løbe hurtigt", "Den kan flyve højt"], bevis:"gammel" },
     { lv:"vurder", ord:"bjørn", tekst:"Jægeren siger, at bjørnen sover om vinteren. Det står også i bogen.", q:"Står der i bogen, at bjørnen sover om vinteren?", svar:"Ja, det står i bogen", forkert:["Nej, bogen siger den jager","Nej, det er kun jægeren der siger det"], navn:"bogen" },
+    { lv:"find", ord:"pindsvin", tekst:"Pindsvinet ruller sig sammen, når det bliver bange.", q:"Hvornår ruller pindsvinet sig sammen?", svar:"Når det bliver bange", forkert:["Når det skal sove", "Når det er sultent"], bevis:"bange" },
+    { lv:"forstaa", ord:"delfin", tekst:"Delfinen springer op af vandet for at trække vejret.", q:"Hvorfor springer delfinen op?", svar:"Fordi den skal trække vejret", forkert:["Fordi den leger med en bold", "Fordi den er bange"], bevis:"vejret" },
   ],
   /* 31 · Følelses-fjeldet */
   [
     { lv:"find", ord:"stolt", tekst:"Hun var meget stolt, da hun vandt løbet.", q:"Hvordan var hun, da hun vandt?", svar:"Stolt", forkert:["Nervøs", "Ensom"], bevis:"stolt" },
     { lv:"forstaa", ord:"overrasket", tekst:"Han var overrasket, fordi ingen havde fortalt ham om festen.", q:"Hvorfor var han overrasket?", svar:"Fordi ingen havde fortalt om festen", forkert:["Fordi han var træt", "Fordi festen var kedelig"], bevis:"fortalt" },
     { lv:"vurder", ord:"tålmodig", tekst:"Min ven siger, at den der er tålmodig, altid vinder.", q:"Kan man vide ud fra sætningen, om det passer?", svar:"Nej, det er kun noget min ven siger", forkert:["Ja, den tålmodige vinder altid","Ja, det står i sætningen"], navn:"min ven" },
+    { lv:"find", ord:"ærlig", tekst:"Jeg tabte glasset, og jeg siger det, fordi jeg er ærlig.", q:"Hvorfor siger jeg det?", svar:"Fordi jeg er ærlig", forkert:["Fordi jeg er bange", "Fordi jeg er træt"], bevis:"ærlig" },
+    { lv:"forstaa", ord:"rolig", tekst:"Jeg trækker vejret langsomt, så jeg bliver rolig igen.", q:"Hvorfor trækker jeg vejret langsomt?", svar:"For at blive rolig igen", forkert:["For at løbe hurtigere", "For at sove længere"], bevis:"rolig" },
   ],
   /* 32 · Spejl-søen */
   [
     { lv:"find", ord:"nøgle", tekst:"Spejderen fandt en nøgle i det kolde vand.", q:"Hvad fandt spejderen?", svar:"En nøgle", forkert:["En mønt", "En sten"], bevis:"nøgle" },
     { lv:"forstaa", ord:"vand", tekst:"Vandet var stille som et spejl, så vi kunne se bunden.", q:"Hvorfor kunne vi se bunden?", svar:"Fordi vandet var stille", forkert:["Fordi solen skinnede", "Fordi vi svømmede ned"], bevis:"stille" },
     { lv:"vurder", ord:"vejr", tekst:"Det står i avisen: I morgen bliver det solskin.", q:"Hvad skriver avisen om morgendagens vejr?", svar:"At det bliver solskin", forkert:["At det bliver regnvejr","At det bliver tåge"], navn:"avisen" },
+    { lv:"find", ord:"spejder", tekst:"Spejderen tænder et bål i skoven.", q:"Hvad tænder spejderen?", svar:"Et bål", forkert:["En lampe på bordet", "Et lys i kirken"], bevis:"bål" },
+    { lv:"forstaa", ord:"højt", tekst:"Tårnet er højt, så vi kan se hele byen.", q:"Hvorfor kan vi se hele byen?", svar:"Fordi tårnet er højt", forkert:["Fordi det er mørkt", "Fordi vi har kikkert med hjemmefra"], bevis:"tårnet" },
   ],
   /* 33 · Samfunds-byen */
   [
     { lv:"find", ord:"sygehus", tekst:"Brandbilen kører hurtigt hen til sygehuset.", q:"Hvor kører brandbilen hen?", svar:"Til sygehuset", forkert:["Til stationen", "Til museet"], bevis:"sygehuset" },
     { lv:"forstaa", ord:"arbejde", tekst:"Han tog bussen til arbejde, fordi han ikke kunne finde sin cykel.", q:"Hvorfor tog han bussen?", svar:"Fordi han ikke kunne finde sin cykel", forkert:["Fordi det regnede", "Fordi bussen var hurtigere"], bevis:"cykel" },
     { lv:"vurder", ord:"politi", tekst:"Min nabo siger, at politiet aldrig har travlt. I radioen siger de, at politiet har meget at lave i dag.", q:"Har min nabo ret i, at politiet aldrig har travlt?", svar:"Nej, i dag har de meget at lave", forkert:["Ja, de har aldrig travlt","Det kan man ikke vide"], navn:"radioen" },
+    { lv:"find", ord:"avis", tekst:"Avisen ligger på køkkenbordet.", q:"Hvor ligger avisen?", svar:"På køkkenbordet", forkert:["I postkassen ved vejen", "Under sofaen"], bevis:"køkkenbordet" },
+    { lv:"forstaa", ord:"teater", tekst:"Vi kan ikke få billetter, så vi tager i teatret i morgen.", q:"Hvorfor tager vi i teatret i morgen?", svar:"Fordi vi ikke kan få billetter", forkert:["Fordi vi skal arbejde", "Fordi teatret er lukket"], bevis:"billetter" },
   ],
   /* 34 · Eventyr-riget */
   [
     { lv:"find", ord:"slot", tekst:"Ridderen red til slottet for at finde skatten.", q:"Hvor red ridderen hen?", svar:"Til slottet", forkert:["Til skoven", "Til havet"], bevis:"slottet" },
     { lv:"forstaa", ord:"trold", tekst:"Trolden gemte skatten, så ingen kunne finde den.", q:"Hvorfor gemte trolden skatten?", svar:"Fordi ingen skulle finde den", forkert:["Fordi han var træt", "Fordi skatten var tung"], bevis:"finde" },
     { lv:"vurder", ord:"troldmand", tekst:"En troldmand siger, at ingen kan løfte sværdet. Ridderen løfter sværdet.", q:"Kan nogen løfte sværdet?", svar:"Ja, ridderen løfter det", forkert:["Nej, ingen kan løfte det","Det kan man ikke vide"], navn:"ridderen" },
+    { lv:"find", ord:"ridder", tekst:"Ridderen rider ind i skoven på sin hest.", q:"Hvor rider ridderen hen?", svar:"Ind i skoven", forkert:["Ned til stranden", "Op på bjerget"], bevis:"skoven" },
+    { lv:"forstaa", ord:"skat", tekst:"Kisten er tung, fordi der er guld i den.", q:"Hvorfor er kisten tung?", svar:"Fordi der er guld i den", forkert:["Fordi den er lavet af træ", "Fordi den står i regnen"], bevis:"guld" },
   ],
   /* 35 · Drømme-tårnet */
   [
     { lv:"find", ord:"drøm", tekst:"I min drøm fløj jeg over et helt tårn.", q:"Hvad gjorde jeg i min drøm?", svar:"Jeg fløj", forkert:["Jeg løb", "Jeg svømmede"], bevis:"fløj" },
     { lv:"forstaa", ord:"hemmelighed", tekst:"Han havde en hemmelighed, så han turde ikke sige noget.", q:"Hvorfor turde han ikke sige noget?", svar:"Fordi han havde en hemmelighed", forkert:["Fordi han var træt", "Fordi han var bange for højder"], bevis:"hemmelighed" },
     { lv:"vurder", ord:"venskab", tekst:"Der står i bogen: Man bliver glad af at hjælpe sine venner.", q:"Står der i bogen, at man bliver glad af at hjælpe?", svar:"Ja, det står i bogen", forkert:["Nej, bogen siger det modsatte","Nej, det er kun noget man siger"], navn:"bogen" },
+    { lv:"find", ord:"håb", tekst:"Hun har et håb om at blive pilot.", q:"Hvad har hun et håb om?", svar:"At blive pilot", forkert:["At blive lærer på skolen", "At flytte til et varmt land"], bevis:"pilot" },
+    { lv:"forstaa", ord:"fantasi", tekst:"Der er ingen regler, så jeg bruger min fantasi.", q:"Hvorfor bruger jeg min fantasi?", svar:"Fordi der ikke er nogen regler", forkert:["Fordi jeg er træt", "Fordi det er en opgave fra skolen"], bevis:"regler" },
   ],
 ];
 
@@ -4197,6 +4279,14 @@ function confirmClass() {
 }
 /* ============ HORADRIC-KUBEN (3 items → 1 bedre) ============ */
 const CUBE_SLOTS = [null, null, null];
+/* Kubens opgraderings-chance efter hvor mange MYTISKE items der ligger i kuben (Kenneth 18. sep).
+   RARITY_LADDER er rækkefølgen fra daarligst til bedst — ASEGÅRD er med, saa et item paa det
+   niveau ikke kan give et lavere resultat ved et uheld. */
+const KUBE_MYTISK_CHANCE = { 1: 0.10, 2: 0.20, 3: 0.50 };
+const RARITY_LADDER = ["common", "magic", "rare", "epic", "legendary", "mythic", "secret", "asgard"];
+function rarityNiveau(rk) { const i = RARITY_LADDER.indexOf(rk); return i < 0 ? 0 : i; }
+function kubeMytiskeAntal() { return CUBE_SLOTS.filter(x => x && x.rarity === "mythic").length; }
+function kubeOpgraderingsChance() { return KUBE_MYTISK_CHANCE[kubeMytiskeAntal()] || 0; }
 function renderCube() {
   const slots = document.getElementById("cubeSlots");
   if (!slots) return;
@@ -4226,6 +4316,19 @@ function renderCube() {
   if (btn) {
     btn.disabled = !full;
     btn.innerHTML = full ? "✨ Forvandl!" : "Vælg 3 items fra rygsækken";
+  }
+  // CHANCEN STÅR PÅ SKÆRMEN, MENS MAN LÆGGER ITEMS I (Kenneth 18. sep). Et barn der lægger
+  // tre mytiske items i kuben og får et mytisk item igen skal kunne se at det var et FORSØG
+  // og ikke en fejl — ellers føles spillet som om det snyder.
+  const ch = document.getElementById("cubeChance");
+  if (ch) {
+    const n = kubeMytiskeAntal();
+    if (n > 0) {
+      ch.innerHTML = "🔮 <b>" + n + " mytisk" + (n > 1 ? "e" : "") + "</b> i kuben → <b>" +
+        Math.round(kubeOpgraderingsChance() * 100) + " %</b> chance for en opgradering";
+    } else {
+      ch.innerHTML = "Put et <b>mytisk</b> item i kuben — så stiger chancen: 1 → <b>10 %</b> · 2 → <b>20 %</b> · 3 → <b>50 %</b>";
+    }
   }
 }
 function cubeAdd(item) {
@@ -4261,16 +4364,31 @@ function cubeTransmute() {
   if (!CUBE_SLOTS.every(x => x)) return;
   sfxCard();
   const inputs = CUBE_SLOTS.slice();
-  /* ============ KUBENS CHANCER ============
-     Ét rul, tre udfald (Kenneths aftale):
-        0-7 %   -> MYTISK           (7 %)
-        7-10 %  -> SECRET MYTISK    (3 %)
-       10-100 % -> ét trin op i sjaeldenhed (90 %)
-     Foer laa chancen gemt inde i rollMythicDrop(), og secret kunne slet ikke
-     komme ud af kuben. Nu staar hele fordelingen ét sted og kan testes. */
+  /* ============ KUBENS CHANCER — MYTISK I KUBEN (Kenneth 18. sep) ============
+     "Når man putter 1 mythic ind i cupen, så skal man have 10% chance for upgrade.
+      Putter man 2 mythic in skal man have 20%, 3 = 50%."
+     Antallet af MYTISKE items i kuben bestemmer chancen for en OPGRADERING:
+         1 mytisk -> 10 %   2 mytiske -> 20 %   3 mytiske -> 50 %
+     Rammer man: ét trin OVER det bedste item i kuben (mytisk -> HEMMELIG).
+     Rammer man ikke: man faar sit mytiske item IGEN i samme sjaeldenhed — man taber ikke
+     sin mytiske genstand, man har brugt de to andre paa et forsoeg.
+     Uden mytiske items i kuben er den gamle fordeling UÆNDRET (7 % / 3 % / 90 %).
+     Hele reglen staar ét sted, saa den kan maales — se Docs/kubens-chancer.md. */
+  const antalMytiske = kubeMytiskeAntal();
+  const chance = kubeOpgraderingsChance();
   const r = Math.random();
-  let item;
-  if (r < 0.07) {
+  let item, opgraderet = false;
+  if (antalMytiske > 0) {
+    const mytiskeInd = CUBE_SLOTS.filter(it => it.rarity === "mythic");
+    if (r < chance) {
+      const naeste = Math.min(Math.max(...CUBE_SLOTS.map(it => rarityNiveau(it.rarity))) + 1,
+                              RARITY_LADDER.length - 1);
+      item = makeItem(randomSlot(), RARITY_LADDER[naeste]);
+      opgraderet = true;
+    } else {
+      item = makeItem(mytiskeInd[0].slot, "mythic");   // samme plads: genstanden kommer igen
+    }
+  } else if (r < 0.07) {
     item = makeItem(pickMythicMissing().slot, "mythic");
   } else if (r < 0.10) {
     item = makeItem(pickSecretMissing().slot, "secret");
@@ -4286,13 +4404,13 @@ function cubeTransmute() {
   save();
   renderCube();
   renderHero();
-  showCubeResult(inputs, item);
+  showCubeResult(inputs, item, { antalMytiske: antalMytiske, chance: chance, opgraderet: opgraderet });
   if (item.rarity === "secret") { fxConfetti(); sfxWin(); beep(880, .18, "sine", .2); setTimeout(() => beep(1180, .22, "sine", .2), 140); }
   else if (item.rarity === "mythic") { fxConfetti(); sfxWin(); }
 }
 
 // Vis forvandlings-resultatet: fuldskærms WOW-show med lysstråle, partikler og glød
-function showCubeResult(inputs, item) {
+function showCubeResult(inputs, item, info) {
   const overlay = document.getElementById("cubeOverlay");
   const inputsEl = document.getElementById("coInputs");
   inputsEl.innerHTML = "";
@@ -4319,6 +4437,17 @@ function showCubeResult(inputs, item) {
   } else {
     document.getElementById("coSub").textContent = "Kraft +" + (r ? r.power : "?") + " — udstyr den i helteskærmen!";
     resultEl.className = "co-result";
+  }
+  // HVAD SKETE DER? Opgradering eller et forsoeg der ikke ramte (Kenneth 18. sep).
+  // Et barn der lagde tre mytiske items i kuben og fik et mytisk item igen skal kunne se at
+  // det var et FORSOEG — ellers foeles spillet som om det snyder.
+  const coChance = document.getElementById("coChance");
+  if (coChance) {
+    coChance.textContent = (info && info.antalMytiske > 0)
+      ? (info.opgraderet
+          ? "🔮 Opgradering! (" + Math.round(info.chance * 100) + " % chance med " + info.antalMytiske + " mytisk i kuben)"
+          : "Mytisk igen — de " + Math.round(info.chance * 100) + " % blev ikke ramt. Prøv igen med flere mytiske!")
+      : "";
   }
   // WOW: vis overlay → magisk eksplosion med partikler i raritets-farven
   overlay.classList.remove("hidden");
@@ -6405,7 +6534,8 @@ function startGame(worldIdx, game) {
        bruger vi som cur.words. Så er stjerne-logikken, statistikken, loot og
        afslutningen PRÆCIS den samme kode som i Hør & Slå, Skriv ordet og
        Sætnings-gåden — og et forkert svar rammer det ord, opgaven handlede om. */
-    const tasks = shuffle(READ_TASKS[worldIdx] || []);
+    // OGSAA 5 her (Kenneth 18. sep). Hver verden har 5 læse-opgaver, saa runden er altid 5.
+    const tasks = shuffle(READ_TASKS[worldIdx] || []).slice(0, TASKS_PER_MISSION);
     cur.readTasks = tasks;
     cur.words = tasks.map(t => t.ord);
   } else {
@@ -6413,8 +6543,11 @@ function startGame(worldIdx, game) {
     // KORTERE MISSIONER (Kenneth 18. sep, efter Robins spil): "I stedet for 10 opgave skal
     // det være 5 så man hurtigere kommer til bossen." Runden er nu 5 ord (4-7 efter hvor
     // godt det går) — og den kan kun afsluttes ved at svare rigtigt (se kraevRigtigt).
-    const base = TASKS_PER_MISSION;
-    cur.words = buildWordList(worldIdx, adaptiveWordCount(base));
+    // PRAECIS 5 — ogsaa naar det gaar godt (Kenneth 18. sep: "Opgaverne skal være 5 alle 4.
+    // Også læs og står. Robin siger nogle er 7 nu"). Den adaptive tilpasning lagde +2 paa,
+    // saa en runde kunne blive 7 ord. Antallet er nu fast; tilpasningen bestemmer stadig
+    // HVILKE ord der kommer med (svage ord og mønstre), ikke hvor mange.
+    cur.words = buildWordList(worldIdx, TASKS_PER_MISSION);
   }
   cur.patternMisses = {}; // nulstil mønster-tæller for denne mission
   cur.mester = false;     // kun mesterStart() sætter denne til true
@@ -6984,19 +7117,19 @@ function checkPatternMastery() {
   });
 }
 // Adaptiv sværhedsgrad: flere ord når det går godt, færre når det går tungt
-function adaptiveWordCount(base) {
-  const rp = recentPerformance();
-  if (rp.count < 2) return base; // ikke nok data endnu
-  if (rp.avgStars >= 2.6 && rp.errRate < 0.15) return base + 2; // flyvende → udfordre
-  if (rp.errRate > 0.35) return Math.max(4, base - 2);          // kæmper → færre ad gangen
-  return base;
-}
+/* adaptiveWordCount er FJERNET (Kenneth 18. sep): "Opgaverne skal være 5 alle 4. Også læs og
+   står. Robin siger nogle er 7 nu." Antallet er nu fast (TASKS_PER_MISSION i alle fire
+   missioner). Tilpasningen bestemmer fortsat HVILKE ord der kommer med — se buildWordList
+   og adaptiveNote. */
+/* Den adaptive tilpasning bestemmer ikke længere ANTALLET af opgaver (Kenneth 18. sep:
+   "Opgaverne skal være 5 alle 4"). Den bestemmer HVILKE ord der kommer med — og det er
+   den note her nu siger, saa den ikke lover noget spillet ikke gør. */
 function adaptiveNote() {
-  const rp = recentPerformance();
-  if (rp.count < 2) return "";
-  if (rp.avgStars >= 2.6 && rp.errRate < 0.15) return '<div class="adapt-note">🚀 Du er blevet rigtig god — derfor får du flere ord!</div>';
-  if (rp.errRate > 0.35) return '<div class="adapt-note" style="color:#fca5a5;background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.35)">💙 Vi tager lidt færre ord ad gangen — så bliver det lettere.</div>';
-  return "";
+  const naeste = rankedWeakWords(40).filter(x => x.score > 0);
+  if (!naeste.length) return "";
+  const navne = naeste.slice(0, 3).map(x => x.w);
+  return '<div class="adapt-note">🔁 Dine svære ord kommer igen i næste runde: <b>' +
+    navne.join("</b>, <b>") + "</b></div>";
 }
 // Er der et nyt mønster barnet ikke har set lektionen for endnu?
 function unseenPattern() {

@@ -124,24 +124,29 @@ state.wrong = {};
 checkPatternMastery();
 check('mestret-array oprettet', Array.isArray(state.mastered));
 
-// ===== 6) ADAPTIV SVÆRHEDSGRAD =====
+// ===== 6) FAST ANTAL OPGAVER (Kenneth 18. sep) =====
+// "Opgaverne skal være 5 alle 4. Også læs og står. Robin siger nogle er 7 nu."
+// Den adaptive sværhedsgrad bestemte ANTALLET (+2 når det gik godt) — det er fjernet, så
+// antallet er fast. Tilpasningen bestemmer stadig HVILKE ord der kommer med.
 resetState();
-check('ingen data → basis-antal', adaptiveWordCount(8) === 8, adaptiveWordCount(8));
-// God præstation: høje stjerner, lav fejlrate
+check('adaptiveWordCount er fjernet — antallet er fast', typeof adaptiveWordCount === 'undefined');
+// God præstation maa IKKE give flere opgaver
 state.stats.history = [
   { stars: 3, wrong: [], total: 8 }, { stars: 3, wrong: [], total: 8 }, { stars: 3, wrong: [], total: 8 }
 ];
-check('flyvende → +2 ord', adaptiveWordCount(8) === 10, adaptiveWordCount(8));
-check('adaptiv note positiv', adaptiveNote().includes('flere ord'));
-// Dårlig præstation: mange fejl
+check('flyvende: stadig 5 opgaver', buildWordList(0, TASKS_PER_MISSION).length === TASKS_PER_MISSION);
+check('den adaptive note lover ikke flere ord', adaptiveNote().indexOf('flere ord') < 0, adaptiveNote());
+// Dårlig præstation maa heller ikke ændre antallet
 state.stats.history = [
   { stars: 1, wrong: ['a','b','c','d'], total: 8 }, { stars: 1, wrong: ['a','b','c'], total: 8 }
 ];
-check('kæmper → -2 ord', adaptiveWordCount(8) === 6, adaptiveWordCount(8));
-check('adaptiv note støttende', adaptiveNote().includes('færre ord'));
-state.stats.history = [{ stars: 2, wrong: ['a'], total: 8 }, { stars: 2, wrong: ['a'], total: 8 }];
-check('mellem → basis', adaptiveWordCount(8) === 8, adaptiveWordCount(8));
-check('adaptiv note tom i midten', adaptiveNote() === '');
+check('kæmper: stadig 5 opgaver', buildWordList(0, TASKS_PER_MISSION).length === TASKS_PER_MISSION);
+check('den adaptive note lover ikke færre ord', adaptiveNote().indexOf('færre ord') < 0, adaptiveNote());
+// Noten skal i stedet sige hvad der ER tilpasset: de svære ord kommer igen
+state.stats.words['hvad'] = { tries: 6, wrong: 3 };
+state.stats.words['hvor'] = { tries: 6, wrong: 3 };
+state.wrong = { hvad: 2, hvor: 2 };
+check('noten peger på de svære ord der kommer igen', adaptiveNote().indexOf('kommer igen') >= 0, adaptiveNote());
 
 // ===== 7) SMART REVIEW: svage mønster-ord prioriteres =====
 resetState();
