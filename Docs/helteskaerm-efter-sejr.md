@@ -65,3 +65,35 @@ Ny pakke `tests/ordj_helteflow.js`:
 7. CSS'en indeholder reduced-motion-guarden for den nye glød.
 
 Alle syv efterprøves med mutationer (bryd koden, se testen fejle, genskab).
+
+## 4. GENVEJ TIL VERDENERNE (Kenneth 18. sep, efter Robins spil)
+
+Kenneth: *"Når Robin har været i helte skærmen går han helt ude i hovede menuen og derved ind
+i verden igen. Der skal være en genvej fra Helteskærm og tilbage til verdernerne."*
+
+**Hvad der faktisk skete.** Der VAR en udgang — `← Tilbage til kortet` — men den står i
+BUNDEN af helteskærmen, og skærmen er lang (helt, kube, gear, rygsæk, skatte-tavle,
+talent-træ, bedrifter). Robin fandt den ikke, brugte i stedet **🏠 Hjem** i HUD'en (som findes
+på alle skærme) og landede i hovedmenuen — hvorfra han måtte vælge verden forfra. Udgangen var
+altså ikke væk; den var **gemt under indholdet**.
+
+**Løsningen.** En genvej i **toppen** af helteskærmen, lige under overskriften, hvor den er
+synlig uden at scrolle:
+
+```
+⚔️ Din ordjæger-helt
+[ 🗺️ Til verdenerne ]
+```
+
+Den fører til **den verden man kom fra** (`showWorld(cur.world)`), hvis man kom fra en verden
+eller en mission — ellers til verdenskortet. Helteskærmen husker hvor den blev åbnet
+(`heroFra`), samme mønster som statistik-skærmen: "tilbage" betyder *tilbage til der hvor du
+var*, aldrig "ud i hovedmenuen igen". Den gamle `← Tilbage til kortet` i bunden står uændret.
+
+**Testene.** 6 kontroller i `tests/ordj_helteflow.js`: genvejen findes · den står FØR det
+lange indhold i markup (ellers er den lige så gemt som den gamle) · kom man fra en verden,
+fører den til DEN verden (spion på `showWorld`: rigtigt indeks) · kom man fra
+startskærmen/kortet, fører den til kortet · uden kendt oprindelse går den til kortet ·
+etiketten er kort nok til et barn.
+Mutationer bevist fanget: genvejen fjernet · genvejen flyttet ned under indholdet · den går
+altid til kortet · den går altid til `showWorld(0)`.

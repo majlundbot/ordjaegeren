@@ -371,6 +371,11 @@
   }
   /* KLASSE-VALG (Diablo-stil) — skal ligne store klikbare helt-kort */
   .class-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
+  /* GENVEJ TIL VERDENERNE (Kenneth 18. sep, efter Robins spil): udgangen fra helteskaermen
+     laa i BUNDEN af en lang skaerm, saa Robin brugte 🏠 Hjem i stedet og endte i hovedmenuen.
+     Nu staar der en genvej i TOPPEN, synlig uden at scrolle. */
+  .hero-top-row { display: flex; gap: 10px; justify-content: center; margin: 2px 0 10px; }
+  .hero-top-row .btn { flex: 0 1 auto; white-space: nowrap; }
   .oneliner { font-weight: 900; font-size: clamp(16px,4.4vw,20px); color: #ffd76a;
     letter-spacing: .4px; margin: 8px 0 2px; text-shadow: 0 2px 10px rgba(255,215,106,.25); }
   .class-card {
@@ -1751,6 +1756,11 @@
 <div class="screen tall" id="screen-hero">
   <div class="panel" style="max-width:660px">
     <h2>⚔️ Din ordjæger-helt</h2>
+    <!-- Udgangen i top: tilbage til den verden man kom fra (ellers verdenskortet).
+         Den gamle "Tilbage til kortet" i bunden staar uændret. -->
+    <div class="hero-top-row">
+      <button class="btn ghost" onclick="lukHero()">🗺️ Til verdenerne</button>
+    </div>
     <div class="hero-welcome hidden" id="heroWelcome"></div>
     <div class="hero-wrap">
       <div class="hero-fig">
@@ -3382,8 +3392,15 @@ function renderSlotPanel() {
     ? "Det du har på, ryger automatisk tilbage i tasken."
     : "Vælg et item — eller fuldfør missioner for at finde et.";
 }
-function showHero() {
+// Hvor helteskaermen blev aabnet fra. Uden det forte "tilbage" til kortet — eller til
+// hovedmenuen — selv om barnet kom fra en verden. Samme moenster som statistik-skaermen.
+let heroFra = "";
+function aktivSkaermId() {
+  try { const el = document.querySelector(".screen.active"); return el ? el.id : ""; } catch (e) { return ""; }
+}
+function showHero(fra) {
   sfxClick();
+  heroFra = fra || aktivSkaermId();
   heroWelcomeHide();   // banneret hører kun til sejrs-flowet
   closeSlotPanel();
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -4048,6 +4065,19 @@ function arenaQuake(big) {
 }
 
 /* ============ NAVIGATION ============ */
+// Genvejen i toppen af helteskaermen: tilbage til DEN VERDEN man kom fra (og til den
+// mission man var i gang med), ellers til verdenskortet. Aldrig ud i hovedmenuen.
+const HERO_FRA_MISSION = ["screen-world", "screen-boss", "screen-hear", "screen-type",
+                          "screen-fill", "screen-read", "screen-result", "screen-collect", "screen-lesson"];
+function lukHero() {
+  sfxClick();
+  const fraVerden = HERO_FRA_MISSION.indexOf(heroFra) > -1;
+  if (fraVerden && typeof cur !== "undefined" && cur && typeof cur.world === "number" && cur.world >= 0) {
+    showWorld(cur.world);
+  } else {
+    showWorldMap();
+  }
+}
 function goHome() {
   stopAudio();
   sfxClick();

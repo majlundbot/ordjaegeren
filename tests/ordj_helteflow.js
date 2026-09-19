@@ -127,6 +127,61 @@ const html2 = global.__html || '';
 });
 
 global.setTimeout = _st;
+/* ============ GENVEJ TIL VERDENERNE (Kenneth 18. sep, efter Robins spil) ============
+   "Når Robin har været i helte skærmen går han helt ude i hovede menuen og derved ind i
+    verden igen. Der skal være en genvej fra Helteskærm og tilbage til verdernerne."
+   Udgangen FANDTES — men i bunden af en lang skærm, så Robin brugte 🏠 Hjem i stedet og
+   endte i hovedmenuen. Testene her fanger BÅDE at genvejen findes og at den ligger i toppen,
+   og at den fører tilbage til DEN verden man kom fra. */
+console.log('--- Genvej til verdenerne ---');
+
+check('helteskærmen har en genvej i toppen (Til verdenerne)', global.__html.includes('onclick="lukHero()"'),
+  'genvejen mangler i markup');
+const hIHero = global.__html.slice(global.__html.indexOf('id="screen-hero"'),
+                                  global.__html.indexOf('id="screen-achieve"'));
+const iGenvej = hIHero.indexOf('onclick="lukHero()"');
+const iLangtIndhold = hIHero.indexOf('Udstyret gear');
+check('genvejen staar FOER det lange indhold (ellers er den lige så gemt som den gamle)',
+  iGenvej > -1 && iLangtIndhold > -1 && iGenvej < iLangtIndhold, 'genvej@' + iGenvej + ' indhold@' + iLangtIndhold);
+const iOverskrift = hIHero.indexOf('Din ordjæger-helt');
+check('genvejen staar lige under overskriften', iOverskrift > -1 && iGenvej - iOverskrift < 400,
+  'afstand=' + (iGenvej - iOverskrift));
+check('etiketten er kort nok til et barn (hoejst 20 tegn)',
+  /Til verdenerne/.test(global.__html) && 'Til verdenerne'.length <= 20);
+
+// --- hvor FOERER den hen? Spioner på begge destinationer ---
+{
+  const gammelWorld = showWorld, gammelKort = showWorldMap;
+  const kaldt = [];
+  showWorld = i => kaldt.push('verden:' + i);
+  showWorldMap = () => kaldt.push('kort');
+  try {
+    // 1) kommet fra verden 6 (0-baseret indeks 6 = Verden 7)
+    cur.world = 6;
+    showHero('screen-world');
+    lukHero();
+    check('kom man fra en verden, foerer genvejen til DEN verden (indeks 6)',
+      kaldt.length === 1 && kaldt[0] === 'verden:6', kaldt.join(',')); 
+    // 2) kommet fra en mission i verden 2
+    kaldt.length = 0; cur.world = 2;
+    showHero('screen-boss'); lukHero();
+    check('kom man fra en mission, foerer genvejen til den verden missionen var i',
+      kaldt[0] === 'verden:2', kaldt.join(','));
+    // 3) kommet fra startskærmen
+    kaldt.length = 0;
+    showHero('screen-start'); lukHero();
+    check('kom man fra startskærmen, foerer genvejen til verdenskortet', kaldt[0] === 'kort', kaldt.join(','));
+    // 4) ukendt oprindelse (fx HUD-knappen uden kendt skaerm): kortet
+    kaldt.length = 0;
+    showHero(); lukHero();
+    check('uden kendt oprindelse foerer genvejen til verdenskortet', kaldt[0] === 'kort', kaldt.join(','));
+    // 5) den gamle udgang i bunden virker stadig
+    kaldt.length = 0;
+    showWorldMap();
+    check('den gamle udgang i bunden (Tilbage til kortet) er uændret', kaldt[0] === 'kort', kaldt.join(','));
+  } finally { showWorld = gammelWorld; showWorldMap = gammelKort; }
+}
+
 `;
 new Function(src.replace('const cv = document.getElementById("bg")', 'var cv = fakeCanvas') + '\n' + t)();
 
