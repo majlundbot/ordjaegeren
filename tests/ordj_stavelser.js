@@ -150,36 +150,52 @@ check('blokken er selvstaendig: label + egen raekke + tip',
   demo.includes('class="syl-label"') && demo.includes('class="syl-row"') && demo.includes('class="syl-tip"'));
 
 console.log('--- 5. Alle TRE fejl-tilbagemeldinger bruger blokken ---');
-const SRC_LINES = SRC.split("\\n");
-function lineWith(needle, also) {
-  const l = SRC_LINES.filter(x => x.indexOf(needle) >= 0 && (!also || x.indexOf(also) >= 0));
-  return l.length ? l[0] : "";
+// KRAVET OM RIGTIGT SVAR (Kenneth 18. sep): fejl-tilbagemeldingen skrives nu gennem den
+// faelles funktion kraevRigtigt() for Hoer & Slaa og Fang ordet. Kontrollerne kigger derfor
+// paa FUNKTIONSKROPPENE — samme loefte som foer: barnet skal have baade det rigtige ord OG
+// opdelingen, og kravet om at svare rigtigt skal staa FOERST.
+function krop(navn) {
+  const i = SRC.indexOf("function " + navn + "(");
+  if (i < 0) return "";
+  let d = 0, j = i;
+  for (; j < SRC.length; j++) {
+    if (SRC[j] === "{") d++;
+    else if (SRC[j] === "}") { d--; if (d === 0) break; }
+  }
+  return SRC.slice(i, j + 1);
 }
-const hearLine = lineWith('hearStatus").innerHTML =', "big-red");
-const typeLine = lineWith('typeStatus").innerHTML =', "big-red");
-const fillLine = lineWith('fillStatus").innerHTML =', "big-red");
-const hintLine  = lineWith('typeHint").innerHTML =', "syllableFeedbackHtml");
-check('Hør & Slå bruger blokken', hearLine.indexOf("syllableFeedbackHtml(word)") >= 0, hearLine.slice(0, 110));
-check('Fang ordet bruger blokken i status', typeLine.indexOf("syllableFeedbackHtml(word)") >= 0, typeLine.slice(0, 110));
+const kraevKrop = krop("kraevRigtigt");
+const typeKrop = krop("typeSubmit");
+const fillKrop = krop("answerFill");
+const readKrop = krop("answerRead");
+
+check('Hør & Slå bruger stavelses-blokken (gennem kraevRigtigt)',
+  kraevKrop.indexOf("syllableFeedbackHtml(ord)") >= 0 && kraevKrop.indexOf("big-red") >= 0);
+check('Fang ordet bruger stavelses-blokken i status (gennem kraevRigtigt)',
+  typeKrop.indexOf('kraevRigtigt("typeStatus"') >= 0 && kraevKrop.indexOf("syllableFeedbackHtml(ord)") >= 0);
 check('Fang ordet bruger blokken i hint (ikke den gamle inline form)',
-  hintLine.indexOf("syllableFeedbackHtml(word)") >= 0 && hintLine.indexOf("syllables") < 0, hintLine.slice(0, 110));
-check('Sætnings-gåden bruger blokken', fillLine.indexOf("syllableFeedbackHtml(word)") >= 0, fillLine.slice(0, 110));
+  typeKrop.indexOf("syllableFeedbackHtml(word)") >= 0 && typeKrop.indexOf("syllables") < 0);
+check('Sætnings-gåden bruger blokken',
+  fillKrop.indexOf("syllableFeedbackHtml(word)") >= 0, fillKrop.slice(0, 120));
+check('Hør & Slå og Fang ordet melder fejlen gennem kraevRigtigt (ét sted at rette)',
+  SRC.indexOf('kraevRigtigt("hearStatus"') >= 0 && SRC.indexOf('kraevRigtigt("typeStatus"') >= 0);
 check('den gamle inline .syllables-form er helt væk fra fejl-tilbagemeldingerne',
   SRC.indexOf("class='syllables'") < 0, SRC.indexOf("class='syllables'"));
-check('Forstå det! er urørt (ingen stavelses-blok der — opgaven er laesning)',
-  lineWith('readStatus").innerHTML =').indexOf("syllableFeedbackHtml") < 0);
+check('Forstå det! er urørt (ingen stavelses-blok der — opgaven er læsning)',
+  readKrop.indexOf("syllableFeedbackHtml") < 0 && readKrop.indexOf("readExplain") >= 0);
 
 console.log('--- 6. Den ÆGTE fejl kan ikke komme tilbage ---');
-const redLines = SRC_LINES.filter(l => l.indexOf('big-red\\'>" + word') >= 0);
-const blockLines = SRC_LINES.filter(l => l.indexOf("syllableFeedbackHtml(word)") >= 0);
-check('alle ' + redLines.length + ' roede fejl-steder har stavelses-blokken (blok-linjer: ' + blockLines.length + ')',
-  redLines.length === 3 && blockLines.length >= 3, 'roede: ' + redLines.length + ', blokke: ' + blockLines.length);
-redLines.forEach(l => {
-  check('fejl-sted "' + l.trim().slice(0, 34) + '…" har BADE ordet og opdelingen',
-    l.indexOf('big-red') >= 0 && l.indexOf("syllableFeedbackHtml(word)") >= 0);
-  check('  ...og opdelingen staar EFTER ordet',
-    l.indexOf('big-red') < l.indexOf("syllableFeedbackHtml(word)"));
+// Ethvert sted der skriver det rigtige ord i roedt skal OGSAA vise opdelingen — og
+// opdelingen skal staa EFTER ordet (barnet laeser ordet foerst, hjaelpen bagefter).
+[['fejl-tilbagemeldingen (kraevRigtigt)', kraevKrop], ['Sætnings-gåden (answerFill)', fillKrop]].forEach(function(par) {
+  const navn = par[0], k = par[1];
+  check(navn + ': har BÅDE det rigtige ord i rødt og opdelingen',
+    k.indexOf("big-red") >= 0 && k.indexOf("syllableFeedbackHtml") >= 0);
+  check(navn + ': opdelingen staar EFTER ordet',
+    k.indexOf("big-red") < k.indexOf("syllableFeedbackHtml"));
 });
+check('kravet om at svare rigtigt staar FOERST i fejl-tilbagemeldingen',
+  kraevKrop.indexOf("fix-krav") >= 0 && kraevKrop.indexOf("fix-krav") < kraevKrop.indexOf("big-red"));
 
 console.log('--- 7. Ipad-bredde (820 px): raekken maa ikke klippes ---');
 const nParts = syllabify('fodbold').length;

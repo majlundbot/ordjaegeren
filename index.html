@@ -374,6 +374,12 @@
   /* GENVEJ TIL VERDENERNE (Kenneth 18. sep, efter Robins spil): udgangen fra helteskaermen
      laa i BUNDEN af en lang skaerm, saa Robin brugte 🏠 Hjem i stedet og endte i hovedmenuen.
      Nu staar der en genvej i TOPPEN, synlig uden at scrolle. */
+  /* KRAV OM RIGTIGT SVAR (Kenneth 18. sep): efter et forkert svar springer runden IKKE
+     videre af sig selv — barnet skal give det rigtige svar. Linjen her siger hvad der skal
+     goeres, saa kravet ikke bare foeles som en laast skaerm. */
+  .fix-krav { display: inline-block; margin-top: 7px; font-weight: 800; color: #ffd76a;
+    background: rgba(255,215,106,.12); border: 1px solid rgba(255,215,106,.4);
+    border-radius: 10px; padding: 4px 10px; }
   .hero-top-row { display: flex; gap: 10px; justify-content: center; margin: 2px 0 10px; }
   .hero-top-row .btn { flex: 0 1 auto; white-space: nowrap; }
   .oneliner { font-weight: 900; font-size: clamp(16px,4.4vw,20px); color: #ffd76a;
@@ -3876,6 +3882,10 @@ function playSentenceAudio(word, onend) {
    konsonantramme (kat, sol, mor) og kører som før: ordet først, så sætningen. */
 const LYD_KORT_ORD = 2;   // ord på højst så mange bogstaver får sætningen først
 function playWordAndSentence(word, onend) {
+  // DEFENSIVT: et ord kan mangle hvis en planlagt afspilning fyrer EFTER runden er skiftet
+  // (fx et setTimeout der blev sat i gang inden barnet gik videre). Uden denne vagt kastede
+  // kæden og kunne tage resten af spillet med sig.
+  if (typeof word !== "string" || !word.length) { if (typeof onend === "function") onend(); return; }
   _clearPlayback();                      // stands alt der kører — og ugyldiggør den forrige kæde
   const myGen = audioGen;                // denne kæde ejer lyden nu
   const ord = (cb) => _playClip("audio/v2/words/" + encodeURIComponent(word) + ".mp3", word, cb, false);
@@ -6382,10 +6392,13 @@ function distractors(word, n) {
   return shuffle([word].concat(others));
 }
 
+// Hvor mange opgaver en mission indeholder (Kenneth 18. sep: 5, så man hurtigere når
+// bossen). Læses af startGame, så der er ÉT sted at ændre tallet.
+const TASKS_PER_MISSION = 5;
 function startGame(worldIdx, game) {
   stopAudio();
   sfxClick();
-  cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.wrongWords = []; cur.drill = null; cur.readTasks = null;
+  cur.world = worldIdx; cur.game = game; cur.idx = 0; cur.errors = 0; cur.answered = false; cur.fix = false; cur.wrongWords = []; cur.drill = null; cur.readTasks = null;
   if (game === "read") {
     /* FORSTÅ DET!: runden er verdens LÆSE-opgaver — ikke en ordliste, som de tre
        andre missioner bruger. Hver opgave har ét ord fra verdenen (t.ord), og dem
@@ -6396,8 +6409,11 @@ function startGame(worldIdx, game) {
     cur.readTasks = tasks;
     cur.words = tasks.map(t => t.ord);
   } else {
-    // ADAPTIV: antal ord tilpasses hvor godt det går (flere når det flyver, færre når det er tungt)
-    const base = game === "hear" ? 8 : 6;
+    // ADAPTIV: antal ord tilpasses hvor godt det går (flere når det flyver, færre når det er tungt).
+    // KORTERE MISSIONER (Kenneth 18. sep, efter Robins spil): "I stedet for 10 opgave skal
+    // det være 5 så man hurtigere kommer til bossen." Runden er nu 5 ord (4-7 efter hvor
+    // godt det går) — og den kan kun afsluttes ved at svare rigtigt (se kraevRigtigt).
+    const base = TASKS_PER_MISSION;
     cur.words = buildWordList(worldIdx, adaptiveWordCount(base));
   }
   cur.patternMisses = {}; // nulstil mønster-tæller for denne mission
@@ -7193,7 +7209,7 @@ function finishGame() {
 /* ============ HEAR & HIT ============ */
 let hearTimer = null;
 function renderHear() {
-  cur.answered = false;
+  cur.answered = false; cur.fix = false;
   const word = cur.words[cur.idx];
   document.getElementById("hearWord").textContent = "???";
   document.getElementById("hearStatus").textContent = "Tryk på højttaleren — du hører ordet OG en sætning 👂";
@@ -7210,30 +7226,58 @@ function renderHear() {
   setTimeout(() => speakNow(), 350);
 }
 function speakNow() {
-  const word = cur.words[cur.idx];
+  const word = cur.words && cur.words[cur.idx];
+  if (typeof word !== "string" || !word.length) return;   // runden er skiftet — der er intet at sige
   const btn = document.getElementById("hearSpeak");
   btn.classList.add("speaking");
   // Ord siges først alene, derefter i en sætning — ellers kan det være svært at høre ordet
   playWordAndSentence(word, () => btn.classList.remove("speaking"));
 }
+/* KRAVET OM RIGTIGT SVAR (Kenneth 18. sep, efter Robins spil): "man skal trykke eller
+   skrive det rigtige ord så man ikke kan snyde." Robin svarede bevidst forkert for hurtigt
+   at komme til bossen — runden sprang selv videre efter et forkert svar.
+   Nu gælder: et forkert svar LÅSER runden. Det rigtige svar vises (så man ikke kan gå i stå),
+   men barnet skal selv trykke på det for at komme videre. XP gives kun for første forsøg —
+   man kan ikke svare forkert for at se svaret og så få belønningen. */
+function kraevRigtigt(statusId, ord, hvad) {
+  // KRAVET STAAR FOERST. Stavelses-hjaelpen er lang, og staar kravet nedenunder, skubber
+  // hjaelpen det ud af skaermen — saa barnet ser ikke hvad det skal goere (maalt i browser:
+  // kravet laa under skaermkanten paa 820x1180). Det skal kunne ses med det samme.
+  document.getElementById(statusId).innerHTML =
+    "<span class='fix-krav'>" + hvad + "</span><br>" +
+    "Det rigtige ord var: <span class='big-red'>" + ord + "</span>" +
+    syllableFeedbackHtml(ord) + patternHintFor(ord);
+}
 function answerHear(picked, word, btn) {
   if (cur.answered) return;
-  cur.answered = true;
+  const foersteForsoeg = !cur.fix;
   if (picked === word) {
+    cur.answered = true;
+    btn.classList.remove("wrong");
     btn.classList.add("correct"); sfxRight(); markRight(word);
-    // XP FLYVER OP FRA ORDET: så barnet ser HVORFOR det fik noget (samme princip som
-    // skade-tallet i kampen). Se Docs/xp-og-levels.md.
-    xpFlyFrom(btn, XP_PER_ANSWER);
-    document.getElementById("hearStatus").textContent = "✔️ " + word;
+    if (foersteForsoeg) {
+      // XP FLYVER OP FRA ORDET: så barnet ser HVORFOR det fik noget (samme princip som
+      // skade-tallet i kampen). Se Docs/xp-og-levels.md.
+      xpFlyFrom(btn, XP_PER_ANSWER);
+      document.getElementById("hearStatus").textContent = "✔️ " + word;
+    } else {
+      document.getElementById("hearStatus").innerHTML = "✔️ Nu var det rigtigt: <span class='big-green'>" + word + "</span>";
+    }
+    setTimeout(nextHear, 1100);
   } else {
-    btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
+    btn.classList.add("wrong"); sfxWrong();
+    if (foersteForsoeg) { cur.errors++; cur.wrongWords.push(word); markWrong(word); }
+    cur.fix = true;                       // runden er LÅST til det rigtige ord er trykket
     const correctBtn = [...document.querySelectorAll("#hearChoices .choice")].find(b => b.textContent === word);
-    if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
-    document.getElementById("hearStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span>" + syllableFeedbackHtml(word) + patternHintFor(word);
+    if (correctBtn) correctBtn.classList.add("reveal");   // viser HVOR — men barnet skal selv trykke
+    kraevRigtigt("hearStatus", word, "👆 Tryk på det rigtige ord for at komme videre");
   }
-  setTimeout(nextHear, 1100);
 }
 function nextHear() {
+  // LAAS (Kenneth 18. sep): runden kan IKKE skifte foer det rigtige ord er givet. Vagen
+  // ligger her — ikke kun i svar-funktionen — saa en gammel timer eller et dobbeltkald
+  // heller ikke kan springe et ord over.
+  if (cur.fix && !cur.answered) return;
   cur.idx++;
   if (cur.idx >= cur.words.length) { finishGame(); return; }
   renderHear();
@@ -7242,7 +7286,11 @@ function nextHear() {
 
 /* ============ TYPE IT ============ */
 function renderType() {
-  cur.answered = false;
+  cur.answered = false; cur.fix = false;
+  // Knappen starter som "Tjek svar ✓" for hvert nyt ord (efter et rigtigt svar skifter den
+  // til "Næste →", og uden denne linje ville den blive hængende sådan).
+  const tn = document.getElementById("typeNext");
+  if (tn) { tn.textContent = "Tjek svar ✓"; tn.onclick = typeSubmit; }
   const word = cur.words[cur.idx];
   const sentence = WORDS[word];
   // Sætning med tydeligt hul i stedet for ordet — så man ved præcis HVAD man leder efter
@@ -7259,24 +7307,38 @@ function renderType() {
 }
 function typeSubmit() {
   if (cur.answered) return;
-  cur.answered = true;
   const word = cur.words[cur.idx];
   const inp = document.getElementById("typeInput");
   const val = inp.value.trim().toLowerCase();
+  const foersteForsoeg = !cur.fix;
+  const knap = document.getElementById("typeNext");
   if (val === word) {
+    cur.answered = true;
+    inp.classList.remove("wrong");
     inp.classList.add("correct"); sfxRight(); markRight(word);
-    xpFlyFrom(inp, XP_PER_ANSWER);   // XP flyver op fra feltet — se Docs/xp-og-levels.md
-    document.getElementById("typeStatus").innerHTML = "✔️ Rigtigt: <span class='big-green'>" + word + "</span>";
+    if (foersteForsoeg) {
+      xpFlyFrom(inp, XP_PER_ANSWER);   // XP flyver op fra feltet — se Docs/xp-og-levels.md
+      document.getElementById("typeStatus").innerHTML = "✔️ Rigtigt: <span class='big-green'>" + word + "</span>";
+    } else {
+      document.getElementById("typeStatus").innerHTML = "✔️ Nu var det rigtigt: <span class='big-green'>" + word + "</span> — godt gået!";
+    }
+    knap.textContent = "Næste →";
+    knap.onclick = () => nextType();
   } else {
-    inp.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
-    document.getElementById("typeStatus").innerHTML = "Det rigtige ord var: <span class='big-red'>" + word + "</span>" + syllableFeedbackHtml(word) + patternHintFor(word);
+    inp.classList.add("wrong"); sfxWrong();
+    if (foersteForsoeg) { cur.errors++; cur.wrongWords.push(word); markWrong(word); }
+    cur.fix = true;                       // LÅST: man skal selv skrive ordet rigtigt
     // typeHint får HELE blokken (ordet stod allerede i statuslinjen ovenfor)
     document.getElementById("typeHint").innerHTML = syllableFeedbackHtml(word);
+    kraevRigtigt("typeStatus", word, "✍️ Skriv det rigtige ord for at komme videre");
+    inp.value = "";                       // feltet ryddes — ordet skal skrives, ikke kopieres
+    try { inp.focus(); } catch (e) {}
+    knap.textContent = "Tjek svar ✓";
+    knap.onclick = typeSubmit;
   }
-  document.getElementById("typeNext").textContent = "Næste →";
-  document.getElementById("typeNext").onclick = () => { document.getElementById("typeNext").textContent = "Tjek svar ✓"; document.getElementById("typeNext").onclick = typeSubmit; nextType(); };
 }
 function nextType() {
+  if (cur.fix && !cur.answered) return;   // LAAS: se nextHear
   cur.idx++;
   if (cur.idx >= cur.words.length) { finishGame(); return; }
   renderType();
@@ -7286,7 +7348,7 @@ document.getElementById("typeInput").addEventListener("keydown", e => { if (e.ke
 
 /* ============ SENTENCE FILL ============ */
 function renderFill() {
-  cur.answered = false;
+  cur.answered = false; cur.fix = false;
   const word = cur.words[cur.idx];
   const sentence = WORDS[word];
   // Unicode-sikker ordgrænse: \b er ikke bevidst om æøå i JS, så brug lookaround med \p{L}
@@ -7311,20 +7373,32 @@ function speakSentence() {
 }
 function answerFill(picked, word, btn) {
   if (cur.answered) return;
-  cur.answered = true;
+  const foersteForsoeg = !cur.fix;
   if (picked === word) {
+    cur.answered = true;
+    btn.classList.remove("wrong");
     btn.classList.add("correct"); sfxRight(); markRight(word);
-    xpFlyFrom(btn, XP_PER_ANSWER);   // XP flyver op fra knappen — se Docs/xp-og-levels.md
-    document.getElementById("fillStatus").textContent = "✔️ " + WORDS[word];
+    if (foersteForsoeg) {
+      xpFlyFrom(btn, XP_PER_ANSWER);   // XP flyver op fra knappen — se Docs/xp-og-levels.md
+      document.getElementById("fillStatus").textContent = "✔️ " + WORDS[word];
+    } else {
+      document.getElementById("fillStatus").innerHTML = "✔️ Nu var det rigtigt: <span class='big-green'>" + word + "</span> — " + WORDS[word];
+    }
+    setTimeout(nextFill, 1200);
   } else {
-    btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
+    btn.classList.add("wrong"); sfxWrong();
+    if (foersteForsoeg) { cur.errors++; cur.wrongWords.push(word); markWrong(word); }
+    cur.fix = true;                       // LÅST til det rigtige ord er trykket
     const correctBtn = [...document.querySelectorAll("#fillChoices .choice")].find(b => b.textContent === word);
-    if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
-    document.getElementById("fillStatus").innerHTML = "Rigtige ord: <span class='big-red'>" + word + "</span>" + syllableFeedbackHtml(word) + " — " + WORDS[word] + patternHintFor(word);
+    if (correctBtn) correctBtn.classList.add("reveal");
+    document.getElementById("fillStatus").innerHTML =
+      "<span class='fix-krav'>👆 Tryk på det rigtige ord for at komme videre</span><br>" +
+      "Rigtige ord: <span class='big-red'>" + word + "</span>" + syllableFeedbackHtml(word) +
+      " — " + WORDS[word] + patternHintFor(word);
   }
-  setTimeout(nextFill, 1200);
 }
 function nextFill() {
+  if (cur.fix && !cur.answered) return;   // LAAS: se nextHear
   cur.idx++;
   if (cur.idx >= cur.words.length) { finishGame(); return; }
   renderFill();
@@ -7354,7 +7428,7 @@ const READ_LEVELS = {
 // Svarmulighederne i tilfældig rækkefølge — det rigtige svar ligger aldrig fast på samme plads
 function readOptions(t) { return shuffle([t.svar].concat(t.forkert)); }
 function renderRead() {
-  cur.answered = false;
+  cur.answered = false; cur.fix = false;
   const t = cur.readTasks[cur.idx];
   const lv = READ_LEVELS[t.lv] || READ_LEVELS.find;
   document.getElementById("readLevel").innerHTML =
@@ -7414,21 +7488,28 @@ function readRos(t) {
 }
 function answerRead(picked, t, btn) {
   if (cur.answered) return;
-  cur.answered = true;
+  const foersteForsoeg = !cur.fix;
   const word = t.ord;
   if (picked === t.svar) {
+    cur.answered = true;
+    btn.classList.remove("wrong");
     btn.classList.add("correct"); sfxRight(); markRight(word);
-    document.getElementById("readStatus").textContent = "✔️ Rigtigt! " + readRos(t);
+    document.getElementById("readStatus").textContent =
+      (foersteForsoeg ? "✔️ Rigtigt! " : "✔️ Nu var det rigtigt! ") + readRos(t);
+    setTimeout(nextRead, 1700);
   } else {
-    btn.classList.add("wrong"); sfxWrong(); cur.errors++; cur.wrongWords.push(word); markWrong(word);
+    btn.classList.add("wrong"); sfxWrong();
+    if (foersteForsoeg) { cur.errors++; cur.wrongWords.push(word); markWrong(word); }
+    cur.fix = true;                       // LÅST til det rigtige svar er trykket
     const correctBtn = [...document.querySelectorAll("#readChoices .choice")].find(b => b.textContent === t.svar);
-    if (correctBtn) { correctBtn.classList.add("reveal"); correctBtn.classList.add("correct"); }
+    if (correctBtn) correctBtn.classList.add("reveal");
     document.getElementById("readStatus").innerHTML =
+      "<span class='fix-krav'>👆 Tryk på det rigtige svar for at komme videre</span><br>" +
       "Det rigtige svar er: <span class='big-red'>" + t.svar + "</span><br><span class='read-self'>" + readExplain(t) + "</span>";
   }
-  setTimeout(nextRead, 1700);
 }
 function nextRead() {
+  if (cur.fix && !cur.answered) return;   // LAAS: se nextHear
   cur.idx++;
   if (cur.idx >= cur.readTasks.length) { finishGame(); return; }
   renderRead();

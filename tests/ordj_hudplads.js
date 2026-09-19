@@ -148,8 +148,39 @@ setTimeout(function(){
   } catch(e) { var p = document.createElement('pre'); p.id = 'probestart'; p.textContent = 'FEJL: ' + e.message; document.body.appendChild(p); }
 }, 900);
 </script>`;
+  /* Svarer forkert med vilje og rapporterer om KRAVET om at svare rigtigt kan SES. */
+  const kraevProbe = `<script>
+setTimeout(function(){
+  try {
+    startGame(0, 'hear');
+    var ord = cur.words[cur.idx];
+    var b = document.querySelectorAll('#hearChoices .choice');
+    for (var i = 0; i < b.length; i++) { if (b[i].textContent !== ord) { b[i].click(); break; } }
+    setTimeout(function(){
+      var el = document.querySelector('.fix-krav');
+      var r = el ? el.getBoundingClientRect() : null;
+      var p = document.createElement('pre'); p.id = 'probekrav';
+      p.textContent = JSON.stringify({
+        findes: !!el,
+        tekst: el ? el.textContent.trim() : '',
+        top: r ? Math.round(r.top) : -1,
+        bund: r ? Math.round(r.bottom) : -1,
+        hoejde: r ? Math.round(r.height) : -1,
+        vindue: window.innerHeight,
+        kanSes: !!el && r.top >= 0 && r.bottom <= window.innerHeight,
+        naesteOrd: (function(){ nextHear(); return cur.idx; })()
+      });
+      document.body.appendChild(p);
+    }, 700);
+  } catch(e) { var p = document.createElement('pre'); p.id = 'probekrav'; p.textContent = 'FEJL: ' + e.message; document.body.appendChild(p); }
+}, 700);
+</script>`;
   const kopi = path.join(os.tmpdir(), 'ordj_layout_probe.html');
+  // To separate sider: kraev-proben STARTER ET SPIL (så startskærmen ikke er aktiv), og må
+  // derfor ikke dele side med start-skærm-målingen — ellers måler den ingenting.
+  const kraevKopi = path.join(os.tmpdir(), 'ordj_kraev_probe.html');
   fs.writeFileSync(kopi, html.replace('</body>', bagFill + probe + startProbe));
+  fs.writeFileSync(kraevKopi, html.replace('</body>', kraevProbe));
 
   const kør = (url) => {
     const res = spawnSync(chrome, ['--headless', '--disable-gpu', '--allow-file-access-from-files',
@@ -217,6 +248,31 @@ setTimeout(function(){
   linje(ingenOverlap && sammeLinje && alleIndenfor && storeNok && tætPaa,
     'BROWSER-MÅLING: skift-spiller og statistik staar pa samme linje, uden overlap, med luft og stor nok til en finger',
     detaljerStart.join(' · '));
+
+  /* ---- KRAVET OM RIGTIGT SVAR: kan barnet SE hvad det skal gøre, og kan runden snydes? ----
+     Kenneth 18. sep: "man skal trykke eller skrive det rigtige ord så man ikke kan snyde."
+     Her måles det i en rigtig browser på to skærmstørrelser: linjen med kravet skal være
+     SYNLIG (ikke skubbet under skærmkanten af stavelses-hjælpen), og et direkte kald til
+     nextHear må ikke kunne springe det ubesvarede ord over. */
+  const kørKrav = (stoerrelse) => {
+    const res = spawnSync(chrome, ['--headless', '--disable-gpu', '--allow-file-access-from-files',
+      '--window-size=' + stoerrelse, '--virtual-time-budget=6000', '--dump-dom', 'file://' + kraevKopi],
+      { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 });
+    const m = (res.stdout || '').match(/<pre id="probekrav">([\s\S]*?)<\/pre>/);
+    if (!m) return null;
+    const txt = m[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    try { return JSON.parse(txt); } catch (e) { return null; }
+  };
+  const kravMaal = ['820,1180', '390,844'].map(st => [st, kørKrav(st)]);
+  linje(kravMaal.every(([, j]) => j && j.findes && j.tekst.length > 10),
+    'BROWSER-MÅLING: et forkert svar viser HVAD barnet skal gøre (kravet om rigtigt svar)',
+    kravMaal.map(([st, j]) => st + ': ' + (j && j.findes ? j.tekst.slice(0, 40) : 'mangler')).join(' · '));
+  linje(kravMaal.every(([, j]) => j && j.kanSes),
+    'BROWSER-MÅLING: kravet kan SES uden at scrolle (bliver ikke skubbet ud af skærmen)',
+    kravMaal.filter(([, j]) => !j || !j.kanSes).map(([st, j]) => st + ': bund ' + (j ? j.bund : '?') + ' af ' + (j ? j.vindue : '?')).join(' · '));
+  linje(kravMaal.every(([, j]) => j && j.naesteOrd === 0),
+    'BROWSER-MÅLING: runden kan ikke springes over — direkte kald til nextHear holder på ordet',
+    kravMaal.map(([st, j]) => st + ': idx=' + (j ? j.naesteOrd : '?')).join(' · '));
 
   const j = kør('file://' + kopi + '?still=1&screen=hero');
   linje(!!j && j.navne >= 8, 'BROWSER-MÅLING: rygsæk/udstyr er fyldt med navne at måle på', j ? j.navne : 'ingen måling');
